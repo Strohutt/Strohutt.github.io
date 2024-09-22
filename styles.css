@@ -1,0 +1,281 @@
+/* Common Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: system-ui, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: #121212;
+    color: #ffffff;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 0;
+}
+
+
+.section {
+    width: 100%;
+    max-width: 800px;
+    margin: 20px 0;
+    padding: 20px;
+    background-color: #1e1e1e;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    z-index: 1;
+}
+
+
+.custom-profile {
+    margin-top: 50px;
+}
+
+.profile-header {
+    text-align: center;
+    color: white;
+}
+
+.custom-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin-bottom: 15px;
+    border: 3px solid #408378;
+    object-fit: cover;
+
+}
+
+.custom-status {
+    font-size: 1.2rem;
+    color: #aaaaaa;
+    margin-bottom: 10px;
+}
+
+.custom-links {
+    margin-top: 10px;
+}
+
+.custom-link {
+    text-decoration: none;
+    background-color: #333;
+    color: #ffffff;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin: 0 5px;
+    transition: background-color 0.3s ease;
+    display: inline-block;
+}
+
+.custom-link i {
+    margin-right: 5px;
+}
+
+.custom-link:hover {
+    background-color: #000000;
+
+}
+
+/* Discord Profile Bar Layout */
+.discord-profile-bar {
+    margin-top: 30px;
+    padding: 20px;
+}
+
+.discord-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #282828;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 700px;
+}
+
+
+.discord-avatar-container {
+    position: relative;
+    display: inline-block;
+}
+
+.discord-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 2px solid #000103;
+    object-fit: cover;
+
+}
+
+/* Discord Status Badge */
+.discord-status-badge {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #282828;
+
+}
+
+/* Status Colors */
+.status-online {
+    background-color: #43b581;
+
+}
+
+.status-idle {
+    background-color: #faa61a;
+
+}
+
+.status-dnd {
+    background-color: #f04747;
+
+}
+
+.status-offline {
+    background-color: #747f8d;
+
+}
+
+
+.discord-info {
+    flex: 1;
+    text-align: left;
+    margin-left: 15px;
+   
+}
+
+.discord-info h2 {
+    font-size: 1.4rem;
+    margin: 0;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.discord-info p {
+    font-size: 0.9rem;
+    color: #b9bbbe;
+    margin: 5px 0;
+}
+
+
+.activity-details {
+    display: flex;
+    align-items: center;
+    background-color: #333;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 480px;
+}
+
+.activity-icon {
+    width: 50px;
+    height: 50px;
+    margin-right: 15px;
+    border-radius: 8px;
+    object-fit: cover;
+
+}
+
+.activity-info {
+    text-align: left;
+    flex: 1;
+}
+
+.activity-info h3 {
+    font-size: 1.1rem;
+    margin: 0;
+    color: #ffffff;
+}
+
+.activity-info p {
+    font-size: 0.9rem;
+    color: #b9bbbe;
+    margin: 5px 0;
+}
+
+.elapsed-time {
+    font-size: 0.9rem;
+    color: #43b581;
+
+    margin-top: 5px;
+}
+
+
+.discord-profile-link {
+    text-decoration: none;
+    background-color: #7289da;
+
+    color: #ffffff;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.discord-profile-link:hover {
+    background-color: #4b5e94;
+
+}
+
+.additional-textbox-container {
+    position: relative;
+    margin-top: 30px;
+    padding: 20px;
+
+    background-color: #1e1e1e;
+
+    border-radius: 12px;
+
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+
+    width: 100%;
+    max-width: 800px;
+
+    margin-left: auto;
+    margin-right: auto;
+
+}
+
+
+.additional-textbox {
+    background-color: #282828;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    color: #ffffff;
+    padding: 20px;
+    width: 100%;
+    text-align: center;
+}
+
+
+.additional-textbox h3 {
+    color: #ffffff;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.additional-textbox p {
+    font-size: 1rem;
+    color: #b9bbbe;
+    line-height: 1.5;
+    text-align: center;
+}
+
