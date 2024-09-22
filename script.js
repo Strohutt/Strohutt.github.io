@@ -1,10 +1,92 @@
-window.onload = function() {
-    // Initialize particles.js for background
-    particlesJS.load('particles-js', 'particles.json', function() {
-        console.log('particles.js config loaded');
-    });
+// Initialize particles.js for background
+particlesJS('particles-js', {
+  "particles": {
+    "number": {
+      "value": 80,
+      "density": {
+        "enable": true,
+        "value_area": 800
+      }
+    },
+    "color": {
+      "value": "#ffffff"
+    },
+    "shape": {
+      "type": "circle",
+      "stroke": {
+        "width": 0,
+        "color": "#000000"
+      }
+    },
+    "opacity": {
+      "value": 0.5,
+      "random": false
+    },
+    "size": {
+      "value": 3,
+      "random": true
+    },
+    "line_linked": {
+      "enable": true,
+      "distance": 150,
+      "color": "#ffffff",
+      "opacity": 0.4,
+      "width": 1
+    },
+    "move": {
+      "enable": true,
+      "speed": 6,
+      "direction": "none",
+      "random": false,
+      "straight": false,
+      "out_mode": "out",
+      "bounce": false
+    }
+  },
+  "interactivity": {
+    "detect_on": "canvas",
+    "events": {
+      "onhover": {
+        "enable": true,
+        "mode": "grab"
+      },
+      "onclick": {
+        "enable": true,
+        "mode": "push"
+      },
+      "resize": true
+    },
+    "modes": {
+      "grab": {
+        "distance": 140,
+        "line_linked": {
+          "opacity": 1
+        }
+      },
+      "bubble": {
+        "distance": 400,
+        "size": 40,
+        "duration": 2,
+        "opacity": 8,
+        "speed": 3
+      },
+      "repulse": {
+        "distance": 200,
+        "duration": 0.4
+      },
+      "push": {
+        "particles_nb": 4
+      },
+      "remove": {
+        "particles_nb": 2
+      }
+    }
+  },
+  "retina_detect": true
+});
 
-    // Fetch Discord profile data from Lanyard API
+// Fetch Discord profile data from Lanyard API
+window.onload = function() {
     fetch('https://api.lanyard.rest/v1/users/402858450926829568')
         .then(response => response.json())
         .then(data => {
