@@ -1,18 +1,18 @@
 /* ════════════════════════════════════════════════════════════════
-   strohut — Kleinkram
-   1. Lichtschalter (hell / dunkel)
-   2. Discord-Präsenz live über den Lanyard-Socket
+   strohut — the small stuff
+   1. Light switch. Night is the default.
+   2. Live Discord presence over the Lanyard socket.
    ════════════════════════════════════════════════════════════════ */
 
 const DISCORD_ID = '402858450926829568';
 
-/* ─────────────────────────── Lichtschalter ─────────────────────── */
+/* ─────────────────────────── Light switch ──────────────────────── */
 
 const lamp = document.querySelector('.lamp');
 const root = document.documentElement;
 
-// localStorage wirft in manchen Browsern mit strengen Einstellungen —
-// das darf nicht die ganze Seite mitnehmen
+// localStorage throws in browsers with strict settings, and that must
+// not take the whole page down with it
 const remember = {
   get() {
     try {
@@ -25,14 +25,13 @@ const remember = {
     try {
       localStorage.setItem('strohut-theme', value);
     } catch {
-      /* dann halt nicht */
+      /* then it just won't stick */
     }
   }
 };
 
-const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-
-setTheme(remember.get() || (prefersDark.matches ? 'night' : 'day'));
+// Dark unless this visitor has switched it off before
+setTheme(remember.get() === 'day' ? 'day' : 'night');
 
 lamp.addEventListener('click', () => {
   const next = root.dataset.theme === 'night' ? 'day' : 'night';
@@ -40,20 +39,15 @@ lamp.addEventListener('click', () => {
   remember.set(next);
 });
 
-// Systemwechsel nur übernehmen, solange nichts von Hand gewählt wurde
-prefersDark.addEventListener('change', event => {
-  if (!remember.get()) setTheme(event.matches ? 'night' : 'day');
-});
-
 function setTheme(theme) {
   root.dataset.theme = theme;
   lamp.setAttribute('aria-pressed', String(theme === 'night'));
   document
     .querySelector('meta[name="theme-color"]')
-    .setAttribute('content', theme === 'night' ? '#171a20' : '#f2ecdf');
+    .setAttribute('content', theme === 'night' ? '#15171d' : '#f2ecdf');
 }
 
-/* ──────────────────────── Discord-Präsenz ──────────────────────── */
+/* ───────────────────────── Discord presence ────────────────────── */
 
 const el = {
   panel: document.querySelector('.panel'),
@@ -73,12 +67,12 @@ const fallbackTrack = frame ? frame.src : '';
 
 const STATUS_TEXT = {
   online: 'online',
-  idle: 'kurz weg',
-  dnd: 'bitte nicht stören',
+  idle: 'away for a bit',
+  dnd: 'do not disturb',
   offline: 'offline'
 };
 
-// Läuft weiter, damit die Spielzeit tickt statt einzufrieren
+// Kept around so the elapsed time keeps ticking instead of freezing
 let liveTimers = [];
 let lastPresence = null;
 
@@ -114,7 +108,7 @@ function connect() {
 
   socket.addEventListener('close', () => {
     clearInterval(heartbeat);
-    // Nach kurzer Pause neu versuchen, aber nicht in Dauerschleife rennen
+    // Try again after a pause, without hammering it
     setTimeout(connect, 12000);
   });
 
@@ -135,22 +129,22 @@ function render(data) {
 
   el.panel.dataset.state = 'ready';
   el.name.textContent = user.display_name || user.global_name || user.username;
-  el.avatar.alt = `Discord-Bild von ${user.username}`;
+  el.avatar.alt = `Discord avatar of ${user.username}`;
 
   if (user.avatar) {
     const ext = user.avatar.startsWith('a_') ? 'gif' : 'png';
     el.avatar.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=128`;
   }
 
-  // Achtung: className ist an SVG-Elementen nicht beschreibbar
+  // Careful: className is read-only on SVG elements
   el.dot.setAttribute('class', `head-dot is-${status}`);
 
-  // Eigener Status („Custom Status“, Typ 4) steht über allem anderen
+  // A custom status (type 4) outranks everything else
   const custom = data.activities.find(a => a.type === 4);
   const customText = custom && [custom.emoji?.name, custom.state].filter(Boolean).join(' ');
   el.state.textContent = customText || STATUS_TEXT[status] || status;
 
-  // Alles was er tatsächlich macht: Spiele, Programme, Streams
+  // Everything actually open: games, apps, streams — however many
   const doing = data.activities.filter(a => a.type !== 4 && a.name !== 'Spotify');
   el.doing.replaceChildren(...doing.map(activityRow));
 
@@ -163,7 +157,7 @@ function render(data) {
 function activityRow(activity) {
   const li = document.createElement('li');
 
-  // Rahmen ist gezeichnet, nicht gezogen — deshalb ein SVG darüber
+  // The border is drawn, not ruled, hence an SVG over the top
   const art = document.createElement('span');
   art.className = 'art';
 
@@ -210,7 +204,7 @@ function activityRow(activity) {
     const time = document.createElement('p');
     time.className = 'doing-time';
     const tick = () => {
-      time.textContent = `${elapsed(start)} dabei`;
+      time.textContent = `${elapsed(start)} in`;
     };
     tick();
     liveTimers.push(setInterval(tick, 1000));
@@ -225,7 +219,7 @@ function artworkUrl(activity) {
   const image = activity.assets?.large_image || activity.assets?.small_image;
   if (!image) return null;
 
-  // Discord verpackt fremde Bilder als „mp:external/…“
+  // Discord wraps third-party art as "mp:external/…"
   if (image.startsWith('mp:')) return `https://media.discordapp.net/${image.slice(3)}`;
   if (!activity.application_id) return null;
 
@@ -242,8 +236,8 @@ function elapsed(startMs) {
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
 }
 
-/* Läuft grad was, kommt das ins Fenster. Sonst zurück auf den
-   Track, der im HTML steht. */
+/* Whatever is playing goes in the frame. Otherwise fall back to the
+   track sitting in the HTML. */
 function showTrack(track) {
   if (!frame) return;
 
@@ -251,7 +245,7 @@ function showTrack(track) {
     ? `https://open.spotify.com/embed/track/${track.track_id}?utm_source=generator`
     : fallbackTrack;
 
-  el.kicker.textContent = track ? 'läuft grad' : 'letzter ohrwurm';
+  el.kicker.textContent = track ? 'playing right now' : 'stuck in my head';
   if (frame.src !== src) frame.src = src;
 
   if (el.link && track) {
@@ -262,6 +256,6 @@ function showTrack(track) {
 function fail() {
   el.panel.dataset.state = 'ready';
   el.name.textContent = 'Strohut';
-  el.state.textContent = 'Status grad nicht abrufbar';
+  el.state.textContent = "can't reach Discord right now";
   el.quiet.hidden = true;
 }
