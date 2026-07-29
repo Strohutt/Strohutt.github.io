@@ -1,57 +1,60 @@
 # strohutt.github.io
 
-Meine Seite. Tusche auf Papier, hell und dunkel.
+My page. Ink on paper, dark by default.
 
-Läuft auf GitHub Pages, kein Build, kein Framework. Einfach die drei
-Dateien öffnen und tippen.
+Runs on GitHub Pages. No build step, no framework — open the files and type.
 
-## Was wo liegt
+## What lives where
 
-| Datei         | Inhalt                                                        |
-| ------------- | ------------------------------------------------------------- |
-| `index.html`  | Seite plus alle Zeichnungen als SVG oben im `<svg class="sprite">` |
-| `styles.css`  | Farben, Layout, die handgezogenen Linien                       |
-| `script.js`   | Lichtschalter und der Discord-Status                           |
-| `favicon.svg` | Strohhut fürs Tab                                              |
+| File          | Contents                                                          |
+| ------------- | ----------------------------------------------------------------- |
+| `index.html`  | The page, plus every drawing as SVG in the `<svg class="sprite">` at the top |
+| `styles.css`  | Colours, layout, the drawn rules                                  |
+| `script.js`   | Light switch and the Discord presence                              |
+| `favicon.svg` | Straw hat for the tab                                             |
 
-## Die Zeichnungen
+## The drawings
 
-Alles Gezeichnete sind SVG-Pfade, von Hand gesetzt — Hut, Wortmarke,
-Kassette, Manga-Band, Klebestreifen, Icons. Keine Bildbibliothek und
-kein Generator, deshalb sitzt auch nichts perfekt.
+Everything drawn is an SVG path placed by hand — hat, wordmark, cassette,
+record, manga volume, controller, terminal, tape, icons. No icon library
+and no generator, which is why nothing sits perfectly straight.
 
-Die Linien unter den Überschriften und Links sind keine `border`, sondern
-eine krakelige SVG-Linie als `mask` über einer Farbfläche. Dadurch nehmen
-sie automatisch die Tintenfarbe des jeweiligen Modus an.
+The rules under the headings and links aren't `border`s. They're a wobbly
+SVG line used as a `mask` over a block of colour, so they pick up the ink
+colour of whichever mode is on without needing a second copy.
 
-Neue Zeichnung dazu: als `<symbol id="…">` in den Sprite legen und mit
-`<use href="#…">` einsetzen. Farbe nicht im Symbol festnageln — `stroke`
-wird von außen geerbt, sonst bleibt sie im Dunkelmodus falsch.
+To add a drawing: drop it in the sprite as `<symbol id="…">` and place it
+with `<use href="#…">`. Don't hard-code the colour inside the symbol —
+`stroke` is inherited from outside, otherwise it stays wrong in one of the
+two modes.
 
-## Discord-Status
+## Discord presence
 
-`script.js` hängt an [Lanyard](https://github.com/Phineas/lanyard) und
-bekommt Änderungen über einen WebSocket geschoben, statt alle paar
-Sekunden nachzufragen. Damit das funktioniert, muss man im
-[Lanyard-Discord](https://discord.gg/lanyard) sein.
+`script.js` hangs off [Lanyard](https://github.com/Phineas/lanyard) and
+gets changes pushed down a WebSocket instead of asking every few seconds.
+For that to work you have to be in the [Lanyard
+Discord](https://discord.gg/lanyard).
 
-Andere Discord-ID? Die Konstante `DISCORD_ID` oben in `script.js` und die
-beiden Profil-Links in `index.html` anpassen.
+It shows the custom status, then every activity Discord reports — however
+many are open — each with its own elapsed timer counting up.
 
-Wenn Lanyard nicht erreichbar ist, steht da „Status grad nicht abrufbar“
-und der Rest der Seite läuft weiter.
+Different Discord account? Change the `DISCORD_ID` constant at the top of
+`script.js` and the two profile links in `index.html`.
 
-## Musik
+If Lanyard can't be reached it says so and the rest of the page carries on.
 
-Im `im ohr`-Kasten steht ein fester Spotify-Track. Läuft grad wirklich
-was, tauscht `script.js` den gegen das aktuelle Lied und die Überschrift
-wechselt von „letzter ohrwurm“ auf „läuft grad“.
+## Music
 
-## Lokal ansehen
+The `in my ears` card holds one fixed Spotify track. If something is
+actually playing, `script.js` swaps it for that and the heading changes
+from "stuck in my head" to "playing right now". Behind the player sits a
+plain link, for anyone whose browser blocks embeds.
+
+## Running it locally
 
 ```sh
 python3 -m http.server 8000
 ```
 
-Dann `http://localhost:8000` aufmachen. Der Discord-Status braucht
-Internet, sonst bleibt der Kasten leer.
+Then open `http://localhost:8000`. The presence panel needs internet;
+without it the panel just says it can't reach Discord.
