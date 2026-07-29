@@ -1,281 +1,977 @@
-/* Common Styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* ════════════════════════════════════════════════════════════════
+   strohut — Tusche auf Papier
+   Alles was aussieht wie gezeichnet, ist gezeichnet: SVG-Pfade,
+   von Hand gesetzt. Keine Bildbibliothek, kein Baukasten.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Farben ─────────────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+
+  --paper: #f2ecdf;
+  --paper-2: #e9e0cd;
+  --paper-3: #ded2ba;
+  --ink: #241f19;
+  --ink-2: #4e463a;
+  --ink-3: #8c8271;
+  --red: #c4432c;
+  --straw: #dda845;
+  --biro: #3a5f80;
+
+  --grain-blend: multiply;
+  --grain-opacity: .42;
+  --tone-opacity: .5;
+  --photo-shade: rgba(36, 31, 25, .16);
+}
+
+[data-theme="night"] {
+  color-scheme: dark;
+
+  --paper: #171a20;
+  --paper-2: #1e222a;
+  --paper-3: #2a3038;
+  --ink: #ece3d2;
+  --ink-2: #bdb3a1;
+  --ink-3: #7f7869;
+  --red: #e06a4f;
+  --straw: #e6bb64;
+  --biro: #85b2d4;
+
+  --grain-blend: screen;
+  --grain-opacity: .2;
+  --tone-opacity: .34;
+  --photo-shade: rgba(0, 0, 0, .5);
+}
+
+/* ── Handgezogene Linien, als Maske, damit sie der Tinte folgen ── */
+:root {
+  --rule-h: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='9' viewBox='0 0 480 9'%3E%3Cpath fill='none' stroke='%23000' stroke-width='2.3' stroke-linecap='round' d='M0 4.5c30-1.7 60 1.5 90 .3 30-1.3 60 1.7 90 .5 30-1.3 60 1.9 90 .7 30-1.3 60 1.5 90 .3 30-1.3 60 1.3 120-1.3'/%3E%3C/svg%3E");
+  --rule-thin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='7' viewBox='0 0 480 7'%3E%3Cpath fill='none' stroke='%23000' stroke-width='1.25' stroke-linecap='round' d='M0 3.5c40-1.2 80 1.1 120 .2 40-.9 80 1.2 120 .3 40-.9 80 1.3 120 .4 40-.9 80 1 120-.9'/%3E%3C/svg%3E");
+  --marker: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='60' viewBox='0 0 300 60' preserveAspectRatio='none'%3E%3Cpath fill='%23000' d='M5 14c48-6 100-8 152-7 48 1 96 3 138 8-4 12-6 24-5 36-46 5-96 7-144 6-50-1-100-4-142-9 3-11 3-22 1-34Z'/%3E%3C/svg%3E");
+}
+
+/* ── Grundlage ──────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-    font-family: system-ui, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    background-color: #121212;
-    color: #ffffff;
-    overflow-x: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Zen Kaku Gothic New", ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1rem, .95rem + .22vw, 1.1rem);
+  line-height: 1.65;
+  overflow-x: hidden;
+  transition: background-color .4s ease, color .4s ease;
 }
 
-.background {
-    position: absolute;
-    top: 0;
-    left: 0;
+/* Papierfaser + abgedunkelte Ränder wie bei einem eingescannten Blatt */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 40%, transparent 55%, var(--paper-2) 100%);
+  opacity: .8;
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: var(--grain-blend);
+  background-size: 170px 170px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='170' height='170' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+}
+
+.sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* ── Tusche in allen Zeichnungen ────────────────────────────── */
+svg {
+  stroke: var(--ink);
+  stroke-width: 2.4;
+  vector-effect: non-scaling-stroke;
+}
+
+.fill-paper {
+  fill: var(--paper);
+}
+
+.fill-red {
+  fill: var(--red);
+}
+
+#tone circle {
+  fill: var(--ink);
+  stroke: none;
+}
+
+#hat .hatch path {
+  stroke-width: 1.5;
+  opacity: .55;
+}
+
+#hat .band-line {
+  stroke-width: 2.2;
+}
+
+/* ── Schrift ────────────────────────────────────────────────── */
+h1,
+h2,
+h3,
+.label,
+.lead,
+.signature,
+.deck-kicker,
+.dc-name {
+  font-family: "Klee One", "Zen Kaku Gothic New", serif;
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0;
+}
+
+b,
+strong {
+  font-weight: 700;
+}
+
+a {
+  color: inherit;
+}
+
+/* ── Lichtschalter ──────────────────────────────────────────── */
+.lamp {
+  position: fixed;
+  top: clamp(.9rem, 2vw, 1.6rem);
+  right: clamp(.9rem, 2vw, 1.6rem);
+  z-index: 10;
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+  transform: rotate(-6deg);
+  transition: transform .3s ease;
+}
+
+.lamp:hover {
+  transform: rotate(6deg) scale(1.08);
+}
+
+.lamp svg {
+  width: 1.7rem;
+  height: 1.7rem;
+  fill: none;
+  stroke-width: 2;
+}
+
+.lamp-moon,
+[data-theme="night"] .lamp-sun {
+  display: none;
+}
+
+[data-theme="night"] .lamp-moon {
+  display: block;
+}
+
+/* ── Seite ──────────────────────────────────────────────────── */
+.page {
+  position: relative;
+  z-index: 1;
+  width: min(100% - 2.6rem, 56rem);
+  margin-inline: auto;
+  padding-block: clamp(2.2rem, 5vw, 3.8rem) 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(3rem, 6vw, 4.6rem);
+}
+
+/* ══ Kopf ═══════════════════════════════════════════════════ */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: clamp(1.2rem, 3vw, 2.4rem);
+  align-items: start;
+}
+
+.hero-art {
+  position: relative;
+  grid-column: 1;
+  width: clamp(8.5rem, 15vw, 11rem);
+  /* der Hut sitzt der Wortmarke auf dem Kopf */
+  margin: 0 0 -2.9rem .5rem;
+}
+
+.hat {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: auto;
+  fill: none;
+  transform: rotate(-4deg);
+}
+
+.tone-blob {
+  position: absolute;
+  left: 8%;
+  top: -34%;
+  width: 128%;
+  height: auto;
+  opacity: var(--tone-opacity);
+  stroke: none;
+}
+
+.hero-text {
+  grid-column: 1;
+  min-width: 0;
+}
+
+.wordmark {
+  margin: 0 0 .35rem;
+}
+
+.wordmark svg {
+  display: block;
+  width: min(100%, 24rem);
+  height: auto;
+  fill: none;
+  stroke-width: 8.5;
+  transform: rotate(-1.2deg);
+}
+
+.realname {
+  margin: 0;
+  font-size: .82rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.realname .dot {
+  margin-inline: .55em;
+  color: var(--red);
+}
+
+.tagline {
+  margin: .9rem 0 0;
+  max-width: 26ch;
+  font-family: "Klee One", serif;
+  font-size: clamp(1.15rem, 1rem + .8vw, 1.5rem);
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+/* ── Links ──────────────────────────────────────────────────── */
+.links {
+  margin-top: 1.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem 1.6rem;
+}
+
+.tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .28rem .45rem .5rem;
+  font-family: "Klee One", serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+/* handgezogener Unterstrich */
+.tag::after {
+  content: "";
+  position: absolute;
+  left: .1rem;
+  right: .1rem;
+  bottom: 0;
+  height: 9px;
+  background: var(--ink);
+  mask-image: var(--rule-h);
+  mask-repeat: repeat-x;
+  mask-size: 480px 9px;
+  -webkit-mask-image: var(--rule-h);
+  -webkit-mask-repeat: repeat-x;
+  -webkit-mask-size: 480px 9px;
+  transition: background-color .2s ease;
+}
+
+/* Textmarker-Wischer beim Drüberfahren */
+.tag::before {
+  content: "";
+  position: absolute;
+  left: -.35rem;
+  right: -.35rem;
+  top: .1rem;
+  bottom: .18rem;
+  z-index: -1;
+  background: var(--straw);
+  opacity: 0;
+  mask-image: var(--marker);
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-image: var(--marker);
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  transition: opacity .18s ease;
+}
+
+.tag:hover::before,
+.tag:focus-visible::before {
+  opacity: .75;
+}
+
+.tag:hover::after,
+.tag:focus-visible::after {
+  background: var(--red);
+}
+
+.tag svg {
+  flex: none;
+  width: 1.35rem;
+  height: 1.35rem;
+  fill: none;
+  stroke-width: 2.1;
+}
+
+.tag:hover svg {
+  stroke: var(--red);
+}
+
+/* ── Aufgeklebtes Bild + Notizzettel ────────────────────────── */
+.hero-side {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  width: clamp(11rem, 24vw, 16rem);
+}
+
+.polaroid {
+  position: relative;
+  width: 100%;
+  margin: .6rem 0 0;
+  padding: .55rem .55rem 0;
+  background: var(--paper);
+  box-shadow: 0 .7rem 1.6rem -.6rem var(--photo-shade);
+  transform: rotate(2.4deg);
+}
+
+.polaroid img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: saturate(.86) contrast(1.04);
+}
+
+[data-theme="night"] .polaroid img {
+  filter: saturate(.8) brightness(.86);
+}
+
+.tape {
+  position: absolute;
+  z-index: 2;
+  width: 5.5rem;
+  height: 1.9rem;
+  fill: var(--paper-3);
+  stroke: none;
+  opacity: .85;
+}
+
+.tape-a {
+  top: -1rem;
+  left: -1.1rem;
+  transform: rotate(-32deg);
+}
+
+.tape-b {
+  top: -.9rem;
+  right: -1.2rem;
+  transform: rotate(28deg);
+}
+
+.tape-d {
+  top: -.75rem;
+  left: 1.4rem;
+  width: 4.6rem;
+  transform: rotate(-6deg);
+}
+
+/* Notizzettel unter dem Bild */
+.note {
+  position: relative;
+  margin: 2.6rem 0 0;
+  padding: 1rem .95rem .9rem;
+  background: var(--paper-2);
+  box-shadow: 0 .5rem 1.2rem -.6rem var(--photo-shade);
+  font-family: "Klee One", serif;
+  font-size: .95rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+  transform: rotate(-1.8deg);
+}
+
+.polaroid figcaption {
+  position: relative;
+  padding: .5rem .2rem .7rem;
+  font-family: "Klee One", serif;
+  font-size: .95rem;
+  color: var(--ink-2);
+  text-align: center;
+}
+
+.scribble-arrow {
+  position: absolute;
+  left: -3.4rem;
+  bottom: -.4rem;
+  width: 3.4rem;
+  height: 2.4rem;
+  fill: none;
+  stroke: var(--biro);
+  stroke-width: 2;
+  transform: scaleX(-1) rotate(14deg);
+}
+
+/* ══ Abschnittsköpfe ════════════════════════════════════════ */
+.label {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: .3rem;
+  margin-bottom: 1.4rem;
+  font-size: clamp(1.6rem, 1.3rem + 1.4vw, 2.3rem);
+  transform: rotate(-1deg);
+}
+
+.label::after {
+  content: "";
+  position: absolute;
+  left: -.15rem;
+  right: 1.4rem;
+  bottom: -.35rem;
+  height: 9px;
+  background: var(--red);
+  mask-image: var(--rule-h);
+  mask-repeat: repeat-x;
+  mask-size: 480px 9px;
+  -webkit-mask-image: var(--rule-h);
+  -webkit-mask-repeat: repeat-x;
+  -webkit-mask-size: 480px 9px;
+}
+
+.label-flick {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  margin-top: .15rem;
+  fill: var(--straw);
+  stroke: var(--ink);
+  stroke-width: 1.6;
+}
+
+/* ══ Live-Status ════════════════════════════════════════════ */
+.now {
+  position: relative;
+}
+
+.panel {
+  position: relative;
+  max-width: 38rem;
+  padding: clamp(1.4rem, 3.5vw, 2rem);
+}
+
+/* Randbemerkung mit Kuli, zeigt auf das Panel */
+.aside-note {
+  position: absolute;
+  right: 0;
+  top: 3.2rem;
+  width: 10.5rem;
+  margin: 0;
+  font-family: "Klee One", serif;
+  font-size: .92rem;
+  line-height: 1.4;
+  color: var(--biro);
+  transform: rotate(2deg);
+}
+
+.aside-note svg {
+  display: block;
+  width: 4.2rem;
+  height: 2.6rem;
+  margin: 0 0 .3rem -1.4rem;
+  fill: none;
+  stroke: var(--biro);
+  stroke-width: 2;
+  /* gespiegelt, damit die Spitze nach unten links auf das Panel zeigt */
+  transform: scaleX(-1) rotate(-7deg);
+}
+
+.frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke-width: 2.6;
+  pointer-events: none;
+}
+
+.presence {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.head {
+  position: relative;
+  flex: none;
+  width: clamp(3.6rem, 9vw, 4.6rem);
+}
+
+.head-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 50%;
+  filter: saturate(.88);
+}
+
+.head-dot {
+  position: absolute;
+  right: -.2rem;
+  bottom: -.1rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: var(--ink-3);
+  stroke-width: 2;
+  transition: fill .3s ease;
+}
+
+.head-dot.is-online {
+  fill: #58a15c;
+}
+
+.head-dot.is-idle {
+  fill: var(--straw);
+}
+
+.head-dot.is-dnd {
+  fill: var(--red);
+}
+
+.presence-text {
+  min-width: 0;
+}
+
+.dc-name {
+  font-size: 1.35rem;
+}
+
+.dc-state {
+  margin: .1rem 0 0;
+  font-size: .95rem;
+  color: var(--ink-3);
+}
+
+.doing {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.doing:empty {
+  margin: 0;
+}
+
+.doing li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  padding-top: 1.1rem;
+}
+
+/* gestrichelte Trennlinie über jedem Eintrag */
+.doing li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 7px;
+  background: var(--ink-3);
+  mask-image: var(--rule-thin);
+  mask-repeat: repeat-x;
+  mask-size: 480px 7px;
+  -webkit-mask-image: var(--rule-thin);
+  -webkit-mask-repeat: repeat-x;
+  -webkit-mask-size: 480px 7px;
+  opacity: .7;
+}
+
+.art {
+  position: relative;
+  flex: none;
+  width: 3.4rem;
+  height: 3.4rem;
+  display: grid;
+  place-items: center;
+  transform: rotate(-1.5deg);
+}
+
+.art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(.88);
+}
+
+.art-letter {
+  font-family: "Klee One", serif;
+  font-size: 1.5rem;
+  color: var(--ink-3);
+}
+
+.art-frame {
+  position: absolute;
+  inset: -2px;
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
+  fill: none;
+  stroke-width: 2;
+  pointer-events: none;
+}
+
+.doing-body {
+  min-width: 0;
+}
+
+.doing-name {
+  margin: 0;
+  font-family: "Klee One", serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.doing-line {
+  margin: .1rem 0 0;
+  font-size: .92rem;
+  color: var(--ink-2);
+}
+
+.doing-time {
+  margin: .15rem 0 0;
+  font-size: .84rem;
+  letter-spacing: .05em;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.quiet {
+  margin: 1.4rem 0 0;
+  font-family: "Klee One", serif;
+  color: var(--ink-3);
+}
+
+.panel[data-state="loading"] .presence-text {
+  opacity: .55;
+}
+
+/* ══ Über mich ══════════════════════════════════════════════ */
+.about {
+  position: relative;
+  max-width: 44rem;
+}
+
+.sheet {
+  position: relative;
+  padding-left: clamp(1.6rem, 4vw, 2.6rem);
+}
+
+/* Heftrand */
+.sheet::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -.3rem;
+  bottom: -.3rem;
+  width: 9px;
+  background: var(--red);
+  opacity: .6;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='480' viewBox='0 0 9 480'%3E%3Cpath fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' d='M4.5 0c-1.7 30 1.5 60 .3 90-1.3 30 1.7 60 .5 90-1.3 30 1.9 60 .7 90-1.3 30 1.5 60 .3 90-1.3 30 1.3 60-1.3 120'/%3E%3C/svg%3E");
+  mask-repeat: repeat-y;
+  mask-size: 9px 480px;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='480' viewBox='0 0 9 480'%3E%3Cpath fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' d='M4.5 0c-1.7 30 1.5 60 .3 90-1.3 30 1.7 60 .5 90-1.3 30 1.9 60 .7 90-1.3 30 1.5 60 .3 90-1.3 30 1.3 60-1.3 120'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: repeat-y;
+  -webkit-mask-size: 9px 480px;
+}
+
+.sheet p {
+  margin: 0 0 1rem;
+  max-width: 58ch;
+}
+
+.lead {
+  font-size: clamp(1.3rem, 1.1rem + 1vw, 1.8rem);
+  color: var(--red);
+  letter-spacing: .02em;
+}
+
+.sheet b {
+  position: relative;
+  white-space: nowrap;
+}
+
+.sheet b::after {
+  content: "";
+  position: absolute;
+  left: -.05em;
+  right: -.05em;
+  bottom: -.16em;
+  height: 7px;
+  background: var(--straw);
+  mask-image: var(--rule-thin);
+  mask-repeat: repeat-x;
+  mask-size: 480px 7px;
+  -webkit-mask-image: var(--rule-thin);
+  -webkit-mask-repeat: repeat-x;
+  -webkit-mask-size: 480px 7px;
+}
+
+.signature {
+  margin-top: 1.6rem;
+  font-size: 1.2rem;
+  color: var(--ink-2);
+  transform: rotate(-2deg);
+  transform-origin: left center;
+}
+
+/* ══ Musik ══════════════════════════════════════════════════ */
+.music {
+  position: relative;
+}
+
+.deck-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(.5rem, 2vw, 1.6rem);
+}
+
+.deck {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 32rem;
+  padding: 1.2rem 1.2rem 1.3rem;
+  background: var(--paper-2);
+  box-shadow: 0 .8rem 1.8rem -.8rem var(--photo-shade);
+  transform: rotate(-.9deg);
+}
+
+.tape-c {
+  top: -.85rem;
+  left: 2.2rem;
+  width: 6rem;
+  transform: rotate(-3deg);
+}
+
+/* Die Kassette lehnt rechts am Zettel */
+.cassette {
+  flex: none;
+  width: clamp(5.5rem, 13vw, 8.5rem);
+  height: auto;
+  fill: none;
+  transform: rotate(9deg);
+}
+
+/* Der Band liegt neben dem Text, außerhalb der Spalte */
+.doodle-manga {
+  position: absolute;
+  left: calc(100% + 1.5rem);
+  top: 8rem;
+  width: 7rem;
+  height: auto;
+  fill: none;
+  transform: rotate(-11deg);
+}
+
+/* kein Platz daneben, also weg damit */
+@media (max-width: 60rem) {
+  .doodle-manga {
+    display: none;
+  }
+}
+
+.deck-body {
+  position: relative;
+  z-index: 1;
+}
+
+.deck-kicker {
+  margin-bottom: .7rem;
+  font-size: 1.05rem;
+  color: var(--ink-2);
+}
+
+.embed {
+  position: relative;
+  min-height: 152px;
+}
+
+.embed iframe {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 152px;
+  border: 0;
+}
+
+.embed-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  padding: 0 1rem;
+  font-family: "Klee One", serif;
+  color: var(--ink-2);
+}
+
+.embed-fallback svg {
+  flex: none;
+  width: 2.6rem;
+  height: 2.6rem;
+  fill: none;
+  stroke-width: 2.2;
+}
+
+/* ══ Fuß ════════════════════════════════════════════════════ */
+.foot {
+  margin-top: -1.5rem;
+  text-align: center;
+  font-size: .9rem;
+  color: var(--ink-3);
+}
+
+.wave {
+  display: block;
+  width: min(100%, 22rem);
+  height: 1.4rem;
+  margin: 0 auto 1.2rem;
+  stroke: var(--ink-3);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  opacity: .8;
+}
+
+.foot a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: .22em;
+}
+
+.foot a:hover {
+  color: var(--red);
+}
+
+/* ══ Kleine Bildschirme ═════════════════════════════════════ */
+@media (max-width: 46rem) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero-side {
+    grid-column: 1;
+    grid-row: auto;
     width: 100%;
-    height: 100vh;
-    z-index: 0;
-}
+    margin-top: 2.4rem;
+  }
 
-
-.section {
-    width: 100%;
-    max-width: 800px;
-    margin: 20px 0;
-    padding: 20px;
-    background-color: #1e1e1e;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    z-index: 1;
-}
-
-
-.custom-profile {
-    margin-top: 50px;
-}
-
-.profile-header {
-    text-align: center;
-    color: white;
-}
-
-.custom-avatar {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    margin-bottom: 15px;
-    border: 3px solid #408378;
-    object-fit: cover;
-
-}
-
-.custom-status {
-    font-size: 1.2rem;
-    color: #aaaaaa;
-    margin-bottom: 10px;
-}
-
-.custom-links {
-    margin-top: 10px;
-}
-
-.custom-link {
-    text-decoration: none;
-    background-color: #333;
-    color: #ffffff;
-    padding: 10px 15px;
-    border-radius: 5px;
-    margin: 0 5px;
-    transition: background-color 0.3s ease;
-    display: inline-block;
-}
-
-.custom-link i {
-    margin-right: 5px;
-}
-
-.custom-link:hover {
-    background-color: #000000;
-
-}
-
-/* Discord Profile Bar Layout */
-.discord-profile-bar {
-    margin-top: 30px;
-    padding: 20px;
-}
-
-.discord-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: #282828;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    width: 100%;
-    max-width: 700px;
-}
-
-
-.discord-avatar-container {
-    position: relative;
-    display: inline-block;
-}
-
-.discord-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    border: 2px solid #000103;
-    object-fit: cover;
-
-}
-
-/* Discord Status Badge */
-.discord-status-badge {
-    position: absolute;
-    bottom: 2px;
-    right: 2px;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: 2px solid #282828;
-
-}
-
-/* Status Colors */
-.status-online {
-    background-color: #43b581;
-
-}
-
-.status-idle {
-    background-color: #faa61a;
-
-}
-
-.status-dnd {
-    background-color: #f04747;
-
-}
-
-.status-offline {
-    background-color: #747f8d;
-
-}
-
-
-.discord-info {
-    flex: 1;
-    text-align: left;
-    margin-left: 15px;
-   
-}
-
-.discord-info h2 {
-    font-size: 1.4rem;
+  .polaroid {
+    width: min(100%, 14rem);
     margin: 0;
-    color: #ffffff;
-    font-weight: bold;
+  }
+
+  .note {
+    max-width: 17rem;
+    margin-top: 2.2rem;
+    margin-left: 1.2rem;
+  }
+
+  .hero-art {
+    width: 8rem;
+    margin-bottom: -2.2rem;
+  }
+
+  /* Randbemerkungen brauchen einen Rand — hier ist keiner */
+  .aside-note,
+  .scribble-arrow {
+    display: none;
+  }
+
+  .presence {
+    gap: .85rem;
+  }
 }
 
-.discord-info p {
-    font-size: 0.9rem;
-    color: #b9bbbe;
-    margin: 5px 0;
+@media (max-width: 30rem) {
+  .links {
+    gap: .2rem 1.1rem;
+  }
+
+  .art {
+    width: 2.8rem;
+    height: 2.8rem;
+  }
+
+  .cassette {
+    display: none;
+  }
 }
 
-
-.activity-details {
-    display: flex;
-    align-items: center;
-    background-color: #333;
-    padding: 10px;
-    border-radius: 8px;
-    margin-top: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    width: 100%;
-    max-width: 480px;
+/* ══ Ruhe bewahren ══════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
 }
 
-.activity-icon {
-    width: 50px;
-    height: 50px;
-    margin-right: 15px;
-    border-radius: 8px;
-    object-fit: cover;
-
+:focus-visible {
+  outline: 2.5px solid var(--red);
+  outline-offset: 3px;
 }
-
-.activity-info {
-    text-align: left;
-    flex: 1;
-}
-
-.activity-info h3 {
-    font-size: 1.1rem;
-    margin: 0;
-    color: #ffffff;
-}
-
-.activity-info p {
-    font-size: 0.9rem;
-    color: #b9bbbe;
-    margin: 5px 0;
-}
-
-.elapsed-time {
-    font-size: 0.9rem;
-    color: #43b581;
-
-    margin-top: 5px;
-}
-
-
-.discord-profile-link {
-    text-decoration: none;
-    background-color: #7289da;
-
-    color: #ffffff;
-    padding: 10px 15px;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-}
-
-.discord-profile-link:hover {
-    background-color: #4b5e94;
-
-}
-
-.additional-textbox-container {
-    position: relative;
-    margin-top: 30px;
-    padding: 20px;
-
-    background-color: #1e1e1e;
-
-    border-radius: 12px;
-
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
-
-    width: 100%;
-    max-width: 800px;
-
-    margin-left: auto;
-    margin-right: auto;
-
-}
-
-
-.additional-textbox {
-    background-color: #282828;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    color: #ffffff;
-    padding: 20px;
-    width: 100%;
-    text-align: center;
-}
-
-
-.additional-textbox h3 {
-    color: #ffffff;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-.additional-textbox p {
-    font-size: 1rem;
-    color: #b9bbbe;
-    line-height: 1.5;
-    text-align: center;
-}
-
