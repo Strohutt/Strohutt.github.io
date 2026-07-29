@@ -1,176 +1,267 @@
-// Initialize particles.js for background
-particlesJS('particles-js', {
-  "particles": {
-    "number": {
-      "value": 80,
-      "density": {
-        "enable": true,
-        "value_area": 800
-      }
-    },
-    "color": {
-      "value": "#ffffff"
-    },
-    "shape": {
-      "type": "circle",
-      "stroke": {
-        "width": 0,
-        "color": "#000000"
-      }
-    },
-    "opacity": {
-      "value": 0.5,
-      "random": false
-    },
-    "size": {
-      "value": 3,
-      "random": true
-    },
-    "line_linked": {
-      "enable": true,
-      "distance": 150,
-      "color": "#ffffff",
-      "opacity": 0.4,
-      "width": 1
-    },
-    "move": {
-      "enable": true,
-      "speed": 3,
-      "direction": "none",
-      "random": false,
-      "straight": false,
-      "out_mode": "out",
-      "bounce": false
+/* ════════════════════════════════════════════════════════════════
+   strohut — Kleinkram
+   1. Lichtschalter (hell / dunkel)
+   2. Discord-Präsenz live über den Lanyard-Socket
+   ════════════════════════════════════════════════════════════════ */
+
+const DISCORD_ID = '402858450926829568';
+
+/* ─────────────────────────── Lichtschalter ─────────────────────── */
+
+const lamp = document.querySelector('.lamp');
+const root = document.documentElement;
+
+// localStorage wirft in manchen Browsern mit strengen Einstellungen —
+// das darf nicht die ganze Seite mitnehmen
+const remember = {
+  get() {
+    try {
+      return localStorage.getItem('strohut-theme');
+    } catch {
+      return null;
     }
   },
-  "interactivity": {
-    "detect_on": "canvas",
-    "events": {
-      "onhover": {
-        "enable": true,
-        "mode": "grab"
-      },
-      "onclick": {
-        "enable": true,
-        "mode": "push"
-      },
-      "resize": true
-    },
-    "modes": {
-      "grab": {
-        "distance": 140,
-        "line_linked": {
-          "opacity": 1
-        }
-      },
-      "bubble": {
-        "distance": 400,
-        "size": 40,
-        "duration": 2,
-        "opacity": 8,
-        "speed": 3
-      },
-      "repulse": {
-        "distance": 200,
-        "duration": 0.4
-      },
-      "push": {
-        "particles_nb": 4
-      },
-      "remove": {
-        "particles_nb": 2
-      }
+  set(value) {
+    try {
+      localStorage.setItem('strohut-theme', value);
+    } catch {
+      /* dann halt nicht */
     }
-  },
-  "retina_detect": true
+  }
+};
+
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+setTheme(remember.get() || (prefersDark.matches ? 'night' : 'day'));
+
+lamp.addEventListener('click', () => {
+  const next = root.dataset.theme === 'night' ? 'day' : 'night';
+  setTheme(next);
+  remember.set(next);
 });
 
-// Fetch Discord profile data from Lanyard API
-window.onload = function() {
-    fetch('https://api.lanyard.rest/v1/users/402858450926829568')
-        .then(response => response.json())
-        .then(data => {
-            const discordData = data.data;
+// Systemwechsel nur übernehmen, solange nichts von Hand gewählt wurde
+prefersDark.addEventListener('change', event => {
+  if (!remember.get()) setTheme(event.matches ? 'night' : 'day');
+});
 
-            // Debug: Log the data fetched from Lanyard API
-            console.log('Discord Data:', discordData);
+function setTheme(theme) {
+  root.dataset.theme = theme;
+  lamp.setAttribute('aria-pressed', String(theme === 'night'));
+  document
+    .querySelector('meta[name="theme-color"]')
+    .setAttribute('content', theme === 'night' ? '#171a20' : '#f2ecdf');
+}
 
-            // Update Discord avatar
-            const avatarUrl = `https://cdn.discordapp.com/avatars/${discordData.discord_user.id}/${discordData.discord_user.avatar}.png`;
-            document.getElementById('discord-avatar').src = avatarUrl;
+/* ──────────────────────── Discord-Präsenz ──────────────────────── */
 
-            // Update Discord username
-            const username = `${discordData.discord_user.username}`;
-            document.getElementById('discord-username').textContent = username;
-
-            // Get user status and apply status badge class
-            const status = discordData.discord_status;
-            const statusBadge = document.getElementById('discord-status-badge');
-            statusBadge.classList.remove('status-online', 'status-idle', 'status-dnd', 'status-offline');
-            if (status === 'online') {
-                statusBadge.classList.add('status-online');
-                document.getElementById('discord-status').textContent = "Online";
-            } else if (status === 'idle') {
-                statusBadge.classList.add('status-idle');
-                document.getElementById('discord-status').textContent = "Idle";
-            } else if (status === 'dnd') {
-                statusBadge.classList.add('status-dnd');
-                document.getElementById('discord-status').textContent = "Do Not Disturb";
-            } else {
-                statusBadge.classList.add('status-offline');
-                document.getElementById('discord-status').textContent = "Offline";
-            }
-
-            // Handle activities (e.g., playing games or coding)
-            if (discordData.activities.length > 0) {
-                const activities = discordData.activities.map(activity => {
-                    if (activity.type === 0) { // Activity such as gaming or coding
-                        const activityName = activity.name;
-                        const activityDetails = activity.details || "No details available";
-                        const activityState = activity.state || "";
-
-                        // Calculate elapsed time
-                        const startTime = activity.timestamps ? new Date(activity.timestamps.start) : null;
-                        let elapsedTime = "";
-                        if (startTime) {
-                            const now = new Date();
-                            const seconds = Math.floor((now - startTime) / 1000);
-                            const hours = String(Math.floor(seconds / 3600)).padStart(2, '0');
-                            const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
-                            const remainingSeconds = String(seconds % 60).padStart(2, '0');
-                            elapsedTime = `${hours}:${minutes}:${remainingSeconds}`;
-                        }
-
-                        // Construct the image URL for the activity
-                        let activityImageUrl = '';
-                        if (activity.assets && activity.assets.large_image) {
-                            activityImageUrl = `https://cdn.discordapp.com/app-assets/${activity.application_id}/${activity.assets.large_image}.png`;
-                        }
-
-                        // Create a formatted activity block
-                        return `
-                            <div class="activity-details">
-                                ${activityImageUrl ? `<img class="activity-icon" src="${activityImageUrl}" alt="${activityName}">` : ''}
-                                <div class="activity-info">
-                                    <h3>${activityName}</h3>
-                                    <p>${activityDetails} ${activityState}</p>
-                                    ${elapsedTime ? `<p class="elapsed-time">Elapsed: ${elapsedTime}</p>` : ''}
-                                </div>
-                            </div>
-                        `;
-                    }
-                    return '';
-                }).join('');
-
-                document.getElementById('discord-activities').innerHTML = activities.length ? activities : 'No current activity';
-            } else {
-                document.getElementById('discord-activities').textContent = 'No current activity';
-            }
-
-        })
-        .catch(error => {
-            console.error('Error fetching Discord data:', error);
-            document.getElementById('discord-status').textContent = 'Error fetching status';
-            document.getElementById('discord-activities').textContent = 'Error fetching activities';
-        });
+const el = {
+  panel: document.querySelector('.panel'),
+  avatar: document.getElementById('dc-avatar'),
+  dot: document.querySelector('.head-dot'),
+  name: document.getElementById('dc-name'),
+  state: document.getElementById('dc-state'),
+  doing: document.getElementById('dc-doing'),
+  quiet: document.getElementById('dc-quiet'),
+  kicker: document.getElementById('music-kicker'),
+  embed: document.getElementById('music-embed'),
+  link: document.getElementById('music-link')
 };
+
+const frame = el.embed.querySelector('iframe');
+const fallbackTrack = frame ? frame.src : '';
+
+const STATUS_TEXT = {
+  online: 'online',
+  idle: 'kurz weg',
+  dnd: 'bitte nicht stören',
+  offline: 'offline'
+};
+
+// Läuft weiter, damit die Spielzeit tickt statt einzufrieren
+let liveTimers = [];
+let lastPresence = null;
+
+connect();
+
+function connect() {
+  let socket;
+  let heartbeat;
+
+  try {
+    socket = new WebSocket('wss://api.lanyard.rest/socket');
+  } catch {
+    fail();
+    return;
+  }
+
+  socket.addEventListener('open', () => {
+    socket.send(JSON.stringify({ op: 2, d: { subscribe_to_id: DISCORD_ID } }));
+  });
+
+  socket.addEventListener('message', event => {
+    const { op, t, d } = JSON.parse(event.data);
+
+    if (op === 1) {
+      heartbeat = setInterval(() => socket.send(JSON.stringify({ op: 3 })), d.heartbeat_interval);
+      return;
+    }
+
+    if (op === 0 && (t === 'INIT_STATE' || t === 'PRESENCE_UPDATE')) {
+      render(d);
+    }
+  });
+
+  socket.addEventListener('close', () => {
+    clearInterval(heartbeat);
+    // Nach kurzer Pause neu versuchen, aber nicht in Dauerschleife rennen
+    setTimeout(connect, 12000);
+  });
+
+  socket.addEventListener('error', () => {
+    if (!lastPresence) fail();
+  });
+}
+
+function render(data) {
+  if (!data || !data.discord_user) return;
+
+  lastPresence = data;
+  liveTimers.forEach(clearInterval);
+  liveTimers = [];
+
+  const user = data.discord_user;
+  const status = data.discord_status || 'offline';
+
+  el.panel.dataset.state = 'ready';
+  el.name.textContent = user.display_name || user.global_name || user.username;
+  el.avatar.alt = `Discord-Bild von ${user.username}`;
+
+  if (user.avatar) {
+    const ext = user.avatar.startsWith('a_') ? 'gif' : 'png';
+    el.avatar.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=128`;
+  }
+
+  // Achtung: className ist an SVG-Elementen nicht beschreibbar
+  el.dot.setAttribute('class', `head-dot is-${status}`);
+
+  // Eigener Status („Custom Status“, Typ 4) steht über allem anderen
+  const custom = data.activities.find(a => a.type === 4);
+  const customText = custom && [custom.emoji?.name, custom.state].filter(Boolean).join(' ');
+  el.state.textContent = customText || STATUS_TEXT[status] || status;
+
+  // Alles was er tatsächlich macht: Spiele, Programme, Streams
+  const doing = data.activities.filter(a => a.type !== 4 && a.name !== 'Spotify');
+  el.doing.replaceChildren(...doing.map(activityRow));
+
+  const spotify = data.listening_to_spotify ? data.spotify : null;
+  showTrack(spotify);
+
+  el.quiet.hidden = doing.length > 0 || Boolean(spotify) || Boolean(customText);
+}
+
+function activityRow(activity) {
+  const li = document.createElement('li');
+
+  // Rahmen ist gezeichnet, nicht gezogen — deshalb ein SVG darüber
+  const art = document.createElement('span');
+  art.className = 'art';
+
+  const url = artworkUrl(activity);
+  if (url) {
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = '';
+    img.loading = 'lazy';
+    art.append(img);
+  } else {
+    const letter = document.createElement('span');
+    letter.className = 'art-letter';
+    letter.textContent = activity.name.slice(0, 1).toUpperCase();
+    letter.setAttribute('aria-hidden', 'true');
+    art.append(letter);
+  }
+
+  art.insertAdjacentHTML(
+    'beforeend',
+    '<svg class="art-frame" viewBox="0 0 300 200" preserveAspectRatio="none" aria-hidden="true">' +
+      '<use href="#frame" /></svg>'
+  );
+  li.append(art);
+
+  const body = document.createElement('div');
+  body.className = 'doing-body';
+
+  const name = document.createElement('p');
+  name.className = 'doing-name';
+  name.textContent = activity.name;
+  body.append(name);
+
+  const detail = [activity.details, activity.state].filter(Boolean).join(' — ');
+  if (detail) {
+    const line = document.createElement('p');
+    line.className = 'doing-line';
+    line.textContent = detail;
+    body.append(line);
+  }
+
+  const start = activity.timestamps?.start;
+  if (start) {
+    const time = document.createElement('p');
+    time.className = 'doing-time';
+    const tick = () => {
+      time.textContent = `${elapsed(start)} dabei`;
+    };
+    tick();
+    liveTimers.push(setInterval(tick, 1000));
+    body.append(time);
+  }
+
+  li.append(body);
+  return li;
+}
+
+function artworkUrl(activity) {
+  const image = activity.assets?.large_image || activity.assets?.small_image;
+  if (!image) return null;
+
+  // Discord verpackt fremde Bilder als „mp:external/…“
+  if (image.startsWith('mp:')) return `https://media.discordapp.net/${image.slice(3)}`;
+  if (!activity.application_id) return null;
+
+  return `https://cdn.discordapp.com/app-assets/${activity.application_id}/${image}.png`;
+}
+
+function elapsed(startMs) {
+  const total = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const pad = n => String(n).padStart(2, '0');
+
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+}
+
+/* Läuft grad was, kommt das ins Fenster. Sonst zurück auf den
+   Track, der im HTML steht. */
+function showTrack(track) {
+  if (!frame) return;
+
+  const src = track
+    ? `https://open.spotify.com/embed/track/${track.track_id}?utm_source=generator`
+    : fallbackTrack;
+
+  el.kicker.textContent = track ? 'läuft grad' : 'letzter ohrwurm';
+  if (frame.src !== src) frame.src = src;
+
+  if (el.link && track) {
+    el.link.href = `https://open.spotify.com/track/${track.track_id}`;
+  }
+}
+
+function fail() {
+  el.panel.dataset.state = 'ready';
+  el.name.textContent = 'Strohut';
+  el.state.textContent = 'Status grad nicht abrufbar';
+  el.quiet.hidden = true;
+}

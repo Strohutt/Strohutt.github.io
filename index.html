@@ -1,74 +1,368 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="day">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H E Y ! ! !</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+  <title>strohut</title>
+  <meta name="description"
+    content="Die Seite von Mico, im Netz Strohut. Python, Lua, HTML, Anime, Manga und deutlich zu viele Spiele.">
+  <meta name="theme-color" content="#f2ecdf">
+
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="strohut">
+  <meta property="og:description" content="Mico. Python, Lua, HTML, Anime, Manga, zu viele Spiele.">
+  <meta property="og:url" content="https://strohutt.github.io/">
+  <meta name="twitter:card" content="summary">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-    <div id="particles-js" class="background"></div>
+  <div class="grain" aria-hidden="true"></div>
 
+  <!-- ───── handgezeichnete Tuschezeichnungen, alle von Hand als Pfade gesetzt ───── -->
+  <svg class="sprite" aria-hidden="true" focusable="false">
+    <defs>
+      <!-- Rasterpunkte, wie im Manga-Druck. Absichtlich ungleichmäßig. -->
+      <pattern id="tone" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(13)">
+        <circle cx="3" cy="3.4" r="1.7" />
+        <circle cx="10.2" cy="9.8" r="1.5" />
+        <circle cx="10.6" cy="2.6" r="1.15" />
+        <circle cx="2.4" cy="10.4" r="1.3" />
+      </pattern>
+    </defs>
 
-    
+    <!-- Strohhut, Vorderansicht, leicht von oben -->
+    <symbol id="hat" viewBox="0 0 200 128">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Krempe -->
+        <path class="fill-paper"
+          d="M13.5 83.5c-1-14 36.5-24.5 87-24.8 51.5-.3 88.5 10.4 87.3 24.8-1.2 14.8-38.6 25.6-88.6 25-49.2-.6-84.8-11.2-85.7-25Z" />
+        <!-- Kopfteil -->
+        <path class="fill-paper"
+          d="M49.5 76.5C46 51 58.5 24.5 79 16.4c14.4-5.7 30.8-5.4 44.6 1.4C144 28 154.4 51.6 151 76.8c-13.2 8.4-31.4 12-51.4 11.8-19.7-.2-37.2-4-50.1-12.1Z" />
+        <!-- rotes Band -->
+        <path class="fill-red" stroke="none"
+          d="M47.6 60.8c14 10 32.5 14.4 52.4 14.5 19.9.1 38.4-4.2 52.4-14.2l1 12.4c-13.4 9.6-32.4 13.6-53.3 13.5-20.9-.1-39.7-4.4-52.8-14.1Z" />
+        <path class="band-line"
+          d="M47.6 60.8c14 10 32.5 14.4 52.4 14.5 19.9.1 38.4-4.2 52.4-14.2M48.6 73.2c13.1 9.7 31.9 14 52.8 14.1 20.9.1 39.9-3.9 53.3-13.5" />
+        <!-- Strohstruktur: Krempe -->
+        <g class="hatch">
+          <path d="M22 79c8.6 5.2 20 8.6 33 10.4" />
+          <path d="M44 89.6c9 3 19.6 4.8 31 5.2" />
+          <path d="M178.5 79.6c-8 5.4-19 9-31.6 11" />
+          <path d="M157 90.4c-8.6 3-18.6 4.8-29.4 5.4" />
+          <path d="M86 95.4c8 .6 16.6.6 24.8 0" />
+          <path d="M30 68c-6.4 3.2-10.4 7-10.6 10.6" />
+          <path d="M170 68.6c6.6 3.2 10.8 7 11 10.6" />
+        </g>
+        <!-- Strohstruktur: Kopfteil -->
+        <g class="hatch">
+          <path d="M66 24.5C58.5 36 54 50 53.5 63.5" />
+          <path d="M84.5 17.6C76 30 71 45.5 70 60.6" />
+          <path d="M104 16.2c-6.5 13.4-10 29-10.4 44.6" />
+          <path d="M124 19.4c-3.2 13.6-4.4 28-3.6 42" />
+          <path d="M140.5 28.6c.6 12.6 2.2 24.6 5 35.4" />
+        </g>
+      </g>
+    </symbol>
 
-    <section class="section custom-profile">
-        <div class="profile-header">
-            <img src="images/pfp.gif" alt="Custom Avatar" class="custom-avatar">
-            <h1>WELCOME! :3</h1>
-            <p class="custom-status">Ich schreib hier bestimmt mal was sinnvolles hin..</p>
-            <div class="custom-links">
-                <a href="https://steamcommunity.com/profiles/76561198814076728/" class="custom-link"><i
-                        class="fab fa-steam"></i> Steam</a>
-                <a href="https://www.instagram.com/stro._.hut" class="custom-link"><i class="fab fa-instagram"></i>
-                    Instagram</a>
-                <a href="https://twitter.com/Kooaaa_" class="custom-link"><i class="fab fa-twitter"></i> Twitter</a>
-            </div>
+    <!-- Wortmarke: mit dem Stift gezogen, eine Linie pro Buchstabe -->
+    <symbol id="wordmark" viewBox="0 0 372 150">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="9">
+        <path d="M58 64c-6-10-24-12-30-4s2 16 14 20 18 12 12 19-24 6-32-2" />
+        <path d="M92 34c-2 26-5 50-4 61 1 9 8 11 16 6" />
+        <path d="M73 60c12-3 27-4 39-3" />
+        <path d="M130 58c-2 16-4 30-3 43" />
+        <path d="M128 72c5-10 14-17 26-15" />
+        <path d="M186 57c-14 1-21 15-18 29 3 12 16 18 26 12 11-7 13-26 4-36-4-5-8-6-12-5Z" />
+        <path d="M226 26c-2 30-6 58-5 75" />
+        <path d="M222 70c6-12 18-17 27-12 7 4 7 22 5 43" />
+        <path d="M274 58c-3 18-5 32-2 40 4 8 16 6 22-3 5-8 7-25 8-37" />
+        <path d="M302 58c-2 20-3 34-1 43" />
+        <path d="M334 34c-2 26-5 50-4 61 1 9 8 11 16 6" />
+        <path d="M315 60c12-3 27-4 39-3" />
+      </g>
+    </symbol>
+
+    <!-- Manga-Funkeln, vier Spitzen, absichtlich schief -->
+    <symbol id="sparkle" viewBox="0 0 40 40">
+      <path d="M20.5 2c1.4 9.6 4.4 14.6 15.5 17.4-10.4 2.2-13.8 6.4-16.4 18.6C17.8 26 14.4 21.6 3 19.4 14.6 16.8 18 12 20.5 2Z" />
+    </symbol>
+
+    <!-- Anmerkungspfeil, wie mit dem Kuli hingekritzelt -->
+    <symbol id="arrow" viewBox="0 0 120 80">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 12c14 2 30 12 44 28 8 9 15 20 19 30" />
+        <path d="M56 66c5 2 9 3 13 4M69 70c1-6 3-11 6-16" />
+      </g>
+    </symbol>
+
+    <!-- Sprechblase, Manga-Stil -->
+    <symbol id="bubble" viewBox="0 0 200 110" preserveAspectRatio="none">
+      <path
+        d="M11 20c0-8 8-13 22-14 26-2 108-3 136 0 13 1.4 20 6 20 14 .6 16 .6 34 0 50-.6 8-7 12.6-20 14-24 2.4-58 2.6-84 2l-30 20 4-20.4C13 84 7 79 6.6 70 6 54 6.4 36 11 20Z" />
+    </symbol>
+
+    <!-- Schallplatte, für den Fall dass der Player nicht kommt -->
+    <symbol id="record" viewBox="0 0 60 60">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M30 3.5c15 0 26.8 12 26.4 27C56 44.6 44.4 56.2 30 56.4 15.4 56.6 3.6 44.8 3.6 30 3.6 15.4 15.2 3.6 30 3.5Z" />
+        <path d="M30 18.5c6.4 0 11.4 5.2 11.2 11.8-.2 6.2-5.2 11.2-11.4 11.2-6.4 0-11.4-5.2-11.2-11.6.2-6.2 5.2-11.4 11.4-11.4Z" />
+        <path d="M30 27.6c1.4 0 2.5 1.1 2.4 2.6-.1 1.3-1.1 2.3-2.5 2.3-1.4 0-2.4-1.1-2.3-2.5.1-1.3 1.1-2.4 2.4-2.4Z" />
+      </g>
+    </symbol>
+
+    <!-- Aufgeschlagener Band, liegt am Rand herum -->
+    <symbol id="manga" viewBox="0 0 120 96">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path class="fill-paper"
+          d="M9 26c17-8 34-10 49-4.6 15-5.6 32-3.6 51 4.6-2.4 18-3.4 35-2.4 51.5-18.6-8-34.6-10-48.6-4.6-14-5.6-30-3.6-48.4 4.6C11 61 10 44 9 26Z" />
+        <path d="M58 21.4c1.4 18 1.6 35 .6 51.4" />
+        <path d="M20 34c9-3.4 18-4.6 27-3.6M20 44c9-3.4 18-4.6 27-3.6M20 54c8-3 16-4.2 24-3.4" />
+        <path d="M70 30.4c9-1 18 .2 27 3.6M70 40.4c9-1 18 .2 27 3.6M74 50.6c7-.8 14 .4 21 3.4" />
+        <path class="fill-red" stroke="none" d="M84 21.6c2.6.8 5.2 1.8 7.8 3l-.6 20-3.4-6.4-4.4 5.2Z" />
+      </g>
+    </symbol>
+
+    <!-- Kassette für den Musikteil -->
+    <symbol id="cassette" viewBox="0 0 200 128">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path class="fill-paper" d="M8.5 12c40-3 143-3.4 183 0 4 .4 6 2.4 6 6 1 32 1 66 0 100-.4 4-2.4 6-6.4 6.4-40 3-142 3-182.6 0-4-.4-6-2.4-6.4-6.4-1-34-.8-68 0-100 .2-3.6 2.2-5.6 6.4-6Z" />
+        <path d="M28 34c46-2.6 98-2.6 145 0 3 .2 4.6 1.6 4.6 4 .6 12 .6 24 0 35.4-.2 2.6-1.8 4-4.6 4.2-47 2.6-99 2.6-145 0-3-.2-4.4-1.6-4.6-4.2-.6-11.4-.6-23.4 0-35.4.2-2.4 1.8-3.8 4.6-4Z" />
+        <circle cx="70" cy="56" r="15" />
+        <circle cx="70" cy="56" r="5" />
+        <circle cx="131" cy="56" r="15" />
+        <circle cx="131" cy="56" r="5" />
+        <path d="M85 56c10-3 20-3 31 0" />
+        <path d="M48 100c34-2 70-2 105 0" />
+        <path d="M60 111c28-1.6 58-1.6 82 0" />
+      </g>
+    </symbol>
+
+    <!-- Klebeband, ausgerissene Kanten -->
+    <symbol id="tape" viewBox="0 0 120 40" preserveAspectRatio="none">
+      <path d="M4 7 12 4l9 3.4L30 3l9 4 9-4.4 9 4 9-3.6 9 4 9-4 9 3.6 8-3v30l-8 3.4-9-3.6-9 4-9-4-9 3.6-9-4-9 4.4-9-4-9 4.4L12 36l-8-3.4Z" />
+    </symbol>
+
+    <!-- Icons: von Hand nachgezogen, keine Markenvorlagen -->
+    <symbol id="ic-discord" viewBox="0 0 32 32">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 8.5c3.4-.8 7-.8 10.4 0 3.2 4 4.8 9 4.4 14.2-2.4 1.8-5 3-7.8 3.6l-1.4-2.6c-1.2.2-2.4.2-3.6 0L11.6 26.3c-2.8-.6-5.4-1.8-7.8-3.6C3.4 17.5 5 12.5 8.2 8.5" transform="translate(1)" />
+        <path d="M13 17.2c0 1.4-.8 2.6-1.8 2.6s-1.9-1.2-1.9-2.6.8-2.6 1.9-2.6 1.8 1.2 1.8 2.6Z" />
+        <path d="M23 17.2c0 1.4-.8 2.6-1.9 2.6s-1.8-1.2-1.8-2.6.8-2.6 1.8-2.6 1.9 1.2 1.9 2.6Z" />
+      </g>
+    </symbol>
+    <symbol id="ic-steam" viewBox="0 0 32 32">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3.4 19.6C2.2 11.6 8 4.4 16.2 4.2 24 4 30 10.6 29.3 18.4 28.6 26 21.6 31 14.2 29 9 27.6 4.6 24 3.4 19.6Z" />
+        <path d="M2.8 20.4 11 17.6" />
+        <path d="M15.6 20.6c0 2.5-2 4.5-4.4 4.5a4.4 4.4 0 0 1-4.4-4.5c0-2.4 2-4.4 4.4-4.4s4.4 2 4.4 4.4Z" />
+        <path d="M25.4 12.6c0 2.9-2.3 5.2-5.1 5.2a5.2 5.2 0 0 1-5.2-5.2c0-2.8 2.3-5.1 5.2-5.1 2.8 0 5.1 2.3 5.1 5.1Z" />
+        <path d="M22.6 12.6a2.3 2.3 0 1 1-4.6 0 2.3 2.3 0 0 1 4.6 0Z" />
+      </g>
+    </symbol>
+    <symbol id="ic-instagram" viewBox="0 0 32 32">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5.4 9.2c.4-2.6 2-4 4.6-4.2 4.4-.4 8.8-.4 13.2 0 2.4.2 3.8 1.6 4 4.2.5 4.6.5 9 0 13.6-.2 2.6-1.6 4-4 4.2-4.4.4-8.8.4-13.2 0-2.6-.2-4.2-1.6-4.6-4.2-.5-4.6-.5-9 0-13.6Z" />
+        <path d="M22 16.2c0 3.3-2.7 6-6 5.9a6 6 0 0 1-5.9-6c0-3.2 2.7-5.8 6-5.8 3.2 0 5.9 2.6 5.9 5.9Z" />
+        <path d="M23.6 9.4c0 .5-.4.9-1 .9a.9.9 0 0 1 0-1.8c.6 0 1 .4 1 .9Z" />
+      </g>
+    </symbol>
+    <symbol id="ic-x" viewBox="0 0 32 32">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 6.5c6 6.6 12 13.4 18.4 19.8" />
+        <path d="M25.2 6.4C19.4 12.6 13.4 19.4 7.2 26" />
+      </g>
+    </symbol>
+    <symbol id="ic-spotify" viewBox="0 0 32 32">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3.6 17.4C2.8 9.8 8.6 3.6 16.2 3.4 23.6 3.2 29.4 9 29.2 16.4 29 24 22.4 29.4 15 28.4 8.8 27.6 4.2 23.2 3.6 17.4Z" />
+        <path d="M9.4 12.4c5.4-1.4 10.8-1 15.8 1.4" />
+        <path d="M10.4 17.6c4.4-1.2 9-.8 13.2 1.4" />
+        <path d="M11.6 22.4c3.4-1 7-.6 10.4 1.2" />
+      </g>
+    </symbol>
+
+    <!-- Panelrahmen, in einem Zug gezogen, Ecken laufen über -->
+    <symbol id="frame" viewBox="0 0 300 200" preserveAspectRatio="none">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path
+          d="M7 22c-2 26-3 84-1 152.5.3 12 2 18 12 19 90 5 190 4 268 1 10-.4 12-6.5 12-16.5 1-50 1-104-1-155-.4-11-3-14-13-14.6-86-4-176-3.4-262-.4-12 .4-15 4-15 14.5" />
+      </g>
+    </symbol>
+
+    <symbol id="ic-sun" viewBox="0 0 32 32">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22.4 16.2c0 3.6-3 6.5-6.6 6.4a6.5 6.5 0 0 1-6.3-6.6c0-3.5 3-6.3 6.6-6.2 3.5 0 6.3 2.9 6.3 6.4Z" />
+        <path d="M16 2.6v4.2M16 25.4v4.2M2.8 16.2H7M25 16.2h4.2M6.6 6.8l3 3M22.4 22.6l3 3M25.4 6.8l-3 3M9.6 22.6l-3 3" />
+      </g>
+    </symbol>
+    <symbol id="ic-moon" viewBox="0 0 32 32">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.6 3.6c-8 1-13.6 8.6-12 16.4 1.4 7 8.6 11.4 15.4 9.4 3-.9 5.6-3 7.2-5.7-8 1.6-15-4.8-13.8-13 .3-2.6 1.5-5 3.2-7.1Z" />
+      </g>
+    </symbol>
+  </svg>
+
+  <button class="lamp" type="button" aria-label="Licht umschalten" aria-pressed="false">
+    <svg class="lamp-sun" viewBox="0 0 32 32" aria-hidden="true"><use href="#ic-sun" /></svg>
+    <svg class="lamp-moon" viewBox="0 0 32 32" aria-hidden="true"><use href="#ic-moon" /></svg>
+  </button>
+
+  <main class="page">
+
+    <!-- ══════════════ Kopf ══════════════ -->
+    <header class="hero">
+      <div class="hero-art">
+        <svg class="tone-blob" viewBox="0 0 300 300" aria-hidden="true">
+          <path fill="url(#tone)"
+            d="M150 8c62 0 118 44 130 100 12 58-24 122-84 146-58 24-128 4-158-48C8 154 22 82 74 40 96 20 122 8 150 8Z" />
+        </svg>
+        <svg class="hat" viewBox="0 0 200 128" aria-hidden="true"><use href="#hat" /></svg>
+      </div>
+
+      <div class="hero-text">
+        <h1 class="wordmark">
+          <svg viewBox="0 0 372 150" role="img" aria-label="strohut"><use href="#wordmark" /></svg>
+        </h1>
+        <p class="realname">Mico<span class="dot">·</span>irgendwo in Deutschland</p>
+        <p class="tagline">Ich schreib hier bestimmt mal was sinnvolles hin..</p>
+
+        <nav class="links" aria-label="Meine Seiten woanders">
+          <a class="tag" href="https://discord.com/users/402858450926829568" rel="me">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><use href="#ic-discord" /></svg><span>Discord</span>
+          </a>
+          <a class="tag" href="https://steamcommunity.com/profiles/76561198814076728/" rel="me">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><use href="#ic-steam" /></svg><span>Steam</span>
+          </a>
+          <a class="tag" href="https://www.instagram.com/stro._.hut" rel="me">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><use href="#ic-instagram" /></svg><span>Instagram</span>
+          </a>
+          <a class="tag" href="https://twitter.com/Kooaaa_" rel="me">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><use href="#ic-x" /></svg><span>Twitter</span>
+          </a>
+        </nav>
+      </div>
+
+      <aside class="hero-side">
+        <figure class="polaroid">
+          <svg class="tape tape-a" viewBox="0 0 120 40" aria-hidden="true"><use href="#tape" /></svg>
+          <svg class="tape tape-b" viewBox="0 0 120 40" aria-hidden="true"><use href="#tape" /></svg>
+          <img src="images/pfp.gif" width="540" height="304" alt="Luffy im Gear 5 grinst in die Kamera">
+          <figcaption>
+            <svg class="scribble-arrow" viewBox="0 0 120 80" aria-hidden="true"><use href="#arrow" /></svg>
+            <span>gear 5, na klar</span>
+          </figcaption>
+        </figure>
+
+        <p class="note">
+          <svg class="tape tape-d" viewBox="0 0 120 40" aria-hidden="true"><use href="#tape" /></svg>
+          Ist schon zu lange mein Profilbild.
+          Ändert sich aber auch nicht.
+        </p>
+      </aside>
+    </header>
+
+    <!-- ══════════════ Live-Status ══════════════ -->
+    <section class="now" id="jetzt" aria-labelledby="now-h">
+      <h2 class="label" id="now-h">grad eben<svg class="label-flick" viewBox="0 0 40 40" aria-hidden="true"><use href="#sparkle" /></svg></h2>
+
+      <p class="aside-note">
+        <svg viewBox="0 0 120 80" aria-hidden="true"><use href="#arrow" /></svg>
+        direkt aus Discord,<br>aktualisiert sich selbst
+      </p>
+
+      <div class="panel" data-state="loading">
+        <svg class="frame" viewBox="0 0 300 200" preserveAspectRatio="none" aria-hidden="true"><use href="#frame" /></svg>
+
+        <div class="presence">
+          <div class="head">
+            <img class="head-img" id="dc-avatar" src="images/pfp.gif" width="96" height="96" alt="">
+            <svg class="head-dot" viewBox="0 0 40 40" aria-hidden="true">
+              <path d="M20.4 3.4c9.6-.2 17 7.8 16.2 17.2-.8 9-9 15.4-18 14-8-1.2-13.8-8.4-13.2-16.4C6 10.4 12.6 3.6 20.4 3.4Z" />
+            </svg>
+          </div>
+
+          <div class="presence-text">
+            <p class="dc-name" id="dc-name">wird geladen…</p>
+            <p class="dc-state" id="dc-state">Verbindung zu Discord</p>
+          </div>
         </div>
+
+        <ul class="doing" id="dc-doing"></ul>
+
+        <p class="quiet" id="dc-quiet" hidden>
+          Grad nix am laufen. Vermutlich draußen, vermutlich schlafen.
+        </p>
+      </div>
     </section>
 
-    <section class="section discord-profile-bar">
-        <div class="discord-bar">
-            <div class="discord-avatar-container">
-                <img id="discord-avatar" class="discord-avatar" src="" alt="Discord Avatar">
-                <div id="discord-status-badge" class="discord-status-badge"></div>
+    <!-- ══════════════ Über mich ══════════════ -->
+    <section class="about" aria-labelledby="about-h">
+      <h2 class="label" id="about-h">über mich</h2>
+      <svg class="doodle-manga" viewBox="0 0 120 96" aria-hidden="true"><use href="#manga" /></svg>
+      <div class="sheet">
+        <p class="lead">BELLO!</p>
+        <p>
+          Ich bin Mico, im Internet <b>Strohut</b>. Ich bastel gern mit
+          <b>Python</b>, <b>Lua</b>, <b>HTML</b> und was mir sonst unter die Finger kommt.
+          Ansonsten: viel zu viel Anime, Manga und Videospiele.
+        </p>
+        <p>
+          Wenn dich was interessiert, schreib mir einfach — Discord oder sonstwo.
+          Ich bin immer für einen Plausch zu haben :3
+        </p>
+        <p class="signature">— Mico</p>
+      </div>
+    </section>
+
+    <!-- ══════════════ Musik ══════════════ -->
+    <section class="music" aria-labelledby="music-h">
+      <h2 class="label" id="music-h">im ohr</h2>
+
+      <div class="deck-row">
+        <div class="deck">
+          <svg class="tape tape-c" viewBox="0 0 120 40" aria-hidden="true"><use href="#tape" /></svg>
+
+          <div class="deck-body">
+            <p class="deck-kicker" id="music-kicker">letzter ohrwurm</p>
+            <div class="embed" id="music-embed">
+              <!-- liegt hinter dem Player, taucht nur auf wenn der wegbleibt -->
+              <p class="embed-fallback">
+                <svg viewBox="0 0 60 60" aria-hidden="true"><use href="#record" /></svg>
+                <a id="music-link" href="https://open.spotify.com/track/2N7umuRBdK014bDuwREFZS">Auf Spotify anhören</a>
+              </p>
+              <iframe title="Spotify" src="https://open.spotify.com/embed/track/2N7umuRBdK014bDuwREFZS?utm_source=generator"
+                width="100%" height="152" frameborder="0" loading="lazy"
+                allow="clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
             </div>
-
-            <div class="discord-info">
-                <h2 id="discord-username">Fetching username...</h2>
-                <p id="discord-status">Fetching status...</p>
-                <div id="discord-activities">Fetching activities...</div>
-            </div>
-
-            <a href="https://discord.com/users/402858450926829568" class="discord-profile-link">Profile</a>
+          </div>
         </div>
+
+        <svg class="cassette" viewBox="0 0 200 128" aria-hidden="true"><use href="#cassette" /></svg>
+      </div>
     </section>
 
-    <section class="section additional-textbox-container">
-        <div class="additional-textbox">
-            <h3>About me!</h3>
-            <p>BELLO! I’m Mico, and on the internet, I go by "Strohut." I enjoy experimenting with Python, Lua, HTML,
-                and more. I'm also a huge fan of anime, manga, and video games.
-                If you're curious, feel free to slide into my DMs on Discord or any other platform. I’m always open for
-                a chat! :3
-            </p>
-        </div>
-    </section>
+    <footer class="foot">
+      <svg class="wave" viewBox="0 0 400 20" preserveAspectRatio="none" aria-hidden="true">
+        <path fill="none" d="M2 12c22-9 44 8 66 1 22-8 44 7 66 0 22-8 44 8 66 1 22-8 44 6 66-1 22-8 44 8 66 2" />
+      </svg>
+      <p>
+        Alles hier von Hand gezeichnet.
+        <a href="https://github.com/Strohutt/Strohutt.github.io">Quellcode</a>
+      </p>
+    </footer>
+  </main>
 
-    <section class="section spotify-container">
-        <iframe style="border-radius:12px"
-            src="https://open.spotify.com/embed/track/2N7umuRBdK014bDuwREFZS?utm_source=generator&theme=0" width="100%"
-            height="152" frameborder="0" allowfullscreen=""
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-    </section>
-
-
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script src="script.js" defer></script>
+  <script src="script.js" defer></script>
 </body>
 
 </html>
