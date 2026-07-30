@@ -30,12 +30,13 @@
 
   --paper: #efece4;
   --paper-2: #b8b4ab;
-  --paper-3: #6f6c66;
+  --paper-3: #8a877f;
 
   --blood: #e01b2e;
+  /* the drawing red misses 4.5:1 at small sizes, so text gets its own */
+  --blood-lit: #ff3d4e;
 
   --rule: 2px;
-  --gut: clamp(.75rem, 1.8vw, 1.5rem);
 }
 
 *,
@@ -231,7 +232,7 @@ a {
   display: block;
   width: min(100%, 38rem);
   height: clamp(1.5rem, 3vw, 2.4rem);
-  margin: -.7rem 0 .4rem clamp(.4rem, 2vw, 1.6rem);
+  margin: -.7rem 0 .4rem;
 }
 
 .bs-body {
@@ -249,12 +250,11 @@ a {
   z-index: 1;
   font-size: clamp(2.6rem, 9vw, 6rem);
   letter-spacing: .02em;
-  margin: 0 0 .5rem clamp(.4rem, 2vw, 1.6rem);
+  margin: 0 0 .5rem;
   text-shadow: 0 0 26px var(--ink), 0 0 12px var(--ink);
 }
 
 .who {
-  margin-left: clamp(.4rem, 2vw, 1.6rem);
   display: flex;
   align-items: center;
   gap: .7rem;
@@ -280,7 +280,6 @@ a {
 
 /* ── links, as inked tags ───────────────────────────────────── */
 .links {
-  margin-left: clamp(.4rem, 2vw, 1.6rem);
   display: flex;
   flex-wrap: wrap;
   gap: .5rem;
@@ -493,7 +492,7 @@ a {
   font-size: .78rem;
   font-variant-numeric: tabular-nums;
   letter-spacing: .06em;
-  color: var(--blood);
+  color: var(--blood-lit);
 }
 
 .quiet {
@@ -508,7 +507,7 @@ a {
   font-weight: 700;
   letter-spacing: .24em;
   text-transform: uppercase;
-  color: var(--blood);
+  color: var(--blood-lit);
 }
 
 .track {
@@ -700,6 +699,26 @@ a {
   text-align: left;
   letter-spacing: inherit;
 }
+
+/* hover and focus have to say "this is a control" without a chrome box */
+.sigil,
+.band,
+.flag,
+.name button {
+  transition: opacity .2s ease, filter .2s ease;
+}
+
+.sigil:hover,
+.sigil:focus-visible { opacity: .85; }
+
+.band:hover svg,
+.band:focus-visible svg { filter: drop-shadow(0 0 10px rgba(239, 236, 228, .35)); }
+
+.flag:hover svg,
+.flag:focus-visible svg { filter: drop-shadow(0 0 12px rgba(224, 27, 46, .45)); }
+
+.name button:hover,
+.name button:focus-visible { color: var(--blood); }
 
 /* the wheel takes the hit and turns a spoke on */
 .sigil {
@@ -922,7 +941,7 @@ body.is-flashing::after {
 }
 
 .tally.is-hot .tally-now b {
-  color: var(--blood);
+  color: var(--blood-lit);
 }
 
 /* ── panels arriving ────────────────────────────────────────── */
@@ -1001,4 +1020,11 @@ body.is-flashing::after {
   }
 
   .strikes { display: none; }
+
+  .sigil.is-struck .mg-body,
+  .band.is-struck svg,
+  .flag.is-struck svg,
+  .brush.is-struck {
+    animation: none !important;
+  }
 }
