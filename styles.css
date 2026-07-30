@@ -81,7 +81,6 @@ body {
 /* ── type ───────────────────────────────────────────────────── */
 h1,
 h2,
-.vert,
 .dc-name,
 .kicker,
 .tally b {
@@ -99,24 +98,7 @@ a {
    rather than writing-mode, because that needs vertical metrics the
    fallback font may not have — and without them every glyph lands on
    top of the last one. */
-.vert {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .42em;
-  font-size: .9rem;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: .04em;
-  color: var(--blood);
-}
 
-.hero > .vert {
-  align-self: start;
-  margin-top: .4rem;
-  padding-right: clamp(.6rem, 1.6vw, 1.2rem);
-  border-right: 1px solid var(--ink-3);
-}
 
 /* ── the spread ─────────────────────────────────────────────── */
 
@@ -136,7 +118,7 @@ a {
   padding-block: clamp(1.4rem, 4vw, 3rem);
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: clamp(2.2rem, 6vw, 4.5rem) clamp(1.6rem, 4vw, 3.4rem);
+  gap: clamp(1.6rem, 4vw, 3rem) clamp(1.6rem, 4vw, 3.4rem);
 }
 
 /* No frames. Thin light outlines with clipped corners on black read as a
@@ -151,8 +133,8 @@ a {
 
 /* where each region sits on the twelve columns */
 .hero { grid-column: 1 / -1; }
-.now { grid-column: 1 / 8; align-content: start; }
-.music { grid-column: 8 / -1; align-content: start; }
+.now { grid-column: 1 / 7; align-content: start; }
+.music { grid-column: 7 / -1; align-content: start; }
 
 .foot {
   grid-column: 1 / -1;
@@ -163,12 +145,10 @@ a {
 /* ══ the hero panel ═════════════════════════════════════════ */
 .hero {
   align-content: center;
-  min-height: min(58vh, 27rem);
+  min-height: min(42vh, 20rem);
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  column-gap: clamp(.8rem, 2vw, 1.6rem);
-  padding-block: clamp(1rem, 2.6vw, 2rem);
+  grid-template-columns: minmax(0, 1fr);
+  padding-block: clamp(.6rem, 1.8vw, 1.4rem);
 }
 
 /* speed lines, converging off the right edge */
@@ -191,8 +171,8 @@ a {
    it is not a sticker placed inside the frame. */
 .sigil {
   position: absolute;
-  top: 50%;
-  right: -17%;
+  top: 44%;
+  right: -15%;
   width: min(36rem, 50%);
   aspect-ratio: 1;
   translate: 0 -50%;
@@ -235,9 +215,13 @@ a {
 /* each adaptation burns a little hotter */
 .hero.is-adapted .mg-body { stroke: var(--blood); }
 
+/* Sized to its own content. Left as a full-width block it lies across the
+   wheel, and every click meant for the wheel lands on the text instead. */
 .hero-text {
   position: relative;
   z-index: 2;
+  width: fit-content;
+  max-width: 100%;
   min-width: 0;
 }
 
@@ -338,10 +322,7 @@ a {
   grid-column: 1 / -1;
   justify-self: center;
   width: min(100%, 62rem);
-  height: auto;
-  margin-block: calc(var(--gut) * -.4);
-  overflow: visible;
-  pointer-events: none;
+  margin-block: clamp(-1rem, -2vw, -.4rem);
 }
 
 .cb-body {
@@ -506,12 +487,6 @@ a {
   font-weight: 700;
 }
 
-.doing-line {
-  margin: .05rem 0 0;
-  font-size: .88rem;
-  color: var(--paper-2);
-  overflow-wrap: anywhere;
-}
 
 .doing-time {
   margin: .18rem 0 0;
@@ -645,7 +620,6 @@ a {
 
 .flag {
   width: clamp(3.6rem, 7vw, 5.2rem);
-  height: auto;
   flex: none;
 }
 
@@ -703,6 +677,96 @@ a {
   letter-spacing: .2em;
   text-transform: uppercase;
   color: var(--paper-3);
+}
+
+/* ══ things you can hit ═════════════════════════════════════
+   Buttons, so they are reachable by keyboard and announced, but with
+   every scrap of button styling taken off — the drawing is the control. */
+.sigil,
+.band,
+.flag,
+.name button {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.name button {
+  display: block;
+  text-align: left;
+  letter-spacing: inherit;
+}
+
+/* the wheel takes the hit and turns a spoke on */
+.sigil {
+  pointer-events: auto;
+}
+
+.sigil.is-struck .mg-body {
+  animation: adapt .5s ease-out;
+}
+
+@keyframes adapt {
+  0% { stroke: var(--blood); stroke-width: 4; }
+  100% { stroke: var(--paper); stroke-width: 2.4; }
+}
+
+/* the cloud gets shoved along and settles */
+.band {
+  --shove: 0;
+}
+
+.band svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  transform: translateX(calc(var(--shove) * 1.6%)) skewX(calc(var(--shove) * -.6deg));
+  transition: transform .7s cubic-bezier(.2, .9, .2, 1);
+}
+
+.band.is-struck svg {
+  animation: puff .7s cubic-bezier(.2, .9, .2, 1);
+}
+
+@keyframes puff {
+  0% { scale: 1 1; }
+  35% { scale: 1.03 .93; }
+  100% { scale: 1 1; }
+}
+
+/* the flag swings on its pole */
+.flag svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform-origin: 50% 0;
+}
+
+.flag.is-struck svg {
+  animation: swing .8s cubic-bezier(.3, .8, .3, 1);
+}
+
+@keyframes swing {
+  0% { rotate: 0deg; }
+  25% { rotate: -9deg; }
+  55% { rotate: 6deg; }
+  80% { rotate: -2deg; }
+  100% { rotate: 0deg; }
+}
+
+/* the stroke is pulled again */
+.brush.is-struck {
+  animation: pull .45s cubic-bezier(.2, .9, .2, 1);
+}
+
+@keyframes pull {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
 }
 
 /* ══ 黒閃 ═══════════════════════════════════════════════════
