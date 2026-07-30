@@ -1,23 +1,23 @@
 # strohutt.github.io
 
-My page. Dark, jujutsu kaisen flavoured.
+My page. Dark, jujutsu kaisen flavoured, with god of highschool
+and one piece bolted on.
 
 Runs on GitHub Pages. No build step, no framework — four files, open them
 and type.
 
 | File          | Contents                                                  |
 | ------------- | --------------------------------------------------------- |
-| `index.html`  | The page, plus the icons and the ring as inline SVG        |
+| `index.html`  | The page, plus every icon and drawn thing as inline SVG    |
 | `styles.css`  | Colours, layout, the cursed energy                         |
 | `script.js`   | Scroll reveals, the doodle pad, the Discord presence       |
 | `favicon.svg` | The purple orb                                             |
 
 ## The look
 
-Everything on the page is built out of the three techniques and nothing
-else: **blue** pulls, **red** pushes, and where they collide you get
-**purple**. Those are the only three accents in `styles.css` — links,
-pens, the status dot, the ring, the slashes. No fourth colour.
+The page runs on three techniques: **blue** pulls, **red** pushes, and where
+they collide you get **purple**. Links, pens, the status dot and the glow
+are those three and nothing else.
 
 The orb in the header is that collision: a blue field and a red field on
 `mix-blend-mode: screen`, drifting against each other on opposite
@@ -25,18 +25,40 @@ schedules, so the overlap really does go violet rather than being painted
 violet. The live Discord avatar sits inside it.
 
 Nothing is rounded except the orb and the avatar. Every panel, button and
-tag is cleaved — a `clip-path` polygon with two corners cut off — and the
-dividers between sections are slash marks, not rules.
+tag is cleaved — a `clip-path` polygon with two corners cut off.
 
-The name is set three times on top of each other: blue, red, then bone.
-The blue and red layers drift a few pixels apart on opposite cycles, so
-the edges of the letters bleed the two techniques.
+## The drawn things
+
+Five of them, traced off panels rather than invented, which is why they
+keep their own colours instead of being repainted violet:
+
+| | |
+| --- | --- |
+| **Mahoraga's wheel** | Behind the avatar. Hub sphere, eight spokes running through the rim, eight spheres outside it. Turns on its own, and lurches a spoke further every time a black flash lands. |
+| **Jin Mori's crown** | Over the name. A shallow arch — the middle is the high point, both ends fall away to outward blades — with two scroll curls rolled up on the centre. |
+| **Nyoibō** | Between the sections. It comes in stubby and pushes out to full width as you reach it, because extending is the only thing it does. No two are the same length or struck at the same angle. |
+| **Gear 5 clouds** | Drifting behind everything. Inked outlines, not fills — at the opacity they need to sit at, a fill just disappears. |
+| **Jolly Roger** | At the foot. |
+
+Every outline is generated with a fixed seed and shaken off its ideal
+curve, so no two bumps match and nothing sits on a perfect circle.
+
+### Two things that will bite you
+
+`<use>` clones a symbol into a shadow tree, and **a descendant selector
+never reaches inside it**. `.puff .cl-body` silently does nothing;
+`.cl-body` works. Custom properties inherit through, so per-instance
+variation has to ride on a variable rather than an ancestor class.
+
+The wheel runs past the right margin on purpose. Clip that on `.domain`
+and the cut lands on the column edge, straight through the wheel — it has
+to be clipped on `main`, which spans the viewport.
 
 ## Japanese
 
 The small vertical labels are section names: 領域展開 domain expansion,
 現在 now, 自己紹介 about me, 落書き scribble, 音楽 music. The characters
-around the ring are technique names.
+on the counter are 黒閃, black flash.
 
 They are stacked as individual `<span>` elements rather than with
 `writing-mode: vertical-rl`, because vertical layout needs vertical

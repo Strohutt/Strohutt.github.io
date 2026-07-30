@@ -2,8 +2,14 @@
    strohut
 
    Built on the three cursed techniques: blue pulls, red pushes, and
-   where they meet you get purple. Every accent on the page is one of
-   those three, nothing else. Dark throughout — a domain has no daylight.
+   where they meet you get purple. Dark throughout — a domain has no
+   daylight.
+
+   The drawn things carry their own colours, because they were traced off
+   the panels they come from and repainting them purple would lose them:
+   gold for the wheel and the straw hat, crimson for the crown, stone for
+   the staff. Those live under --gold / --crimson / --stone and are only
+   ever used inside a motif.
    ════════════════════════════════════════════════════════════════ */
 
 :root {
@@ -20,6 +26,16 @@
   --bone: #ece9f2;
   --ash: #8f889e;
   --ash-dim: #5d566b;
+
+  --gold: #cfae5c;
+  --gold-dark: #5f4a1a;
+  --gold-lit: #f0dda6;
+  --crimson: #a01e28;
+  --crimson-dark: #4a0a11;
+  --crimson-lit: #e5717a;
+  --stone: #7e7a88;
+  --stone-face: #9d99a7;
+  --stone-dark: #17131f;
 
   --edge: rgba(168, 85, 247, .32);
   --cleave: 20px;
@@ -90,6 +106,40 @@ body {
   animation: roil 37s ease-in-out infinite alternate;
 }
 
+/* Gear 5 clouds. A dim white fill alone disappears under the colour veil,
+   so the outline carries them — that is how they are inked anyway. */
+.puff {
+  position: absolute;
+  height: auto;
+  overflow: visible;
+}
+
+.puff {
+  --ink: .58;
+  --wash: .07;
+}
+
+.cl-body {
+  fill: rgb(242 238 230 / var(--wash, 0));
+  stroke: var(--bone);
+  stroke-width: 3;
+  stroke-opacity: var(--ink, 0);
+  stroke-linejoin: round;
+}
+
+/* negative delays, or all six start stacked off the left edge together */
+.puff-1 { width: clamp(16rem, 30vw, 30rem); top: 8vh; animation: drift 88s linear -22s infinite; }
+.puff-2 { width: clamp(11rem, 19vw, 20rem); top: 31vh; opacity: .7; animation: drift 124s linear -74s infinite; }
+.puff-3 { width: clamp(20rem, 40vw, 42rem); top: 50vh; opacity: .55; animation: drift 168s linear -50s infinite; }
+.puff-4 { width: clamp(13rem, 24vw, 25rem); top: 68vh; opacity: .8; animation: drift 104s linear -68s infinite reverse; }
+.puff-5 { width: clamp(9rem, 15vw, 16rem); top: 20vh; opacity: .6; animation: drift 146s linear -110s infinite; }
+.puff-6 { width: clamp(15rem, 27vw, 28rem); top: 82vh; opacity: .5; animation: drift 132s linear -36s infinite reverse; }
+
+@keyframes drift {
+  from { transform: translate3d(-42vw, 0, 0); }
+  to { transform: translate3d(122vw, 0, 0); }
+}
+
 @keyframes roil {
   from { transform: translate3d(-4%, 3%, 0) scale(1); }
   to { transform: translate3d(5%, -4%, 0) scale(1.16); }
@@ -154,6 +204,9 @@ b {
 main {
   position: relative;
   z-index: 1;
+  /* the wheel is meant to run past the right margin; clip at the
+     viewport so it does not widen the document */
+  overflow-x: clip;
 }
 
 section {
@@ -169,8 +222,9 @@ footer {
 
 /* ══ 領域展開 ═══════════════════════════════════════════════ */
 .domain {
-  min-height: min(78vh, 40rem);
-  padding-block: clamp(3rem, 9vh, 6rem) clamp(2rem, 6vh, 4rem);
+  position: relative;
+  min-height: min(58vh, 31rem);
+  padding-block: clamp(2rem, 5vh, 3.6rem) clamp(.6rem, 2vh, 1.4rem);
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
@@ -185,6 +239,40 @@ footer {
 
 .domain-text {
   min-width: 0;
+}
+
+/* Mori's crown, worn by the name rather than by a head */
+.crown {
+  display: block;
+  width: min(100%, 34rem);
+  height: auto;
+  margin: 0 0 clamp(-3.6rem, -5vw, -1.8rem);
+  overflow: visible;
+  filter: drop-shadow(0 10px 26px rgba(160, 30, 40, .45));
+}
+
+.nv-body {
+  fill: var(--crimson);
+  stroke: var(--crimson-dark);
+  stroke-width: 3.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.nv-lit {
+  fill: none;
+  stroke: var(--crimson-lit);
+  stroke-width: 3.2;
+  stroke-opacity: .85;
+  stroke-linecap: round;
+}
+
+.nv-shade {
+  fill: none;
+  stroke: #5e0d15;
+  stroke-width: 9;
+  stroke-opacity: .8;
+  stroke-linecap: round;
 }
 
 /* the name, split into blue and red the way the techniques are */
@@ -287,8 +375,9 @@ footer {
   position: relative;
   display: grid;
   place-items: center;
-  width: clamp(13rem, 26vw, 20rem);
+  width: clamp(15rem, 33vw, 27rem);
   aspect-ratio: 1;
+  margin-right: clamp(-6rem, -7vw, -2rem);
 }
 
 .sigil > * {
@@ -297,7 +386,7 @@ footer {
 
 .orb {
   position: relative;
-  width: 112%;
+  width: 96%;
   aspect-ratio: 1;
 }
 
@@ -305,9 +394,9 @@ footer {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  filter: blur(34px);
+  filter: blur(38px);
   mix-blend-mode: screen;
-  opacity: .55;
+  opacity: .34;
 }
 
 .orb-b {
@@ -322,8 +411,8 @@ footer {
 
 .orb-v {
   background: radial-gradient(circle at 50% 50%, var(--violet) 0%, transparent 46%);
-  filter: blur(26px);
-  opacity: .45;
+  filter: blur(30px);
+  opacity: .26;
 }
 
 .orb-core {
@@ -331,7 +420,7 @@ footer {
   inset: 26%;
   background: radial-gradient(circle at 46% 42%, rgba(255, 255, 255, .5) 0%, rgba(168, 85, 247, .5) 42%, transparent 68%);
   filter: blur(14px);
-  opacity: .8;
+  opacity: .55;
 }
 
 @keyframes collide {
@@ -359,51 +448,25 @@ footer {
   to { transform: rotate(calc(var(--adapt) * 45deg + 360deg)); }
 }
 
-.rim {
-  fill: none;
-  stroke: var(--violet);
-}
-
-.rim-out { stroke-width: 3; stroke-opacity: .85; }
-.rim-in { stroke-width: 2; stroke-opacity: .55; }
-
-.rim-notch {
-  fill: none;
-  stroke: var(--violet);
-  stroke-width: 3;
-  stroke-opacity: .7;
-}
-
-.spoke {
-  fill: var(--void-2);
-  stroke: var(--violet);
-  stroke-width: 2.5;
+/* The wheel is traced off the panel, so it keeps its gold. Each ball is
+   drawn separately rather than stamped, and the rim is a band with a hole
+   punched through it so the spokes read as running underneath. */
+.mg-body {
+  fill: var(--gold);
+  stroke: var(--gold-dark);
+  stroke-width: 3.4;
   stroke-linejoin: round;
+  stroke-linecap: round;
 }
 
-.hub {
-  fill: var(--void-2);
-  stroke: var(--violet);
-  stroke-width: 3;
-}
-
-.hub-ring {
-  fill: none;
-  stroke: var(--red);
-  stroke-width: 2.5;
-  stroke-opacity: .9;
-}
-
-.hub-eye {
-  fill: var(--red);
+.mg-lit {
+  fill: var(--gold-lit);
+  opacity: .5;
 }
 
 /* each adaptation burns a little hotter */
-.sigil.is-adapted .rim,
-.sigil.is-adapted .rim-notch,
-.sigil.is-adapted .spoke {
-  stroke: #c98bff;
-}
+.sigil.is-adapted .mg-body { stroke: #7d6224; fill: #e0c069; }
+.sigil.is-adapted .mg-lit { opacity: .72; }
 
 .portrait {
   position: relative;
@@ -438,21 +501,40 @@ footer {
   display: none;
 }
 
-/* ── slash between sections ─────────────────────────────────── */
+/* ── the staff between sections ─────────────────────────────────
+      Nyoibō only ever does one thing, so it does it here: it comes in
+      short and pushes out to full width as the section arrives. The
+      stone is kept dark — a light grey cylinder on this page reads as
+      chrome pipe, and four of those down a page is a radiator. */
 .rule {
   display: block;
-  width: min(100% - 2.6rem, 56rem);
-  height: clamp(1.8rem, 3.6vw, 2.6rem);
-  margin: clamp(2.4rem, 6vw, 4rem) auto;
-  transform: rotate(-1.4deg);
+  width: min(100% - 1.4rem, 62rem);
+  height: auto;
+  margin: clamp(1.6rem, 4vw, 2.8rem) auto;
+  overflow: visible;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .55));
 }
 
-.rule.flip {
-  transform: scaleX(-1) rotate(-1.4deg);
+/* no two are the same length or struck at the same angle */
+.rule:nth-of-type(1) { width: min(100% - 1.4rem, 62rem); transform: rotate(-1.6deg); }
+.rule:nth-of-type(2) { width: min(100% - 6rem, 44rem); transform: scaleX(-1) rotate(-.7deg); }
+.rule:nth-of-type(3) { width: min(100% - 2.6rem, 55rem); transform: rotate(-1.1deg); }
+.rule:nth-of-type(4) { width: min(100% - 9rem, 37rem); transform: scaleX(-1) rotate(-2.2deg); }
+
+[data-js] .rule use {
+  transform: scaleX(.06);
+  transform-origin: 450px 35px;
+  transition: transform 1.15s cubic-bezier(.2, .9, .18, 1);
 }
 
-.cut-1 { fill: var(--bone); fill-opacity: .8; }
-.cut-2 { fill: var(--red); fill-opacity: .65; }
+[data-js] .rule.is-here use { transform: scaleX(1); }
+
+.ny-body { fill: #423d4d; stroke: #14111c; stroke-width: 3.2; stroke-linejoin: round; }
+.ny-face { fill: #5b5568; stroke: #14111c; stroke-width: 3; }
+.ny-grain { fill: none; stroke: #17141f; stroke-width: 1.8; stroke-opacity: .9; stroke-linecap: round; }
+
+/* the light that says stone, not tube */
+.ny-lit { fill: none; stroke: #cbb6ee; stroke-width: 2.6; stroke-opacity: .5; stroke-linecap: round; }
 
 /* ── section heads ──────────────────────────────────────────── */
 .head {
@@ -764,7 +846,7 @@ footer {
 
 /* ── foot ───────────────────────────────────────────────────── */
 footer {
-  padding-block: clamp(3rem, 8vw, 5rem) 3rem;
+  padding-block: clamp(2rem, 5vw, 3.2rem) 2.4rem;
   font-size: .85rem;
   letter-spacing: .1em;
   text-transform: uppercase;
@@ -780,6 +862,36 @@ footer a {
 footer a:hover {
   color: var(--violet);
 }
+
+/* the flag, hung at the bottom of the page */
+.flag {
+  display: block;
+  width: clamp(7rem, 15vw, 11rem);
+  height: auto;
+  margin: 0 auto 1.6rem;
+  overflow: visible;
+  filter: drop-shadow(0 0 26px rgba(232, 163, 60, .22));
+}
+
+.jr-ink {
+  stroke: var(--void);
+  stroke-width: 6;
+  stroke-linejoin: round;
+}
+
+.jr-bone { fill: #f2ecdf; }
+.jr-hole { fill: var(--void); stroke: none; }
+.jr-straw { fill: #e8a33c; }
+.jr-band { fill: #d8322c; }
+
+.jr-teeth {
+  fill: none;
+  stroke: var(--void);
+  stroke-width: 4.5;
+  stroke-linecap: butt;
+}
+
+
 
 /* ── sections arriving ──────────────────────────────────────── */
 [data-js] .reveal {
@@ -891,15 +1003,29 @@ footer a:hover {
   overflow: visible;
 }
 
-.strike-flash .core { fill: #000; }
-.strike-flash .core-edge { fill: none; stroke: var(--red); stroke-width: 3; }
-.strike-flash .bolt {
+/* It is named for the black, so the hole in the middle carries the shape
+   and the red only rims it. The bolts are filled tapers rather than
+   strokes — a stroke of even width reads as a diagram. */
+.bf-bolt {
+  fill: var(--red);
+  filter: drop-shadow(0 0 12px rgba(255, 37, 71, .8));
+}
+
+.bf-void {
+  fill: #000;
+  stroke: var(--violet);
+  stroke-width: 2;
+  stroke-opacity: .9;
+}
+
+.bf-core { fill: var(--red); }
+.bf-hole { fill: #000; }
+.bf-hot { fill: #fff1f4; }
+
+.bf-warp {
   fill: none;
-  stroke: var(--red);
-  stroke-width: 3.5;
+  stroke: var(--violet);
   stroke-linecap: round;
-  stroke-linejoin: round;
-  filter: drop-shadow(0 0 10px var(--red));
 }
 
 @keyframes flash {

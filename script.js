@@ -14,18 +14,24 @@ const stillPlease = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 const sections = document.querySelectorAll('.reveal');
 
+// The staff between sections comes in stubby and pushes out to full width
+// as you reach it — extending is the only thing Nyoibō does.
+const staves = document.querySelectorAll('.rule');
+
 if (stillPlease.matches || !('IntersectionObserver' in window)) {
   sections.forEach(s => s.classList.add('is-in'));
+  staves.forEach(s => s.classList.add('is-here'));
 } else {
   const watcher = new IntersectionObserver((entries, self) => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) return;
-      entry.target.classList.add('is-in');
+      entry.target.classList.add(entry.target.matches('.rule') ? 'is-here' : 'is-in');
       self.unobserve(entry.target);
     });
   }, { rootMargin: '0px 0px -12% 0px', threshold: 0.1 });
 
   sections.forEach(s => watcher.observe(s));
+  staves.forEach(s => watcher.observe(s));
 }
 
 
@@ -71,7 +77,7 @@ function strikeAt(x, y, kind) {
   if (kind === 'flash') {
     const which = 1 + Math.floor(Math.random() * 2);
     mark.innerHTML =
-      `<svg viewBox="0 0 240 240"><use href="#flash-${which}" /></svg>`;
+      `<svg viewBox="0 0 400 400"><use href="#flash-${which}" /></svg>`;
   }
 
   strikes.append(mark);
