@@ -339,45 +339,70 @@ footer {
   to { transform: translate(8px, -5px) scale(1.07); }
 }
 
-.ring {
+/* ── Mahoraga's wheel. It turns on its own, and lurches a spoke
+      further every time a black flash lands — the thing adapts. ── */
+.wheel {
   width: 100%;
   height: 100%;
   overflow: visible;
+  --adapt: 0;
 }
 
-.ring-spin {
+.wheel-turn {
   transform-origin: 200px 200px;
-  animation: turn 90s linear infinite;
+  transform: rotate(calc(var(--adapt) * 45deg));
+  animation: turn 120s linear infinite;
+  transition: transform .55s cubic-bezier(.16, 1.2, .3, 1);
 }
 
 @keyframes turn {
-  to { transform: rotate(360deg); }
+  to { transform: rotate(calc(var(--adapt) * 45deg + 360deg)); }
 }
 
-.ring-line {
+.rim {
   fill: none;
-  stroke-width: 1;
-}
-
-.ring-outer { stroke: var(--violet); stroke-opacity: .55; }
-.ring-mid { stroke: var(--blue); stroke-opacity: .45; }
-
-.tick-fine {
   stroke: var(--violet);
-  stroke-opacity: .5;
-  stroke-width: 1;
 }
 
-.tick-bold {
+.rim-out { stroke-width: 3; stroke-opacity: .85; }
+.rim-in { stroke-width: 2; stroke-opacity: .55; }
+
+.rim-notch {
+  fill: none;
+  stroke: var(--violet);
+  stroke-width: 3;
+  stroke-opacity: .7;
+}
+
+.spoke {
+  fill: var(--void-2);
+  stroke: var(--violet);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.hub {
+  fill: var(--void-2);
+  stroke: var(--violet);
+  stroke-width: 3;
+}
+
+.hub-ring {
+  fill: none;
   stroke: var(--red);
-  stroke-opacity: .5;
-  stroke-width: 2;
+  stroke-width: 2.5;
+  stroke-opacity: .9;
 }
 
-.ring-ch {
-  fill: #7b7290;
-  font-family: "Shippori Mincho B1", serif;
-  text-anchor: middle;
+.hub-eye {
+  fill: var(--red);
+}
+
+/* each adaptation burns a little hotter */
+.sigil.is-adapted .rim,
+.sigil.is-adapted .rim-notch,
+.sigil.is-adapted .spoke {
+  stroke: #c98bff;
 }
 
 .portrait {
@@ -819,4 +844,154 @@ footer a:hover {
 :focus-visible {
   outline: 2px solid var(--violet);
   outline-offset: 3px;
+}
+
+/* ══ 黒閃 ═══════════════════════════════════════════════════════
+   Hit the page and you might land one. In the manga it is a hair's
+   breadth of timing and the odds climb once you are in the zone, so
+   they climb here too — and the wheel adapts to each one. */
+.strikes {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.strike {
+  position: absolute;
+  translate: -50% -50%;
+  pointer-events: none;
+}
+
+/* the ordinary hit: a ring of cursed energy, gone in a blink */
+.strike-hit {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  border: 2px solid var(--violet);
+  animation: hit .45s ease-out forwards;
+}
+
+@keyframes hit {
+  from { opacity: .8; scale: .3; }
+  to { opacity: 0; scale: 1.8; }
+}
+
+/* the black flash itself */
+.strike-flash {
+  width: clamp(11rem, 26vw, 17rem);
+  aspect-ratio: 1;
+  animation: flash .5s cubic-bezier(.15, .85, .3, 1) forwards;
+}
+
+.strike-flash svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.strike-flash .core { fill: #000; }
+.strike-flash .core-edge { fill: none; stroke: var(--red); stroke-width: 3; }
+.strike-flash .bolt {
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 10px var(--red));
+}
+
+@keyframes flash {
+  0% { opacity: 0; scale: .35; rotate: -8deg; }
+  18% { opacity: 1; scale: 1.08; }
+  40% { scale: 1; }
+  100% { opacity: 0; scale: 1.14; rotate: 4deg; }
+}
+
+/* the room reacts for a moment */
+body.is-flashing::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, transparent 42%, rgba(255, 37, 71, .3) 100%);
+  animation: room .42s ease-out forwards;
+}
+
+@keyframes room {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* ── the tally ──────────────────────────────────────────────── */
+.tally {
+  position: fixed;
+  right: clamp(.8rem, 2vw, 1.6rem);
+  bottom: clamp(.8rem, 2vw, 1.6rem);
+  z-index: 41;
+  padding: .7rem .9rem;
+  text-align: right;
+  background: rgba(7, 6, 11, .82);
+  border: 1px solid var(--edge);
+  clip-path: polygon(11px 0, 100% 0, 100% calc(100% - 11px), calc(100% - 11px) 100%, 0 100%, 0 11px);
+}
+
+.tally[hidden] {
+  display: none;
+}
+
+.tally p {
+  margin: 0;
+}
+
+.tally-label {
+  display: flex;
+  justify-content: flex-end;
+  gap: .1em;
+  font-family: "Shippori Mincho B1", "Noto Serif JP", serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--red);
+}
+
+.tally-now {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: .4rem;
+  margin-top: .2rem;
+  font-size: .72rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.tally-now b {
+  font-family: "Shippori Mincho B1", "Noto Serif JP", serif;
+  font-size: 1.7rem;
+  line-height: 1;
+  color: var(--bone);
+  font-variant-numeric: tabular-nums;
+}
+
+.tally.is-hot .tally-now b {
+  color: var(--red);
+}
+
+.tally-best {
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ash-dim);
+}
+
+.tally-best b {
+  color: var(--ash);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .strikes { display: none; }
 }
