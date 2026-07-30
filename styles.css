@@ -1,59 +1,30 @@
 /* ════════════════════════════════════════════════════════════════
-   strohut — ink on paper
-   Anything that looks drawn is drawn: SVG paths, no icon library and
-   no page builder. Night is the default; day is the alternate.
+   strohut
+
+   Built on the three cursed techniques: blue pulls, red pushes, and
+   where they meet you get purple. Every accent on the page is one of
+   those three, nothing else. Dark throughout — a domain has no daylight.
    ════════════════════════════════════════════════════════════════ */
 
 :root {
   color-scheme: dark;
 
-  --paper: #15171d;
-  --paper-2: #222732;
-  --paper-3: #39414f;
-  --ink: #f0e7d6;
-  --ink-2: #c0b6a3;
-  --ink-3: #847c6d;
-  --red: #e8674a;
-  --straw: #eabf68;
-  --biro: #8fbde0;
+  --void: #07060b;
+  --void-2: #100c1a;
+  --slab: rgba(168, 85, 247, .055);
 
-  --grain-blend: screen;
-  --grain-opacity: .17;
-  --tone-opacity: .3;
-  --focus-opacity: .13;
-  --photo-shade: rgba(0, 0, 0, .55);
+  --blue: #2f6bff;
+  --red: #ff2547;
+  --violet: #a855f7;
+
+  --bone: #ece9f2;
+  --ash: #8f889e;
+  --ash-dim: #5d566b;
+
+  --edge: rgba(168, 85, 247, .32);
+  --cleave: 20px;
 }
 
-[data-theme="day"] {
-  color-scheme: light;
-
-  --paper: #f2ecdf;
-  --paper-2: #e9e0cd;
-  --paper-3: #ded2ba;
-  --ink: #241f19;
-  --ink-2: #4e463a;
-  --ink-3: #8c8271;
-  --red: #c4432c;
-  --straw: #dda845;
-  --biro: #3a5f80;
-
-  --grain-blend: multiply;
-  --grain-opacity: .42;
-  --tone-opacity: .5;
-  --focus-opacity: .12;
-  --photo-shade: rgba(36, 31, 25, .16);
-}
-
-/* ── Drawn rules, used as masks so they follow the ink colour ─── */
-:root {
-  --rule-h: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='9' viewBox='0 0 480 9'%3E%3Cpath fill='none' stroke='%23000' stroke-width='2.3' stroke-linecap='round' d='M0 4.5c30-1.7 60 1.5 90 .3 30-1.3 60 1.7 90 .5 30-1.3 60 1.9 90 .7 30-1.3 60 1.5 90 .3 30-1.3 60 1.3 120-1.3'/%3E%3C/svg%3E");
-  --rule-thin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='7' viewBox='0 0 480 7'%3E%3Cpath fill='none' stroke='%23000' stroke-width='1.25' stroke-linecap='round' d='M0 3.5c40-1.2 80 1.1 120 .2 40-.9 80 1.2 120 .3 40-.9 80 1.3 120 .4 40-.9 80 1 120-.9'/%3E%3C/svg%3E");
-  --marker: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='60' viewBox='0 0 300 60' preserveAspectRatio='none'%3E%3Cpath fill='%23000' d='M5 14c48-6 100-8 152-7 48 1 96 3 138 8-4 12-6 24-5 36-46 5-96 7-144 6-50-1-100-4-142-9 3-11 3-22 1-34Z'/%3E%3C/svg%3E");
-  /* fat brush stroke, thick in the middle, tapering to nothing */
-  --brush: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='22' viewBox='0 0 300 22' preserveAspectRatio='none'%3E%3Cpath fill='%23000' d='M2 11.6C36 5 108 2.2 180 3.1c42 .5 84 2.4 118 5.6-34 4.4-76 6.6-118 7-72 .8-142-2-176 3.6-3-2.4-3-5.4-2-7.7Z'/%3E%3C/svg%3E");
-}
-
-/* ── Foundations ────────────────────────────────────────────── */
 *,
 *::before,
 *::after {
@@ -66,35 +37,73 @@ html {
 
 body {
   margin: 0;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: "Zen Kaku Gothic New", ui-sans-serif, system-ui, sans-serif;
-  font-size: clamp(1rem, .95rem + .22vw, 1.1rem);
-  line-height: 1.65;
+  background: var(--void);
+  color: var(--bone);
+  font-family: "Zen Kaku Gothic New", ui-sans-serif, system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  font-size: clamp(1rem, .95rem + .2vw, 1.08rem);
+  line-height: 1.7;
   overflow-x: hidden;
-  transition: background-color .4s ease, color .4s ease;
 }
 
-/* Paper fibre plus darkened edges, like a scanned sheet */
-body::before {
-  content: "";
+/* ── cursed energy, drifting ────────────────────────────────── */
+.veil {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(120% 90% at 50% 40%, transparent 55%, var(--paper-2) 100%);
-  opacity: .8;
+  overflow: hidden;
+}
+
+.cloud {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  mix-blend-mode: screen;
+  opacity: .5;
+}
+
+.cloud-b {
+  width: 60vw;
+  height: 60vw;
+  top: -18vw;
+  left: -14vw;
+  background: radial-gradient(circle, var(--blue) 0%, transparent 64%);
+  animation: roil 26s ease-in-out infinite alternate;
+}
+
+.cloud-r {
+  width: 52vw;
+  height: 52vw;
+  top: 8vw;
+  right: -16vw;
+  background: radial-gradient(circle, var(--red) 0%, transparent 64%);
+  animation: roil 31s ease-in-out infinite alternate-reverse;
+}
+
+.cloud-v {
+  width: 70vw;
+  height: 70vw;
+  bottom: -26vw;
+  left: 22vw;
+  background: radial-gradient(circle, var(--violet) 0%, transparent 62%);
+  opacity: .38;
+  animation: roil 37s ease-in-out infinite alternate;
+}
+
+@keyframes roil {
+  from { transform: translate3d(-4%, 3%, 0) scale(1); }
+  to { transform: translate3d(5%, -4%, 0) scale(1.16); }
 }
 
 .grain {
   position: fixed;
   inset: 0;
-  z-index: 8;
+  z-index: 9;
   pointer-events: none;
-  opacity: var(--grain-opacity);
-  mix-blend-mode: var(--grain-blend);
-  background-size: 170px 170px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='170' height='170' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+  opacity: .16;
+  mix-blend-mode: overlay;
+  background-size: 190px 190px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='190' height='190'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='190' height='190' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 .sprite {
@@ -104,659 +113,405 @@ body::before {
   overflow: hidden;
 }
 
-/* ── Ink, shared by every drawing ───────────────────────────── */
-svg {
-  stroke: var(--ink);
-  stroke-width: 2.4;
-}
-
-/* Only the stretched frames want a stroke that ignores the stretch.
-   vector-effect does not inherit, so it has to sit on the path. */
-#frame path,
-#tape path {
-  vector-effect: non-scaling-stroke;
-}
-
-/* ── Line-art objects ───────────────────────────────────────────
-   Depth lives inside the line work: nib weight (w1..w4), hatching in
-   the mode's ink, and a drawn ground of loose strokes. No fills, so
-   the drawings sit IN the page instead of on top of it. */
-.la {
-  fill: none;
-  stroke: var(--ink);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.la .w1 { stroke-width: 1.1; }
-.la .w2 { stroke-width: 2.3; }
-.la .w3 { stroke-width: 3.6; }
-.la .w4 { stroke-width: 5; }
-.la .fade { opacity: .42; }
-.la .fade2 { opacity: .6; }
-
-.la .redink {
-  fill: var(--red);
-  stroke: none;
-}
-
-.la .hatchfill { fill: url(#hatch); stroke: none; }
-.la .crossfill { fill: url(#cross); stroke: none; }
-.la .dotfill { fill: url(#dots); stroke: none; }
-
-#hatch path,
-#cross path {
-  stroke: var(--ink);
-  fill: none;
-}
-
-#dots circle {
-  fill: var(--ink);
-  stroke: none;
-}
-
-.fill-paper {
-  fill: var(--paper);
-}
-
-.fill-red {
-  fill: var(--red);
-}
-
-#tone circle,
-#tone-fine circle {
-  fill: var(--ink);
-  stroke: none;
-}
-
-/* ── Type ───────────────────────────────────────────────────── */
+/* ── type ───────────────────────────────────────────────────── */
 h1,
 h2,
-.label,
 .shout,
-.signature,
-.deck-kicker,
-.dc-name {
-  font-family: "Klee One", "Zen Kaku Gothic New", serif;
-  font-weight: 600;
-  line-height: 1.15;
+.vert,
+.dc-name,
+.kicker,
+.pen span {
+  font-family: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  font-weight: 800;
+  line-height: 1.1;
   margin: 0;
-}
-
-b,
-strong {
-  font-weight: 700;
 }
 
 a {
   color: inherit;
 }
 
-/* ── Light switch ───────────────────────────────────────────── */
-.lamp {
-  position: fixed;
-  top: clamp(.9rem, 2vw, 1.6rem);
-  right: clamp(.9rem, 2vw, 1.6rem);
-  z-index: 10;
-  width: 3rem;
-  height: 3rem;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: none;
-  color: var(--ink);
-  cursor: pointer;
-  transform: rotate(-6deg);
-  transition: transform .3s ease;
+b {
+  font-weight: 700;
+  color: var(--bone);
 }
 
-.lamp:hover {
-  transform: rotate(6deg) scale(1.08);
-}
-
-.lamp svg {
-  position: relative;
-  width: 1.7rem;
-  height: 1.7rem;
-  fill: none;
-  stroke-width: 2;
-}
-
-/* paper chip underneath, so the button stays a button wherever the
-   photo happens to be scrolling past behind it */
-.lamp .lamp-bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  fill: var(--paper);
-  stroke: var(--ink-2);
-  stroke-width: 2;
-}
-
-.lamp-moon,
-[data-theme="night"] .lamp-sun {
-  display: none;
-}
-
-[data-theme="night"] .lamp-moon {
-  display: block;
-}
-
-/* ── Page ───────────────────────────────────────────────────── */
-.page {
-  position: relative;
-  z-index: 1;
-  width: min(100% - 2.6rem, 62rem);
-  margin-inline: auto;
-  padding-block: clamp(2.2rem, 5vw, 4rem) 3rem;
+/* Vertical japanese down the margin. Stacked as separate elements
+   rather than writing-mode, because that needs vertical metrics the
+   fallback font may not have. */
+.vert {
   display: flex;
   flex-direction: column;
-  gap: clamp(3.4rem, 7vw, 6rem);
+  align-items: center;
+  gap: .3em;
+  font-weight: 600;
+  font-size: .95rem;
+  line-height: 1;
+  color: var(--violet);
+  opacity: .75;
 }
 
-/* ══ Cover ══════════════════════════════════════════════════ */
-/* The cover is stacked layers. --px/--py come from the pointer and
-   --drift from the scroll position; each layer multiplies them by a
-   different amount, so the stack separates as you move. */
-.hero {
+main {
   position: relative;
+  z-index: 1;
+}
+
+section {
+  width: min(100% - 2.6rem, 52rem);
+  margin-inline: auto;
+}
+
+.domain,
+footer {
+  width: min(100% - 2.6rem, 66rem);
+  margin-inline: auto;
+}
+
+/* ══ 領域展開 ═══════════════════════════════════════════════ */
+.domain {
+  min-height: min(78vh, 40rem);
+  padding-block: clamp(3rem, 9vh, 6rem) clamp(2rem, 6vh, 4rem);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  column-gap: clamp(1.2rem, 3vw, 2.4rem);
-  align-items: start;
-  --px: 0;
-  --py: 0;
-  --drift: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: clamp(1.2rem, 4vw, 3.4rem);
 }
 
-.hero-stage {
-  position: relative;
-  grid-column: 1;
-  width: clamp(9.5rem, 17vw, 13rem);
-  /* the hat sits on top of the wordmark */
-  margin: clamp(1rem, 4vw, 2.6rem) 0 -3.2rem .5rem;
+.vert-lead {
+  font-size: 1.1rem;
+  letter-spacing: .55em;
+  opacity: .9;
 }
 
-/* Focus lines burst past the hat and out of the column. The radial
-   mask fades them off at the rim, so there is no hard cut at the top
-   of the page and the line under the wordmark stays readable. */
-.focus {
-  position: absolute;
-  left: 50%;
-  top: 40%;
-  width: clamp(21rem, 38vw, 33rem);
-  height: auto;
-  transform:
-    translate(-50%, -50%)
-    translate3d(calc(var(--px) * -9px), calc(var(--py) * -7px + var(--drift) * 34px), 0)
-    scale(calc(1 + var(--drift) * .07));
-  fill: var(--ink);
-  stroke: none;
-  opacity: var(--focus-opacity);
-  pointer-events: none;
-  will-change: transform;
-  mask: radial-gradient(closest-side, #000 48%, rgba(0, 0, 0, .45) 74%, transparent 96%);
-  -webkit-mask: radial-gradient(closest-side, #000 48%, rgba(0, 0, 0, .45) 74%, transparent 96%);
-}
-
-.tone-blob {
-  position: absolute;
-  left: 6%;
-  top: -30%;
-  width: 132%;
-  height: auto;
-  opacity: var(--tone-opacity);
-  stroke: none;
-  pointer-events: none;
-  transform: translate3d(calc(var(--px) * -15px), calc(var(--py) * -11px + var(--drift) * 52px), 0);
-  will-change: transform;
-}
-
-/* The hat is pokeable. It wobbles and throws sparkles. */
-.hat-hit {
-  position: relative;
-  z-index: 2;
-  display: block;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-  transform: translate3d(calc(var(--px) * -25px), calc(var(--py) * -17px + var(--drift) * 78px), 0);
-  will-change: transform;
-}
-
-.hat {
-  display: block;
-  width: 100%;
-  height: auto;
-  fill: none;
-  transform: rotate(-4deg);
-  transform-origin: 50% 80%;
-  transition: transform .35s cubic-bezier(.34, 1.56, .64, 1);
-}
-
-.hat-hit:hover .hat {
-  transform: rotate(-9deg) translateY(-4px);
-}
-
-.hat-hit.is-poked .hat {
-  animation: hat-wobble .7s ease-out;
-}
-
-@keyframes hat-wobble {
-  0% { transform: rotate(-4deg); }
-  22% { transform: rotate(-16deg) translateY(-8px) scale(1.05); }
-  48% { transform: rotate(4deg) translateY(-2px); }
-  72% { transform: rotate(-8deg); }
-  100% { transform: rotate(-4deg); }
-}
-
-.pop {
-  position: absolute;
-  width: 26%;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.pop svg {
-  width: 100%;
-  height: auto;
-  fill: var(--straw);
-  stroke: var(--ink);
-  stroke-width: 1.6;
-}
-
-.pop-1 { left: -12%; top: 4%; }
-.pop-2 { right: -14%; top: 20%; width: 19%; }
-.pop-3 { right: 8%; top: -18%; width: 15%; }
-
-.hat-hit.is-poked .pop {
-  animation: pop-out .75s ease-out;
-}
-
-.hat-hit.is-poked .pop-2 { animation-delay: .07s; }
-.hat-hit.is-poked .pop-3 { animation-delay: .14s; }
-
-@keyframes pop-out {
-  0% { opacity: 0; transform: scale(.2) rotate(-30deg); }
-  35% { opacity: 1; transform: scale(1.15) rotate(8deg); }
-  100% { opacity: 0; transform: scale(.85) rotate(24deg) translateY(-14px); }
-}
-
-.hero-text {
-  grid-column: 1;
+.domain-text {
   min-width: 0;
 }
 
-.wordmark {
-  margin: 0 0 .4rem;
-  transform: translate3d(calc(var(--px) * -14px), calc(var(--py) * -9px + var(--drift) * 44px), 0);
-  will-change: transform;
+/* the name, split into blue and red the way the techniques are */
+.name {
+  display: grid;
+  font-size: clamp(2.9rem, 10vw, 6.4rem);
+  letter-spacing: .04em;
+  margin-bottom: 1.4rem;
 }
 
-.wordmark svg {
-  display: block;
-  width: min(100%, 30rem);
-  height: auto;
-  fill: none;
-  stroke-width: 8.5;
-  transform: rotate(-1.2deg);
+.name .lay {
+  grid-area: 1 / 1;
 }
 
-.realname {
-  margin: 0;
-  font-size: .84rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--ink-3);
+.lay-b {
+  color: var(--blue);
+  mix-blend-mode: screen;
+  animation: split 5s ease-in-out infinite alternate;
 }
 
-.realname .dot {
-  margin-inline: .55em;
+.lay-r {
   color: var(--red);
+  mix-blend-mode: screen;
+  animation: split 5s ease-in-out infinite alternate-reverse;
+}
+
+.lay-w {
+  color: var(--bone);
+}
+
+@keyframes split {
+  from { transform: translate(-3px, 2px); }
+  to { transform: translate(3px, -2px); }
+}
+
+.who {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  font-size: .78rem;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.who i {
+  width: 1.6rem;
+  height: 1px;
+  background: var(--violet);
+  opacity: .7;
 }
 
 .tagline {
   margin: 1rem 0 0;
   max-width: 26ch;
-  font-family: "Klee One", serif;
-  font-size: clamp(1.2rem, 1rem + .9vw, 1.65rem);
-  line-height: 1.4;
-  color: var(--ink-2);
+  font-size: clamp(1.05rem, .95rem + .5vw, 1.3rem);
+  color: var(--ash);
 }
 
-/* ── Links ──────────────────────────────────────────────────── */
+/* ── links ──────────────────────────────────────────────────── */
 .links {
-  margin-top: 2rem;
+  margin-top: 2.2rem;
   display: flex;
   flex-wrap: wrap;
-  gap: .35rem 1.6rem;
+  gap: .6rem;
 }
 
-.tag {
+.links a {
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: .5rem;
-  padding: .28rem .45rem .5rem;
-  font-family: "Klee One", serif;
-  font-weight: 600;
-  font-size: 1.1rem;
+  padding: .5rem .95rem;
+  font-size: .92rem;
+  font-weight: 500;
   text-decoration: none;
-  color: var(--ink);
+  color: var(--ash);
+  background: rgba(255, 255, 255, .03);
+  border: 1px solid rgba(255, 255, 255, .07);
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+  transition: color .2s ease, background-color .2s ease, border-color .2s ease;
 }
 
-/* drawn underline */
-.tag::after {
-  content: "";
-  position: absolute;
-  left: .1rem;
-  right: .1rem;
-  bottom: 0;
-  height: 9px;
-  background: var(--ink);
-  mask: var(--rule-h) repeat-x;
-  mask-size: 480px 9px;
-  -webkit-mask: var(--rule-h) repeat-x;
-  -webkit-mask-size: 480px 9px;
-  transition: background-color .2s ease;
+.links a svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  fill: currentColor;
 }
 
-/* highlighter swipe on hover */
-.tag::before {
-  content: "";
-  position: absolute;
-  left: -.35rem;
-  right: -.35rem;
-  top: .1rem;
-  bottom: .18rem;
-  z-index: -1;
-  background: var(--straw);
-  opacity: 0;
-  mask: var(--marker) no-repeat;
-  mask-size: 100% 100%;
-  -webkit-mask: var(--marker) no-repeat;
-  -webkit-mask-size: 100% 100%;
-  transition: opacity .18s ease;
+.links a:hover,
+.links a:focus-visible {
+  color: var(--bone);
+  background: rgba(168, 85, 247, .14);
+  border-color: var(--violet);
 }
 
-.tag:hover::before,
-.tag:focus-visible::before {
-  opacity: .75;
-}
-
-.tag:hover::after,
-.tag:focus-visible::after {
-  background: var(--red);
-}
-
-/* on the swipe the letters go dark — cream on straw is unreadable */
-.tag:hover,
-.tag:focus-visible {
-  color: #241f19;
-}
-
-.tag svg {
-  flex: none;
-  width: 1.4rem;
-  height: 1.4rem;
-  fill: none;
-  stroke-width: 2.1;
-}
-
-.tag:hover svg {
-  stroke: var(--red);
-}
-
-/* ── Taped photo and the note under it ──────────────────────── */
-/* nearest layer, so it swings the most */
-.hero-side {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  width: clamp(11rem, 24vw, 16.5rem);
-  transform: translate3d(calc(var(--px) * -32px), calc(var(--py) * -20px + var(--drift) * 22px), 0);
-  will-change: transform;
-}
-
-.polaroid {
+/* ── the sigil: orb, ring, and the live avatar inside ───────── */
+.sigil {
   position: relative;
-  width: 100%;
-  margin: .6rem 0 0;
-  padding: .55rem .55rem 0;
-  background: var(--paper);
-  box-shadow: 0 .7rem 1.6rem -.6rem var(--photo-shade);
-  transform: rotate(2.4deg);
+  display: grid;
+  place-items: center;
+  width: clamp(13rem, 26vw, 20rem);
+  aspect-ratio: 1;
 }
 
-.polaroid img {
-  display: block;
-  width: 100%;
-  height: auto;
-  filter: saturate(.86) contrast(1.04);
+.sigil > * {
+  grid-area: 1 / 1;
 }
 
-[data-theme="night"] .polaroid img {
-  filter: saturate(.8) brightness(.86);
-}
-
-.tape {
-  position: absolute;
-  z-index: 2;
-  width: 5.5rem;
-  height: 1.9rem;
-  fill: var(--paper-3);
-  stroke: none;
-  opacity: .85;
-}
-
-.tape-a {
-  top: -1rem;
-  left: -1.1rem;
-  transform: rotate(-32deg);
-}
-
-.tape-b {
-  top: -.9rem;
-  right: -1.2rem;
-  transform: rotate(28deg);
-}
-
-.tape-d {
-  top: -.75rem;
-  left: 1.4rem;
-  width: 4.6rem;
-  transform: rotate(-6deg);
-}
-
-.polaroid figcaption {
+.orb {
   position: relative;
-  padding: .5rem .2rem .7rem;
-  font-family: "Klee One", serif;
-  font-size: .95rem;
-  color: var(--ink-2);
-  text-align: center;
+  width: 112%;
+  aspect-ratio: 1;
 }
 
-.scribble-arrow {
-  position: absolute;
-  left: -3.4rem;
-  bottom: -.4rem;
-  width: 3.4rem;
-  height: 2.4rem;
-  fill: none;
-  stroke: var(--biro);
-  stroke-width: 2;
-  transform: scaleX(-1) rotate(14deg);
-}
-
-/* the note under the photo */
-.note {
-  position: relative;
-  margin: 2.6rem 0 0;
-  padding: 1rem .95rem .9rem;
-  background: var(--paper-2);
-  box-shadow: 0 .5rem 1.2rem -.6rem var(--photo-shade);
-  font-family: "Klee One", serif;
-  font-size: .95rem;
-  line-height: 1.5;
-  color: var(--ink-2);
-  transform: rotate(-1.8deg);
-}
-
-/* ══ Section headings ═══════════════════════════════════════ */
-.label {
-  position: relative;
-  display: inline-flex;
-  align-items: flex-start;
-  gap: .35rem;
-  margin-bottom: 1.6rem;
-  font-size: clamp(1.9rem, 1.4rem + 2vw, 3.1rem);
-  transform: rotate(-1deg);
-}
-
-/* a brush stroke, not a ruled line */
-.label::after {
-  content: "";
-  position: absolute;
-  left: -.2rem;
-  right: 1.3rem;
-  bottom: -.5rem;
-  height: 13px;
-  background: var(--red);
-  mask: var(--brush) no-repeat;
-  mask-size: 100% 100%;
-  -webkit-mask: var(--brush) no-repeat;
-  -webkit-mask-size: 100% 100%;
-}
-
-.label-flick {
-  flex: none;
-  width: 1.15rem;
-  height: 1.15rem;
-  margin-top: .2rem;
-  fill: var(--straw);
-  stroke: var(--ink);
-  stroke-width: 1.6;
-}
-
-/* ══ Live presence ══════════════════════════════════════════ */
-.now {
-  position: relative;
-}
-
-.panel {
-  position: relative;
-  max-width: 40rem;
-  padding: clamp(1.4rem, 3.5vw, 2rem);
-}
-
-.frame {
+.orb i {
   position: absolute;
   inset: 0;
+  border-radius: 50%;
+  filter: blur(34px);
+  mix-blend-mode: screen;
+  opacity: .55;
+}
+
+.orb-b {
+  background: radial-gradient(circle at 38% 42%, var(--blue) 0%, transparent 60%);
+  animation: collide 8s ease-in-out infinite alternate;
+}
+
+.orb-r {
+  background: radial-gradient(circle at 62% 58%, var(--red) 0%, transparent 60%);
+  animation: collide 8s ease-in-out infinite alternate-reverse;
+}
+
+.orb-v {
+  background: radial-gradient(circle at 50% 50%, var(--violet) 0%, transparent 46%);
+  filter: blur(26px);
+  opacity: .45;
+}
+
+.orb-core {
+  /* just a rim of light behind the portrait, not a second sun */
+  inset: 26%;
+  background: radial-gradient(circle at 46% 42%, rgba(255, 255, 255, .5) 0%, rgba(168, 85, 247, .5) 42%, transparent 68%);
+  filter: blur(14px);
+  opacity: .8;
+}
+
+@keyframes collide {
+  from { transform: translate(-8px, 5px) scale(1); }
+  to { transform: translate(8px, -5px) scale(1.07); }
+}
+
+.ring {
   width: 100%;
   height: 100%;
+  overflow: visible;
+}
+
+.ring-spin {
+  transform-origin: 200px 200px;
+  animation: turn 90s linear infinite;
+}
+
+@keyframes turn {
+  to { transform: rotate(360deg); }
+}
+
+.ring-line {
   fill: none;
-  /* one step back from full ink, otherwise the border shouts */
-  stroke: var(--ink-2);
-  stroke-width: 2.4;
+  stroke-width: 1;
+}
+
+.ring-outer { stroke: var(--violet); stroke-opacity: .55; }
+.ring-mid { stroke: var(--blue); stroke-opacity: .45; }
+
+.tick-fine {
+  stroke: var(--violet);
+  stroke-opacity: .5;
+  stroke-width: 1;
+}
+
+.tick-bold {
+  stroke: var(--red);
+  stroke-opacity: .5;
+  stroke-width: 2;
+}
+
+.ring-ch {
+  fill: #7b7290;
+  font-family: "Shippori Mincho B1", serif;
+  text-anchor: middle;
+}
+
+.portrait {
+  position: relative;
+  width: 54%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+}
+
+.portrait img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px var(--edge), 0 0 40px -6px rgba(168, 85, 247, .55);
+}
+
+.portrait img[hidden] {
+  display: none;
+}
+
+/* what shows before the avatar arrives, or if it never does */
+.portrait-void {
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%, rgba(168, 85, 247, .22), transparent 70%);
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
+
+.portrait img:not([hidden]) + .portrait-void {
+  display: none;
+}
+
+/* ── slash between sections ─────────────────────────────────── */
+.rule {
+  display: block;
+  width: min(100% - 2.6rem, 56rem);
+  height: clamp(1.8rem, 3.6vw, 2.6rem);
+  margin: clamp(2.4rem, 6vw, 4rem) auto;
+  transform: rotate(-1.4deg);
+}
+
+.rule.flip {
+  transform: scaleX(-1) rotate(-1.4deg);
+}
+
+.cut-1 { fill: var(--bone); fill-opacity: .8; }
+.cut-2 { fill: var(--red); fill-opacity: .65; }
+
+/* ── section heads ──────────────────────────────────────────── */
+.head {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1.6rem;
+}
+
+.head h2 {
+  font-size: clamp(1.8rem, 1.3rem + 2vw, 2.9rem);
+  letter-spacing: .02em;
+}
+
+.head .vert {
+  margin-bottom: .35rem;
+}
+
+.lede {
+  margin: -.7rem 0 1.6rem;
+  max-width: 48ch;
+  color: var(--ash);
+}
+
+/* ── slab: the cleaved panel used across the page ───────────── */
+.slab {
+  --cleave: 20px;
+  position: relative;
+  padding: clamp(1.3rem, 3.4vw, 1.9rem);
+  background: var(--slab);
+  clip-path: polygon(var(--cleave) 0, 100% 0, 100% calc(100% - var(--cleave)),
+      calc(100% - var(--cleave)) 100%, 0 100%, 0 var(--cleave));
+}
+
+.slab::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  background: linear-gradient(155deg, var(--violet), rgba(47, 107, 255, .5) 45%, transparent 78%);
+  clip-path: polygon(var(--cleave) 0, 100% 0, 100% calc(100% - var(--cleave)),
+      calc(100% - var(--cleave)) 100%, 0 100%, 0 var(--cleave));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
   pointer-events: none;
 }
 
-/* ballpoint margin note, pointing at the panel */
-.aside-note {
-  position: absolute;
-  right: 0;
-  top: 4rem;
-  width: 10.5rem;
-  margin: 0;
-  font-family: "Klee One", serif;
-  font-size: .92rem;
-  line-height: 1.4;
-  color: var(--biro);
-  transform: rotate(2deg);
-}
-
-.aside-note svg {
-  display: block;
-  width: 4.2rem;
-  height: 2.6rem;
-  margin: 0 0 .3rem -1.4rem;
-  fill: none;
-  stroke: var(--biro);
-  stroke-width: 2;
-  /* mirrored so the tip points down-left at the panel */
-  transform: scaleX(-1) rotate(-7deg);
+/* ══ 現在 ═══════════════════════════════════════════════════ */
+.now .slab {
+  max-width: none;
 }
 
 .presence {
   display: flex;
   align-items: center;
-  gap: 1.1rem;
+  gap: .9rem;
 }
 
-.head {
-  position: relative;
+.dot {
   flex: none;
-  width: clamp(3.6rem, 9vw, 4.6rem);
-}
-
-.head-face {
-  display: block;
-  width: 100%;
-  height: auto;
-  fill: none;
-  stroke-width: 2;
-}
-
-.head-img {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width: .62rem;
+  height: .62rem;
   border-radius: 50%;
-  filter: saturate(.88);
+  background: var(--ash-dim);
+  box-shadow: 0 0 12px currentColor;
+  transition: background-color .3s ease;
 }
 
-.head-img[hidden] {
-  display: none;
-}
-
-.head-dot {
-  position: absolute;
-  right: -.2rem;
-  bottom: -.1rem;
-  width: 1.15rem;
-  height: 1.15rem;
-  fill: var(--ink-3);
-  stroke-width: 2;
-  transition: fill .3s ease;
-}
-
-.head-dot.is-online { fill: #58a15c; }
-.head-dot.is-idle { fill: var(--straw); }
-.head-dot.is-dnd { fill: var(--red); }
-
-.presence-text {
-  min-width: 0;
-}
+.dot.is-online { background: #3ddc84; }
+.dot.is-idle { background: #ffb03a; }
+.dot.is-dnd { background: var(--red); }
 
 .dc-name {
-  font-size: 1.4rem;
+  font-size: 1.35rem;
 }
 
 .dc-state {
-  margin: .1rem 0 0;
-  font-size: .95rem;
-  color: var(--ink-3);
+  margin: .05rem 0 0;
+  font-size: .93rem;
+  color: var(--ash);
 }
 
-/* discord strings arrive uninvited — never let one cross the frame */
 .dc-name,
 .dc-state,
 .doing-name,
@@ -766,11 +521,11 @@ a {
 
 .doing {
   list-style: none;
-  margin: 1.5rem 0 0;
+  margin: 1.4rem 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 1.1rem;
+  gap: 1rem;
 }
 
 .doing:empty {
@@ -778,114 +533,107 @@ a {
 }
 
 .doing li {
-  position: relative;
   display: flex;
   align-items: center;
   gap: .9rem;
-  padding-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, .07);
 }
 
-/* drawn divider above every row */
-.doing li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 7px;
-  background: var(--ink-3);
-  mask: var(--rule-thin) repeat-x;
-  mask-size: 480px 7px;
-  -webkit-mask: var(--rule-thin) repeat-x;
-  -webkit-mask-size: 480px 7px;
-  opacity: .7;
-}
-
-.art {
-  position: relative;
+.doing img,
+.doing .no-art {
   flex: none;
-  width: 3.4rem;
-  height: 3.4rem;
+  width: 3rem;
+  height: 3rem;
+  object-fit: cover;
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+}
+
+.doing .no-art {
   display: grid;
   place-items: center;
-  transform: rotate(-1.5deg);
-}
-
-.art img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: saturate(.88);
-}
-
-.art-letter {
-  font-family: "Klee One", serif;
-  font-size: 1.5rem;
-  color: var(--ink-3);
-}
-
-.art-frame {
-  position: absolute;
-  inset: -2px;
-  width: calc(100% + 4px);
-  height: calc(100% + 4px);
-  fill: none;
-  stroke-width: 2;
-  pointer-events: none;
-}
-
-.doing-body {
-  min-width: 0;
+  background: rgba(168, 85, 247, .14);
+  font-family: "Shippori Mincho B1", serif;
+  font-size: 1.3rem;
+  color: var(--violet);
 }
 
 .doing-name {
   margin: 0;
-  font-family: "Klee One", serif;
-  font-weight: 600;
-  font-size: 1.05rem;
+  font-weight: 700;
+  font-size: 1rem;
 }
 
 .doing-line {
   margin: .1rem 0 0;
-  font-size: .92rem;
-  color: var(--ink-2);
+  font-size: .9rem;
+  color: var(--ash);
 }
 
 .doing-time {
-  margin: .15rem 0 0;
-  font-size: .84rem;
-  letter-spacing: .05em;
-  color: var(--ink-3);
+  margin: .1rem 0 0;
+  font-size: .82rem;
+  letter-spacing: .06em;
+  color: var(--violet);
   font-variant-numeric: tabular-nums;
 }
 
 .quiet {
-  margin: 1.4rem 0 0;
-  font-family: "Klee One", serif;
-  color: var(--ink-3);
+  margin: 1.2rem 0 0;
+  color: var(--ash-dim);
 }
 
-.panel[data-state="loading"] .presence-text {
-  opacity: .55;
+.slab[data-state="loading"] .dc-name,
+.slab[data-state="loading"] .dc-state {
+  opacity: .5;
 }
 
-/* ══ Doodle box ═════════════════════════════════════════════
-   A patch of the page visitors draw on. Strokes keep their pen name,
-   so a theme flip redraws them in the new palette. */
-.doodle-note {
-  margin: -.6rem 0 1.6rem;
-  max-width: 44ch;
-  font-family: "Klee One", serif;
-  font-size: 1.05rem;
-  color: var(--ink-2);
+/* ══ 自己紹介 ═══════════════════════════════════════════════ */
+/* the shout gets a technique plate: red ground, cleaved, tilted */
+.shout {
+  display: inline-block;
+  margin: 0 0 1.4rem;
+  padding: .3rem 1.5rem .45rem;
+  font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.1rem);
+  letter-spacing: .08em;
+  color: var(--void);
+  background: var(--red);
+  clip-path: polygon(13px 0, 100% 0, calc(100% - 13px) 100%, 0 100%);
+  transform: rotate(-1.6deg);
 }
 
-.doodle-wrap {
+.prose p {
+  margin: 0 0 1rem;
+  max-width: 56ch;
+  color: var(--ash);
+}
+
+.prose b {
   position: relative;
-  height: clamp(14rem, 34vw, 19rem);
+  white-space: nowrap;
+  color: var(--bone);
 }
 
-.doodle-wrap canvas {
+.prose b::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -.15em;
+  height: 1px;
+  background: var(--violet);
+}
+
+/* ══ 落書き ═════════════════════════════════════════════════ */
+.pad-wrap {
+  position: relative;
+  height: clamp(13rem, 32vw, 18rem);
+  background: rgba(255, 255, 255, .022);
+  box-shadow: inset 0 0 0 1px rgba(168, 85, 247, .2);
+  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+}
+
+.pad-wrap canvas {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -895,285 +643,72 @@ a {
 }
 
 .pens {
-  margin-top: 1.1rem;
+  margin-top: 1rem;
   display: flex;
   align-items: center;
-  gap: .7rem;
+  gap: .55rem;
 }
 
 .pen {
-  width: 2.3rem;
-  height: 2.3rem;
-  padding: .3rem;
-  border: 0;
-  background: none;
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .4rem .75rem;
+  border: 1px solid rgba(255, 255, 255, .08);
+  background: rgba(255, 255, 255, .03);
+  color: var(--ash);
+  font-size: 1rem;
   cursor: pointer;
-  transition: transform .25s cubic-bezier(.34, 1.56, .64, 1);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  transition: color .2s ease, border-color .2s ease, background-color .2s ease;
 }
 
-.pen svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  stroke: var(--ink-3);
-  stroke-width: 2;
+.pen i {
+  width: .6rem;
+  height: .6rem;
+  border-radius: 50%;
+  box-shadow: 0 0 10px currentColor;
 }
 
-.pen[data-pen="ink"] svg { fill: var(--ink); }
-.pen[data-pen="red"] svg { fill: var(--red); }
-.pen[data-pen="straw"] svg { fill: var(--straw); }
+.pen[data-pen="blue"] i { background: var(--blue); color: var(--blue); }
+.pen[data-pen="red"] i { background: var(--red); color: var(--red); }
+.pen[data-pen="violet"] i { background: var(--violet); color: var(--violet); }
 
 .pen[aria-pressed="true"] {
-  transform: rotate(-10deg) scale(1.2);
+  color: var(--bone);
+  border-color: var(--violet);
+  background: rgba(168, 85, 247, .13);
 }
 
-.pen[aria-pressed="true"] svg {
-  stroke: var(--ink);
-}
-
-/* same drawn underline the links wear */
 .wipe {
-  position: relative;
   margin-left: auto;
-  padding: .2rem .4rem .5rem;
+  padding: .4rem .2rem;
   border: 0;
   background: none;
-  font-family: "Klee One", serif;
-  font-weight: 600;
-  font-size: 1rem;
-  color: var(--ink-2);
+  color: var(--ash-dim);
+  font-family: inherit;
+  font-size: .9rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
   cursor: pointer;
-}
-
-.wipe::after {
-  content: "";
-  position: absolute;
-  left: .1rem;
-  right: .1rem;
-  bottom: 0;
-  height: 9px;
-  background: var(--ink-3);
-  mask: var(--rule-h) repeat-x;
-  mask-size: 480px 9px;
-  -webkit-mask: var(--rule-h) repeat-x;
-  -webkit-mask-size: 480px 9px;
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
 }
 
 .wipe:hover {
   color: var(--red);
+  border-bottom-color: var(--red);
 }
 
-/* ══ About and the shelf next to it ═════════════════════════ */
-.band {
-  display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-  column-gap: clamp(2rem, 5vw, 3.6rem);
-  align-items: start;
-}
-
-.about {
-  position: relative;
-  min-width: 0;
-}
-
-.sheet {
-  position: relative;
-  padding-left: clamp(1.6rem, 4vw, 2.6rem);
-}
-
-/* notebook margin */
-.sheet::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: -.3rem;
-  bottom: -.3rem;
-  width: 9px;
-  background: var(--red);
-  opacity: .6;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='480' viewBox='0 0 9 480'%3E%3Cpath fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' d='M4.5 0c-1.7 30 1.5 60 .3 90-1.3 30 1.7 60 .5 90-1.3 30 1.9 60 .7 90-1.3 30 1.5 60 .3 90-1.3 30 1.3 60-1.3 120'/%3E%3C/svg%3E") repeat-y;
-  mask-size: 9px 480px;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='480' viewBox='0 0 9 480'%3E%3Cpath fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' d='M4.5 0c-1.7 30 1.5 60 .3 90-1.3 30 1.7 60 .5 90-1.3 30 1.9 60 .7 90-1.3 30 1.5 60 .3 90-1.3 30 1.3 60-1.3 120'/%3E%3C/svg%3E") repeat-y;
-  -webkit-mask-size: 9px 480px;
-}
-
-.sheet p {
-  margin: 0 0 1rem;
-  max-width: 46ch;
-}
-
-/* the shout, with an impact burst behind it. The letters stay dark in
-   both modes, because what is behind them is always red. */
-.shout {
-  position: relative;
-  display: inline-block;
-  margin: 1.9rem 0 1.7rem;
-  padding: .15rem 1.9rem;
-  font-size: clamp(1.5rem, 1.15rem + 1.4vw, 2.15rem);
-  color: #241f19;
-  transform: rotate(-3deg);
-}
-
-.shout-burst {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  /* stretched to the text box, so the letters land on solid red
-     rather than out on the spikes */
-  width: 136%;
-  height: 164%;
-  transform: translate(-50%, -50%);
-  fill: var(--red);
-  stroke: none;
-  z-index: -1;
-}
-
-.shout span {
-  position: relative;
-  letter-spacing: .02em;
-}
-
-.sheet b {
-  position: relative;
-  white-space: nowrap;
-}
-
-.sheet b::after {
-  content: "";
-  position: absolute;
-  left: -.05em;
-  right: -.05em;
-  bottom: -.16em;
-  height: 7px;
-  background: var(--straw);
-  mask: var(--rule-thin) repeat-x;
-  mask-size: 480px 7px;
-  -webkit-mask: var(--rule-thin) repeat-x;
-  -webkit-mask-size: 480px 7px;
-}
-
-.signature {
-  margin-top: 1.6rem;
-  font-size: 1.25rem;
-  color: var(--ink-2);
-  transform: rotate(-2deg);
-  transform-origin: left center;
-}
-
-/* ── The shelf: three drawn things, resting on a drawn line ──── */
-.into {
-  min-width: 0;
-}
-
-.shelf {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.shelf li {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding-bottom: 1.5rem;
-}
-
-/* the line each thing sits on */
-.shelf li::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 1.5rem;
-  bottom: 0;
-  height: 9px;
-  background: var(--ink-3);
-  opacity: .55;
-  mask: var(--rule-h) repeat-x;
-  mask-size: 480px 9px;
-  -webkit-mask: var(--rule-h) repeat-x;
-  -webkit-mask-size: 480px 9px;
-}
-
-.shelf li:last-child::after {
-  display: none;
-}
-
-.shelf svg {
-  flex: none;
-  width: 4.8rem;
-  height: auto;
-  fill: none;
-  transition: transform .3s cubic-bezier(.34, 1.56, .64, 1);
-}
-
-.shelf li:nth-child(1) svg { transform: rotate(-7deg); }
-.shelf li:nth-child(2) svg { transform: rotate(4deg); }
-.shelf li:nth-child(3) svg { transform: rotate(-3deg); }
-
-.shelf li:hover svg { transform: rotate(0) scale(1.12); }
-
-.shelf span {
-  font-family: "Klee One", serif;
-  font-size: 1.02rem;
-  line-height: 1.35;
-  color: var(--ink-2);
-}
-
-/* ══ Music ══════════════════════════════════════════════════ */
-.music {
-  position: relative;
-}
-
-.deck-row {
-  display: flex;
-  align-items: center;
-  gap: clamp(.5rem, 2vw, 1.6rem);
-}
-
-.deck {
-  position: relative;
-  flex: 1 1 auto;
-  min-width: 0;
-  max-width: 32rem;
-  padding: 1.2rem 1.2rem 1.3rem;
-  background: var(--paper-2);
-  box-shadow: 0 .8rem 1.8rem -.8rem var(--photo-shade);
-  transform: rotate(-.9deg);
-}
-
-.tape-c {
-  top: -.85rem;
-  left: 2.2rem;
-  width: 6rem;
-  transform: rotate(-3deg);
-}
-
-/* the cassette leans against the right of the note */
-.cassette {
-  flex: none;
-  width: clamp(5.5rem, 13vw, 8.5rem);
-  height: auto;
-  fill: none;
-  transform: rotate(9deg);
-}
-
-.deck-body {
-  position: relative;
-  z-index: 1;
-}
-
-.deck-kicker {
-  margin-bottom: .7rem;
-  font-size: 1.1rem;
-  color: var(--ink-2);
+/* ══ 音楽 ═══════════════════════════════════════════════════ */
+.kicker {
+  margin: -.8rem 0 1rem;
+  font-size: 1.05rem;
+  color: var(--violet);
 }
 
 .embed {
   position: relative;
+  max-width: none;
   min-height: 152px;
 }
 
@@ -1193,166 +728,95 @@ a {
   margin: 0;
   display: flex;
   align-items: center;
-  gap: .8rem;
   padding: 0 1rem;
-  font-family: "Klee One", serif;
-  color: var(--ink-2);
+  color: var(--ash);
 }
 
-.embed-fallback svg {
-  flex: none;
-  width: 2.6rem;
-  height: 2.6rem;
-  fill: none;
-  stroke-width: 2.2;
+.embed-fallback a {
+  border-bottom: 1px solid var(--violet);
+  text-decoration: none;
 }
 
-/* ══ Foot ═══════════════════════════════════════════════════ */
-.foot {
-  position: relative;
-  margin-top: -1rem;
-  text-align: center;
-  font-size: .9rem;
-  color: var(--ink-3);
+/* ── foot ───────────────────────────────────────────────────── */
+footer {
+  padding-block: clamp(3rem, 8vw, 5rem) 3rem;
+  font-size: .85rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ash-dim);
 }
 
-.foot-splat {
-  display: block;
-  width: 10rem;
-  height: auto;
-  margin: 0 auto .6rem;
-  fill: var(--ink-3);
-  stroke: none;
-  opacity: .55;
-  transform: rotate(-6deg);
+footer a {
+  color: var(--ash);
+  text-decoration: none;
+  border-bottom: 1px solid var(--edge);
 }
 
-.foot a {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: .22em;
+footer a:hover {
+  color: var(--violet);
 }
 
-.foot a:hover {
-  color: var(--red);
-}
-
-/* ══ Inking in on scroll ════════════════════════════════════ */
-/* armed only when scripts run, so a no-js visitor sees everything */
+/* ── sections arriving ──────────────────────────────────────── */
 [data-js] .reveal {
   opacity: 0;
-  transform: translateY(22px);
+  transform: translateY(20px);
 }
 
-.reveal.is-in {
+[data-js] .reveal.is-in {
   opacity: 1;
   transform: none;
   transition: opacity .7s ease, transform .7s cubic-bezier(.22, .8, .3, 1);
 }
 
-/* the panel border wipes on, like it is being drawn */
-[data-js] .reveal .frame {
-  clip-path: inset(0 100% 0 0);
-}
+/* ── narrow ─────────────────────────────────────────────────── */
+@media (max-width: 60rem) {
+  .domain {
+    grid-template-columns: auto minmax(0, 1fr);
+    row-gap: clamp(2rem, 6vw, 3rem);
+  }
 
-.reveal.is-in .frame {
-  clip-path: inset(0 0 0 0);
-  transition: clip-path 1s cubic-bezier(.4, .1, .2, 1) .15s;
-}
-
-/* ══ Small screens ══════════════════════════════════════════ */
-@media (max-width: 58rem) {
-  /* no room for two columns, so the shelf drops under the text */
-  .band {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: clamp(2.5rem, 6vw, 3.5rem);
+  .sigil {
+    grid-column: 2;
+    justify-self: start;
+    width: clamp(11rem, 40vw, 15rem);
   }
 }
 
-/* below this there is no margin for the margin note to live in */
-@media (max-width: 54rem) {
-  .aside-note {
+@media (max-width: 34rem) {
+  .vert-lead {
     display: none;
   }
-}
 
-@media (max-width: 46rem) {
-  .hero {
+  .domain {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .hero-side {
+  .sigil {
     grid-column: 1;
-    grid-row: auto;
-    width: 100%;
-    margin-top: 2.4rem;
   }
 
-  .polaroid {
-    width: min(100%, 14rem);
-    margin: 0;
-  }
-
-  .note {
-    max-width: 17rem;
-    margin-top: 2.2rem;
-    margin-left: 1.2rem;
-  }
-
-  .hero-stage {
-    width: 8.5rem;
-    margin-bottom: -2.4rem;
-  }
-
-  /* leave the wordmark a little air on either side */
-  .wordmark svg {
-    width: 94%;
-  }
-
-  .scribble-arrow {
-    display: none;
-  }
-
-  .presence {
-    gap: .85rem;
+  .links a {
+    font-size: .86rem;
+    padding: .45rem .75rem;
   }
 }
 
-@media (max-width: 30rem) {
-  .links {
-    gap: .2rem 1.1rem;
-  }
-
-  .art {
-    width: 2.8rem;
-    height: 2.8rem;
-  }
-
-  .cassette {
-    display: none;
-  }
-}
-
-/* ══ Sit still ══════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    transition-duration: .01ms !important;
     animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
   }
 
-  .reveal {
+  [data-js] .reveal {
     opacity: 1;
     transform: none;
-  }
-
-  .reveal .frame {
-    clip-path: none;
   }
 }
 
 :focus-visible {
-  outline: 2.5px solid var(--red);
+  outline: 2px solid var(--violet);
   outline-offset: 3px;
 }
