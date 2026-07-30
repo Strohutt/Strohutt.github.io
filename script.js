@@ -146,6 +146,13 @@ const el = {
 const frame = el.embed.querySelector('iframe');
 const fallbackTrack = frame ? frame.src : '';
 
+// If the Discord CDN is blocked, fall back to the local picture instead
+// of letting the alt text spill through the layout
+const localAvatar = el.avatar.src;
+el.avatar.addEventListener('error', () => {
+  if (el.avatar.src !== localAvatar) el.avatar.src = localAvatar;
+});
+
 const STATUS_TEXT = {
   online: 'online',
   idle: 'away for a bit',
@@ -156,6 +163,18 @@ const STATUS_TEXT = {
 // Kept around so the elapsed time keeps ticking instead of freezing
 let liveTimers = [];
 let lastPresence = null;
+
+// First paint from the REST API, so the panel fills the moment the page
+// opens even if the socket takes a while. The socket then keeps it live,
+// and anything it has already delivered wins over a slow REST reply.
+fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`)
+  .then(response => response.json())
+  .then(body => {
+    if (body.success && !lastPresence) render(body.data);
+  })
+  .catch(() => {
+    /* the socket gets its turn either way */
+  });
 
 connect();
 
