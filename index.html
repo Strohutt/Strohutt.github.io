@@ -17,7 +17,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=2">
 
   <!-- set before first paint, so nothing that js reveals starts hidden -->
   <script>document.documentElement.setAttribute('data-js', '');</script>
@@ -210,7 +210,7 @@
         <svg class="brush" id="brush" viewBox="0 0 1200 84" preserveAspectRatio="none" aria-hidden="true">
       <path class="bs-body" d="M12 44.8C20.91 43.02 47.64 36.61 65.45 34.07C83.27 31.54 101.09 30.61 118.91 29.61C136.73 28.61 154.55 28.65 172.36 28.05C190.18 27.45 208 26.42 225.82 26.01C243.64 25.6 261.45 25.55 279.27 25.6C297.09 25.64 314.91 26.17 332.73 26.28C350.55 26.4 368.36 25.97 386.18 26.28C404 26.6 421.82 27.62 439.64 28.16C457.45 28.7 475.27 29.08 493.09 29.52C510.91 29.96 528.73 30.51 546.55 30.8C564.36 31.1 582.18 31.09 600 31.3C617.82 31.51 635.64 31.52 653.45 32.07C671.27 32.61 689.09 34.12 706.91 34.57C724.73 35.01 742.55 34.29 760.36 34.72C778.18 35.15 796 36.5 813.82 37.14C831.64 37.79 849.45 38.33 867.27 38.57C885.09 38.8 902.91 38.37 920.73 38.55C938.55 38.72 956.36 39.42 974.18 39.64C992 39.85 1009.82 39.59 1027.64 39.82C1045.45 40.04 1063.27 40.66 1081.09 40.98C1098.91 41.29 1116.73 41.67 1134.55 41.71C1152.36 41.75 1179.09 41.31 1188 41.24L1188 41.87C1179.09 42.28 1152.36 43.56 1134.55 44.31C1116.73 45.07 1098.91 45.77 1081.09 46.4C1063.27 47.02 1045.45 47.38 1027.64 48.06C1009.82 48.75 992 49.86 974.18 50.51C956.36 51.17 938.55 51.27 920.73 51.99C902.91 52.7 885.09 53.96 867.27 54.79C849.45 55.61 831.64 56.2 813.82 56.92C796 57.65 778.18 58.42 760.36 59.14C742.55 59.86 724.73 60.68 706.91 61.23C689.09 61.78 671.27 61.86 653.45 62.44C635.64 63.01 617.82 64.04 600 64.69C582.18 65.33 564.36 65.93 546.55 66.29C528.73 66.66 510.91 66.59 493.09 66.88C475.27 67.18 457.45 67.7 439.64 68.07C421.82 68.45 404 69.16 386.18 69.14C368.36 69.12 350.55 68.01 332.73 67.96C314.91 67.9 297.09 68.86 279.27 68.81C261.45 68.76 243.64 68.22 225.82 67.67C208 67.12 190.18 66.52 172.36 65.5C154.55 64.49 136.73 63 118.91 61.58C101.09 60.16 83.27 59.67 65.45 56.97C47.64 54.27 20.91 47.31 12 45.38Z"/><path class="bs-skip" d="M630.02 27.58L943.79 28.07" style="stroke-width:0.9"/><path class="bs-skip" d="M586.22 50.31L816.64 50.42" style="stroke-width:3.18"/><path class="bs-skip" d="M995.01 33.85L1200 32.16" style="stroke-width:1.92"/><path class="bs-skip" d="M1023.32 51.07L1200 50.51" style="stroke-width:2.68"/><path class="bs-skip" d="M620.85 54.62L841.42 52.72" style="stroke-width:1.96"/><path class="bs-skip" d="M1044.59 37.71L1200 36.16" style="stroke-width:2.52"/><path class="bs-skip" d="M779.11 54.37L1056.89 52.61" style="stroke-width:2.64"/>
     </svg>
-        <p class="who">Mico<i></i>Germany</p>
+        <p class="who">Mico<i></i>Germany<i></i><span id="clock">—</span></p>
         <nav class="links" aria-label="Me, elsewhere">
           <a href="https://discord.com/users/402858450926829568" rel="me">
             <svg viewBox="0 0 32 32" aria-hidden="true"><use href="#ic-discord" /></svg><span>Discord</span>
@@ -277,6 +277,13 @@
         </div>
       </div>
     </section>
+    <section class="panel pushes reveal" id="pushes" aria-labelledby="pushes-h" hidden>
+      <div class="head">
+        <h2 id="pushes-h">lately</h2>
+      </div>
+      <ol class="push-list" id="push-list"></ol>
+    </section>
+
     <footer class="panel foot">
       <button class="flag" id="flag-hit" type="button" aria-label="Swing the flag">
         <svg viewBox="0 0 320 300" aria-hidden="true"><use href="#roger" /></svg>
@@ -290,7 +297,7 @@
     </div>
   </main>
 
-  <script src="script.js" defer></script>
+  <script src="script.js?v=2" defer></script>
 </body>
 
 </html>
