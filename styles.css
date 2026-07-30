@@ -15,10 +15,10 @@
    Objects drawn in four different languages is what made an earlier
    version read as clutter, not the number of them.
 
-   Depth is line weight, the way it is on a drawn page: the loop and the
-   flag are foreground and carry the heaviest line, the cloud sits in the
-   middle, the wheel and the speed lines are background and are drawn
-   thin. Every line at the same weight is what makes a page read flat.
+   Depth is line weight, the way it is on a drawn page: the flag and the
+   brush stroke are foreground, the cloud sits in the middle, the wheel and
+   the speed lines are background and are drawn thin. Every line at the
+   same weight is what makes a page read flat.
    ════════════════════════════════════════════════════════════════ */
 
 :root {
@@ -103,76 +103,83 @@ a {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: .34em;
-  font-size: .82rem;
+  gap: .42em;
+  font-size: .9rem;
   font-weight: 700;
   line-height: 1;
+  letter-spacing: .04em;
   color: var(--blood);
 }
 
+.hero > .vert {
+  align-self: start;
+  margin-top: .4rem;
+  padding-right: clamp(.6rem, 1.6vw, 1.2rem);
+  border-right: 1px solid var(--ink-3);
+}
+
 /* ── the spread ─────────────────────────────────────────────── */
-.spread {
+
+/* The wheel runs past the right margin on purpose. Clipping on the grid
+   itself cuts at the column edge, straight through the wheel, so the crop
+   has to happen on a full-width wrapper. overflow-x:hidden on body does
+   not do it either — the document still reports the wider scroll width. */
+.sheet {
   position: relative;
   z-index: 1;
+  overflow-x: clip;
+}
+
+.spread {
   width: min(100% - 1.6rem, 78rem);
   margin-inline: auto;
-  padding-block: var(--gut);
+  padding-block: clamp(1.4rem, 4vw, 3rem);
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: var(--gut);
+  gap: clamp(2.2rem, 6vw, 4.5rem) clamp(1.6rem, 4vw, 3.4rem);
 }
 
-/* A panel is a hard-edged plate on black. clip-path drops any border, so
-   the frame is faked: the panel itself is paper and an inset pseudo
-   element lays the ink down 2px inside it, clipped to the same cut.
-   (A copy sitting behind on z-index:-1 does not work — clip-path makes a
-   stacking context, so the copy paints over the panel instead.) */
+/* No frames. Thin light outlines with clipped corners on black read as a
+   sci-fi interface kit, not as a drawn page — a real panel border is a
+   black line on paper, and inverting that lands somewhere else entirely.
+   So the regions are held apart by space, by the cloud, and by the rule
+   under each heading. Nothing is boxed. */
 .panel {
   position: relative;
-  background: var(--paper);
-  clip-path: var(--cut);
-  padding: clamp(1.1rem, 2.4vw, 2rem);
-  --cut: polygon(0 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%);
+  min-width: 0;
 }
 
-.panel::after {
-  content: "";
-  position: absolute;
-  inset: var(--rule);
-  z-index: 0;
-  background: var(--ink-2);
-  clip-path: var(--cut);
-}
+/* where each region sits on the twelve columns */
+.hero { grid-column: 1 / -1; }
+.now { grid-column: 1 / 8; align-content: start; }
+.music { grid-column: 8 / -1; align-content: start; }
 
-.panel > * {
-  position: relative;
-  z-index: 1;
+.foot {
+  grid-column: 1 / -1;
+  padding-top: clamp(1rem, 3vw, 2rem);
+  border-top: 1px solid var(--ink-3);
 }
-
-/* each plate laid down slightly off square */
-.hero { grid-column: 1 / -1; --cut: polygon(0 0, 100% 0, 100% calc(100% - 34px), calc(100% - 34px) 100%, 0 100%); }
-.now { grid-column: 1 / 8; }
-.music { grid-column: 8 / -1; --cut: polygon(26px 0, 100% 0, 100% 100%, 0 100%, 0 26px); }
-.foot { grid-column: 1 / -1; --cut: polygon(0 0, 100% 0, 100% 100%, 30px 100%, 0 calc(100% - 30px)); }
 
 /* ══ the hero panel ═════════════════════════════════════════ */
 .hero {
-  overflow: hidden;
   align-content: center;
-  min-height: min(74vh, 34rem);
+  min-height: min(58vh, 27rem);
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   column-gap: clamp(.8rem, 2vw, 1.6rem);
-  padding-block: clamp(1.6rem, 4vw, 3rem);
+  padding-block: clamp(1rem, 2.6vw, 2rem);
 }
 
 /* speed lines, converging off the right edge */
+/* slice makes the artwork overflow its own viewport on purpose, so the
+   element itself has to do the clipping or it widens the document */
 .speed {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+  overflow: hidden;
   pointer-events: none;
 }
 
@@ -190,7 +197,7 @@ a {
   aspect-ratio: 1;
   translate: 0 -50%;
   pointer-events: none;
-  opacity: .38;
+  opacity: .55;
 }
 
 .wheel {
@@ -213,9 +220,9 @@ a {
 
 /* ink fill, not none — the spokes have to be occluded by the rim */
 .mg-body {
-  fill: var(--ink-2);
+  fill: var(--ink);
   stroke: var(--paper);
-  stroke-width: 2;
+  stroke-width: 2.4;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
@@ -234,36 +241,23 @@ a {
   min-width: 0;
 }
 
-/* The loop of binding: a metal ring that floats round the forehead, red
-   once Mori reaches nirvana. It is a hoop, not a headband, so the name
-   sits inside it — near edge over the top, far edge behind the letters. */
-.loop {
+/* A brush stroke under the name — the one red mark in the header, and
+   mine rather than an object lifted from a panel. */
+.brush {
   display: block;
-  width: min(100%, 42rem);
-  height: auto;
-  margin-bottom: clamp(-9.5rem, -12vw, -5rem);
-  overflow: visible;
+  width: min(100%, 38rem);
+  height: clamp(1.5rem, 3vw, 2.4rem);
+  margin: -.7rem 0 .4rem clamp(.4rem, 2vw, 1.6rem);
 }
 
-.lb-body {
-  fill: var(--ink-2);
-  stroke: var(--blood);
-  stroke-width: 5;
-  stroke-linejoin: round;
+.bs-body {
+  fill: var(--blood);
+}
+
+.bs-skip {
+  stroke: var(--ink-2);
   stroke-linecap: round;
-}
-
-/* the far side of the hoop, sunk behind */
-.lb-far {
-  fill: var(--ink-2);
-  stroke: var(--blood);
-  stroke-width: 3;
-  stroke-opacity: .3;
-  stroke-linejoin: round;
-}
-
-.lb-lit {
-  display: none;
+  opacity: .85;
 }
 
 .name {
@@ -271,12 +265,12 @@ a {
   z-index: 1;
   font-size: clamp(2.6rem, 9vw, 6rem);
   letter-spacing: .02em;
-  margin: 0 0 .5rem clamp(1rem, 4vw, 3.2rem);
+  margin: 0 0 .5rem clamp(.4rem, 2vw, 1.6rem);
   text-shadow: 0 0 26px var(--ink), 0 0 12px var(--ink);
 }
 
 .who {
-  margin-left: clamp(1rem, 4vw, 3.2rem);
+  margin-left: clamp(.4rem, 2vw, 1.6rem);
   display: flex;
   align-items: center;
   gap: .7rem;
@@ -295,31 +289,34 @@ a {
 }
 
 .line {
-  margin: 0 0 1.6rem;
-  max-width: 34ch;
+  margin: 0 0 1.6rem clamp(.4rem, 2vw, 1.6rem);
+  max-width: 42ch;
   color: var(--paper-2);
 }
 
 /* ── links, as inked tags ───────────────────────────────────── */
 .links {
+  margin-left: clamp(.4rem, 2vw, 1.6rem);
   display: flex;
   flex-wrap: wrap;
   gap: .5rem;
 }
 
+/* every target clears 44px — the tags were 35, which is a miss on a
+   phone and a fiddle everywhere else */
 .links a {
   display: inline-flex;
   align-items: center;
   gap: .5rem;
-  padding: .42rem .8rem;
+  min-height: 44px;
+  padding: .5rem .95rem;
   font-size: .8rem;
   font-weight: 700;
   letter-spacing: .08em;
   text-decoration: none;
   color: var(--paper);
   background: var(--ink);
-  box-shadow: inset 0 0 0 var(--rule) var(--paper-3);
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+  box-shadow: inset 0 0 0 1px var(--paper-3);
   transition: background-color .15s, box-shadow .15s, color .15s;
 }
 
@@ -368,9 +365,24 @@ a {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.1rem;
-  padding-bottom: .7rem;
-  border-bottom: var(--rule) solid var(--paper-3);
+  margin-bottom: 1.2rem;
+  padding-bottom: .6rem;
+  border-bottom: 1px solid var(--ink-3);
+}
+
+/* the one heavy mark in the rule, so the eye knows where a region starts */
+.head::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 3.2rem;
+  height: var(--rule);
+  background: var(--blood);
+}
+
+.head {
+  position: relative;
 }
 
 .head h2 {
@@ -433,7 +445,6 @@ a {
   height: 100%;
   object-fit: cover;
   box-shadow: 0 0 0 var(--rule) var(--paper);
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
 }
 
 .portrait img[hidden] {
@@ -525,33 +536,102 @@ a {
   color: var(--blood);
 }
 
-.embed {
-  position: relative;
-  min-height: 152px;
+.track {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: clamp(.8rem, 2vw, 1.2rem);
+  align-items: center;
 }
 
-.embed iframe {
+.sleeve {
   position: relative;
-  display: block;
-  border: 0;
-  width: 100%;
-}
-
-/* shows through if the embed is blocked */
-.embed-fallback {
-  position: absolute;
-  inset: 0;
-  margin: 0;
+  width: clamp(4.4rem, 11vw, 6.4rem);
+  aspect-ratio: 1;
   display: grid;
   place-items: center;
-  text-align: center;
 }
 
-.embed-fallback a {
-  font-size: .9rem;
+.sleeve img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  box-shadow: 0 0 0 var(--rule) var(--paper);
+}
+
+.sleeve img[hidden] {
+  display: none;
+}
+
+/* an empty sleeve reads as a missing image; a mark reads as deliberate */
+/* no artwork: a flat plate rather than an outlined box with an icon in it,
+   which reads as a picture that failed to load */
+.sleeve-void {
+  position: absolute;
+  inset: 0;
+  background: var(--ink-3);
+  box-shadow: inset 0 0 0 1px var(--paper-3);
+}
+
+.sleeve img:not([hidden]) + .sleeve-void {
+  display: none;
+}
+
+.track-text {
+  min-width: 0;
+}
+
+.track-song {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.track-artist {
+  margin: .1rem 0 .45rem;
+  font-size: .88rem;
   color: var(--paper-2);
-  text-decoration: none;
-  border-bottom: var(--rule) solid var(--blood);
+  overflow-wrap: anywhere;
+}
+
+.track-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: .78rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--paper-2);
+  text-decoration: underline;
+  text-decoration-color: var(--blood);
+  text-decoration-thickness: var(--rule);
+  text-underline-offset: .35em;
+}
+
+.track-link:hover,
+.track-link:focus-visible {
+  color: var(--paper);
+}
+
+/* how far through the song it is */
+.track-bar {
+  grid-column: 1 / -1;
+  height: 6px;
+  margin-top: .3rem;
+  background: var(--ink-3);
+  box-shadow: inset 0 0 0 1px var(--paper-3);
+}
+
+.track-bar[hidden] {
+  display: none;
+}
+
+.track-bar span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--blood);
+  transition: width 1s linear;
 }
 
 /* ══ 海賊旗 ═════════════════════════════════════════════════ */
@@ -600,9 +680,14 @@ a {
 }
 
 .foot-text a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--paper-2);
-  text-decoration: none;
-  border-bottom: var(--rule) solid var(--blood);
+  text-decoration: underline;
+  text-decoration-color: var(--blood);
+  text-decoration-thickness: var(--rule);
+  text-underline-offset: .3em;
 }
 
 .foot-text a:hover {
@@ -610,12 +695,14 @@ a {
 }
 
 .hint {
-  margin: 0;
-  font-size: .7rem;
+  margin: 0 0 0 auto;
+  display: grid;
+  gap: .1rem;
+  text-align: right;
+  font-size: .68rem;
   letter-spacing: .2em;
   text-transform: uppercase;
   color: var(--paper-3);
-  opacity: .7;
 }
 
 /* ══ 黒閃 ═══════════════════════════════════════════════════
@@ -730,8 +817,7 @@ body.is-flashing::after {
   padding: .6rem .8rem;
   text-align: right;
   background: var(--ink);
-  box-shadow: inset 0 0 0 var(--rule) var(--paper-3);
-  clip-path: polygon(11px 0, 100% 0, 100% 100%, 0 100%, 0 11px);
+  border-left: var(--rule) solid var(--blood);
 }
 
 .tally[hidden] {
@@ -803,7 +889,15 @@ body.is-flashing::after {
 
   .hero {
     min-height: 0;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* stacked, the label has nowhere to sit beside the text, so it goes
+     above it and runs across instead of down */
+  .hero > .vert {
+    flex-direction: row;
+    gap: .5em;
+    margin-bottom: .8rem;
   }
 
   /* on a narrow screen the wheel sits right behind the running text, so

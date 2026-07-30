@@ -15,10 +15,12 @@ favicon, open them and type.
 
 ## The look
 
-A manga spread rather than a column of sections. Panels sit on black with
-real gutters between them, each one cut on the skew, and the drawings are
-cropped by the panel edges the way a panel crops a drawing. Exactly one
-thing is allowed to break a gutter, and it does it once.
+Nothing is boxed. Thin light outlines with clipped corners on black read
+as a sci-fi interface kit rather than a drawn page — a real panel border
+is a black line on paper, and inverting that lands somewhere else
+entirely. So the regions are held apart by space, by the cloud, and by the
+rule under each heading, and the wheel runs off the right edge of the page
+rather than being placed inside a frame.
 
 One drawing rule, applied to everything: line art, paper-white stroke, ink
 fill so shapes occlude one another. No gloss, no specular highlight, no
@@ -59,10 +61,15 @@ never reaches inside it.** `.puff .cl-body` silently does nothing;
 `.cl-body` works. Custom properties inherit through, so per-instance
 variation has to ride on a variable rather than an ancestor class.
 
-**`clip-path` creates a stacking context.** A copy of the panel sitting
-behind on `z-index: -1` to fake a border paints *over* the panel instead.
-The frame is the panel itself in paper, with an inset pseudo element
-laying the ink down two pixels inside it.
+**The wheel bleeds past the right margin, and clipping that is fiddly.**
+Clip on the grid and the cut lands on the column edge, straight through
+the wheel. `overflow-x: hidden` on `body` hides the scrollbar but the
+document still reports the wider scroll width. It takes a full-width
+wrapper — `.sheet` — with `overflow-x: clip`.
+
+**Speed lines are drawn with `preserveAspectRatio="slice"`,** which makes
+the artwork overflow its own viewport on purpose, so the `<svg>` element
+itself has to clip or it widens the page.
 
 **Every neighbouring lobe of a cloud has to genuinely overlap.** Where two
 only touch, the outline pinches to nothing and the band reads as beads on
@@ -98,10 +105,11 @@ Discord link in `index.html`.
 
 ## Music
 
-One pinned Spotify track. If something is actually playing, `script.js`
-swaps it and the kicker changes from "stuck in my head" to "playing right
-now". Behind the player is a plain link, for anyone whose browser blocks
-embeds.
+The track is drawn here rather than dropped in as Spotify's own embed,
+which was the one thing on the page in somebody else's visual language.
+Sleeve, title, artist, and a bar showing how far through it is, all from
+what Lanyard already reports. When nothing is playing it says so and the
+link goes to the pinned track.
 
 ## Running it locally
 

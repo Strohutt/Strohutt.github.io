@@ -138,13 +138,22 @@ const el = {
   doing: document.getElementById('dc-doing'),
   quiet: document.getElementById('dc-quiet'),
   kicker: document.getElementById('music-kicker'),
-  embed: document.getElementById('music-embed'),
+  art: document.getElementById('track-art'),
+  song: document.getElementById('track-song'),
+  artist: document.getElementById('track-artist'),
+  bar: document.getElementById('track-bar'),
+  fill: document.getElementById('track-fill'),
   link: document.getElementById('music-link')
 };
 
-const frame = el.embed.querySelector('iframe');
-const fallbackTrack = frame ? frame.src : '';
-const fallbackLink = el.link ? el.link.href : '';
+const PINNED = {
+  song: 'nothing playing',
+  artist: 'the link goes to what I keep coming back to',
+  url: el.link ? el.link.href : ''
+};
+
+el.art.addEventListener('load', () => { el.art.hidden = false; });
+el.art.addEventListener('error', () => { el.art.hidden = true; });
 
 // The portrait only covers the empty ring once the picture has really
 // loaded, so a blocked CDN leaves the ring rather than a broken image
@@ -319,21 +328,39 @@ function elapsed(startMs) {
   return h > 0 ? `${h}:${pad2(m)}:${pad2(s)}` : `${pad2(m)}:${pad2(s)}`;
 }
 
+/* Drawn here rather than dropped in as Spotify's own player, which was
+   the one thing on the page in somebody else's visual language. */
 function showTrack(track) {
-  if (!frame) return;
-
-  const src = track
-    ? `https://open.spotify.com/embed/track/${track.track_id}?utm_source=generator`
-    : fallbackTrack;
-
   el.kicker.textContent = track ? 'playing right now' : 'stuck in my head';
-  if (frame.src !== src) frame.src = src;
+  el.song.textContent = track ? track.song : PINNED.song;
+  el.artist.textContent = track ? track.artist : PINNED.artist;
+  el.link.href = track ? `https://open.spotify.com/track/${track.track_id}` : PINNED.url;
 
-  if (el.link) {
-    el.link.href = track
-      ? `https://open.spotify.com/track/${track.track_id}`
-      : fallbackLink;
+  if (track && track.album_art_url) {
+    // re-assigning the same src restarts the fade, and presence updates
+    // arrive far more often than the song changes
+    if (el.art.src !== track.album_art_url) el.art.src = track.album_art_url;
+    el.art.alt = `${track.album || track.song} cover`;
+  } else {
+    el.art.hidden = true;
+    el.art.removeAttribute('src');
   }
+
+  const span = track && track.timestamps
+    && track.timestamps.end - track.timestamps.start;
+
+  if (!span || span <= 0) {
+    el.bar.hidden = true;
+    return;
+  }
+
+  el.bar.hidden = false;
+  const tick = () => {
+    const gone = (Date.now() - track.timestamps.start) / span;
+    el.fill.style.width = `${Math.min(100, Math.max(0, gone * 100)).toFixed(2)}%`;
+  };
+  tick();
+  liveTimers.push(setInterval(tick, 1000));
 }
 
 function fail() {
