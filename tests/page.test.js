@@ -52,6 +52,19 @@ const { chromium } = require('playwright');
     .map(el => { const r = el.getBoundingClientRect(); return { t: (el.getAttribute('aria-label') || el.textContent).trim().slice(0, 16), w: Math.round(r.width), h: Math.round(r.height) }; })
     .filter(x => x.w && (x.h < 44 || x.w < 44)));
 
-  console.log(JSON.stringify({ hiddenNoJs, overflow, hits, focusable, small, errs }, null, 1));
+  // what a screen reader is told, and what it is spared
+  const a11y = await p.evaluate(() => ({
+    lang: document.documentElement.lang,
+    skip: !!document.querySelector('.skip'),
+    live: [...document.querySelectorAll('[aria-live="polite"]')].map(e => e.className),
+    tickingInLive: [...document.querySelectorAll('.doing-time, #track-fill')]
+      .filter(e => e.closest('[aria-live="polite"]')).length,
+    unlabelledSvg: [...document.querySelectorAll('svg')]
+      .filter(s => !s.hasAttribute('aria-hidden') && !s.querySelector('title')).length,
+    imgNoAlt: [...document.querySelectorAll('img')].filter(i => !i.hasAttribute('alt')).length,
+    headings: [...document.querySelectorAll('h1, h2')].map(h => h.tagName)
+  }));
+
+  console.log(JSON.stringify({ hiddenNoJs, overflow, hits, focusable, small, a11y, errs }, null, 1));
   await b.close();
 })();

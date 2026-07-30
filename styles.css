@@ -47,6 +47,27 @@
   box-sizing: border-box;
 }
 
+/* Off screen until it is tabbed to. The sprite and the whole header sit
+   before the content, which is a long way to tab past. */
+.skip {
+  position: absolute;
+  top: .6rem;
+  left: .6rem;
+  z-index: 60;
+  padding: .7rem 1rem;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--paper);
+  text-decoration: none;
+  translate: 0 -180%;
+  transition: translate .18s ease;
+}
+
+.skip:focus-visible {
+  translate: 0 0;
+}
+
 ::selection {
   background: var(--blood);
   color: var(--paper);
