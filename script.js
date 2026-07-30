@@ -1,170 +1,82 @@
 /* ════════════════════════════════════════════════════════════════
-   strohut — the small stuff
-   1. Light switch. Night is the default.
-   2. Sections inking in as you scroll, and a pokeable hat.
-   3. Live Discord presence over the Lanyard socket.
+   strohut
+   1. Sections arriving as you scroll
+   2. The doodle pad
+   3. Discord presence, via Lanyard
    ════════════════════════════════════════════════════════════════ */
 
 const DISCORD_ID = '402858450926829568';
-
+const root = document.documentElement;
 const stillPlease = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-/* ─────────────────────────── Light switch ──────────────────────── */
+/* ───────────────────────── Arriving ────────────────────────────── */
 
-const lamp = document.querySelector('.lamp');
-const root = document.documentElement;
-
-// localStorage throws in browsers with strict settings, and that must
-// not take the whole page down with it
-const remember = {
-  get() {
-    try {
-      return localStorage.getItem('strohut-theme');
-    } catch {
-      return null;
-    }
-  },
-  set(value) {
-    try {
-      localStorage.setItem('strohut-theme', value);
-    } catch {
-      /* then it just won't stick */
-    }
-  }
-};
-
-// Dark unless this visitor has switched it off before
-setTheme(remember.get() === 'day' ? 'day' : 'night');
-
-lamp.addEventListener('click', () => {
-  const next = root.dataset.theme === 'night' ? 'day' : 'night';
-  setTheme(next);
-  remember.set(next);
-});
-
-function setTheme(theme) {
-  root.dataset.theme = theme;
-  lamp.setAttribute('aria-pressed', String(theme === 'night'));
-  document
-    .querySelector('meta[name="theme-color"]')
-    .setAttribute('content', theme === 'night' ? '#15171d' : '#f2ecdf');
-  document.dispatchEvent(new CustomEvent('inkchange'));
-}
-
-/* ──────────────────── Inking in, and the hat ───────────────────── */
-
-// Sections fade up once, then the observer lets go of them
 const sections = document.querySelectorAll('.reveal');
 
 if (stillPlease.matches || !('IntersectionObserver' in window)) {
   sections.forEach(s => s.classList.add('is-in'));
 } else {
-  const watcher = new IntersectionObserver(
-    (entries, self) => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add('is-in');
-        self.unobserve(entry.target);
-      });
-    },
-    { rootMargin: '0px 0px -12% 0px', threshold: 0.12 }
-  );
+  const watcher = new IntersectionObserver((entries, self) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('is-in');
+      self.unobserve(entry.target);
+    });
+  }, { rootMargin: '0px 0px -12% 0px', threshold: 0.1 });
+
   sections.forEach(s => watcher.observe(s));
 }
 
-/* Depth by parallax: the cover is stacked layers, and they move by
-   different amounts. Pointer gives the tilt, scroll gives the drift.
-   One rAF per frame, and two custom properties the CSS reads. */
-const hero = document.querySelector('.hero');
-let pointerX = 0;
-let pointerY = 0;
-let drift = 0;
-let queued = false;
-
-function paintDepth() {
-  queued = false;
-  hero.style.setProperty('--px', pointerX.toFixed(3));
-  hero.style.setProperty('--py', pointerY.toFixed(3));
-  hero.style.setProperty('--drift', drift.toFixed(3));
-}
-
-function queueDepth() {
-  if (queued) return;
-  queued = true;
-  requestAnimationFrame(paintDepth);
-}
-
-if (!stillPlease.matches) {
-  // Fine pointers only. On a touchscreen there is nothing to track.
-  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-    window.addEventListener('pointermove', event => {
-      pointerX = (event.clientX / window.innerWidth - 0.5) * 2;
-      pointerY = (event.clientY / window.innerHeight - 0.5) * 2;
-      queueDepth();
-    }, { passive: true });
-  }
-
-  window.addEventListener('scroll', () => {
-    // only while the cover is still on screen
-    const past = Math.min(1, window.scrollY / Math.max(1, window.innerHeight));
-    drift = past;
-    queueDepth();
-  }, { passive: true });
-}
-
-// Poking the hat makes it wobble and throw sparkles
-const hatHit = document.querySelector('.hat-hit');
-
-hatHit.addEventListener('click', () => {
-  if (stillPlease.matches) return;
-  hatHit.classList.remove('is-poked');
-  // reflow, otherwise a second click inside the animation does nothing
-  void hatHit.offsetWidth;
-  hatHit.classList.add('is-poked');
-});
-
-hatHit.addEventListener('animationend', event => {
-  // the third sparkle lands last, well after the hat itself settles
-  if (event.target.classList.contains('pop-3')) {
-    hatHit.classList.remove('is-poked');
-  }
-});
-
-/* ───────────────────────────── Doodle box ──────────────────────── */
+/* ──────────────────────── The doodle pad ───────────────────────── */
 
 const pad = document.getElementById('doodle-pad');
 
 if (pad) {
   const ctx = pad.getContext('2d');
   const wrap = pad.parentElement;
-  const PENS = { ink: '--ink', red: '--red', straw: '--straw' };
+  const PENS = { blue: '--blue', red: '--red', violet: '--violet' };
 
-  let pen = 'ink';
+  let pen = 'blue';
   let strokes = [];
   let current = null;
+  let drawingWith = null;
+
+  // Anything could be under that key — an older version of this page,
+  // another tab, an extension. Check each stroke before trusting it,
+  // because one bad one would throw and kill the rest of this file.
+  const drawable = s =>
+    s && typeof s.c === 'string' && Array.isArray(s.pts) && s.pts.length &&
+    s.pts.every(pt => Array.isArray(pt) && pt.length === 2 &&
+      Number.isFinite(pt[0]) && Number.isFinite(pt[1]));
 
   try {
     const saved = JSON.parse(localStorage.getItem('strohut-doodle'));
-    if (saved && Array.isArray(saved.strokes)) strokes = saved.strokes;
+    if (saved && Array.isArray(saved.strokes)) strokes = saved.strokes.filter(drawable);
   } catch {
     /* fresh sheet then */
   }
 
-  function inkOf(name) {
-    return getComputedStyle(root).getPropertyValue(PENS[name] || '--ink').trim();
-  }
+  const inkOf = name =>
+    getComputedStyle(root).getPropertyValue(PENS[name] || '--violet').trim();
+
+  const nib = () => 2.8 * (window.devicePixelRatio || 1);
 
   function drawStroke(s) {
     ctx.strokeStyle = inkOf(s.c);
-    ctx.lineWidth = 2.6 * (window.devicePixelRatio || 1);
+    ctx.lineWidth = nib();
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
+    ctx.shadowColor = inkOf(s.c);
+    ctx.shadowBlur = 12 * (window.devicePixelRatio || 1);
     ctx.beginPath();
     s.pts.forEach(([x, y], i) => {
-      if (i === 0) ctx.moveTo(x * pad.width, y * pad.height);
-      else ctx.lineTo(x * pad.width, y * pad.height);
+      const px = x * pad.width;
+      const py = y * pad.height;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
     });
     ctx.stroke();
+    ctx.shadowBlur = 0;
   }
 
   function redraw() {
@@ -176,17 +88,16 @@ if (pad) {
   function fit() {
     const dpr = window.devicePixelRatio || 1;
     const box = wrap.getBoundingClientRect();
-    pad.width = Math.round(box.width * dpr);
-    pad.height = Math.round(box.height * dpr);
+    pad.width = Math.max(1, Math.round(box.width * dpr));
+    pad.height = Math.max(1, Math.round(box.height * dpr));
     redraw();
   }
 
   function save() {
     // oldest strokes fall off the sheet before storage fills up
     let total = strokes.reduce((n, s) => n + s.pts.length, 0);
-    while (total > 20000 && strokes.length > 1) {
-      total -= strokes.shift().pts.length;
-    }
+    while (total > 20000 && strokes.length > 1) total -= strokes.shift().pts.length;
+
     try {
       localStorage.setItem('strohut-doodle', JSON.stringify({ strokes }));
     } catch {
@@ -203,29 +114,26 @@ if (pad) {
   }
 
   pad.addEventListener('pointerdown', event => {
+    // one pointer at a time, or a second finger hijacks the stroke
+    if (drawingWith !== null) return;
     event.preventDefault();
+    drawingWith = event.pointerId;
     pad.setPointerCapture(event.pointerId);
     const start = at(event);
-    // the second point makes a lone tap show up as a dot
+    // the nudged second point makes a lone tap show up as a dot
     current = { c: pen, pts: [start, [start[0] + 0.0005, start[1]]] };
     redraw();
   });
 
   pad.addEventListener('pointermove', event => {
-    if (!current) return;
-    const prev = current.pts[current.pts.length - 1];
-    const next = at(event);
-    current.pts.push(next);
-    ctx.strokeStyle = inkOf(current.c);
-    ctx.lineWidth = 2.6 * (window.devicePixelRatio || 1);
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(prev[0] * pad.width, prev[1] * pad.height);
-    ctx.lineTo(next[0] * pad.width, next[1] * pad.height);
-    ctx.stroke();
+    if (!current || event.pointerId !== drawingWith) return;
+    current.pts.push(at(event));
+    redraw();
   });
 
-  function penUp() {
+  function penUp(event) {
+    if (event && event.pointerId !== drawingWith) return;
+    drawingWith = null;
     if (!current) return;
     strokes.push(current);
     current = null;
@@ -250,9 +158,6 @@ if (pad) {
     redraw();
   });
 
-  // theme flips re-ink every stroke in the new palette
-  document.addEventListener('inkchange', redraw);
-
   let resizeQueued = false;
   window.addEventListener('resize', () => {
     if (resizeQueued) return;
@@ -266,12 +171,12 @@ if (pad) {
   fit();
 }
 
-/* ───────────────────────── Discord presence ────────────────────── */
+/* ────────────────────── Discord presence ───────────────────────── */
 
 const el = {
-  panel: document.querySelector('.panel'),
+  slab: document.querySelector('.now .slab'),
   avatar: document.getElementById('dc-avatar'),
-  dot: document.querySelector('.head-dot'),
+  dot: document.getElementById('dc-dot'),
   name: document.getElementById('dc-name'),
   state: document.getElementById('dc-state'),
   doing: document.getElementById('dc-doing'),
@@ -285,14 +190,10 @@ const frame = el.embed.querySelector('iframe');
 const fallbackTrack = frame ? frame.src : '';
 const fallbackLink = el.link ? el.link.href : '';
 
-// The drawn face sits underneath; the photo only covers it once it
-// has actually loaded, so a blocked CDN never leaves a broken image
-el.avatar.addEventListener('load', () => {
-  el.avatar.hidden = false;
-});
-el.avatar.addEventListener('error', () => {
-  el.avatar.hidden = true;
-});
+// The portrait only covers the empty ring once the picture has really
+// loaded, so a blocked CDN leaves the ring rather than a broken image
+el.avatar.addEventListener('load', () => { el.avatar.hidden = false; });
+el.avatar.addEventListener('error', () => { el.avatar.hidden = true; });
 
 const STATUS_TEXT = {
   online: 'online',
@@ -301,13 +202,11 @@ const STATUS_TEXT = {
   offline: 'offline'
 };
 
-// Kept around so the elapsed time keeps ticking instead of freezing
 let liveTimers = [];
 let lastPresence = null;
 
-// First paint from the REST API, so the panel fills the moment the page
-// opens even if the socket takes a while. The socket then keeps it live,
-// and anything it has already delivered wins over a slow REST reply.
+// First fill from REST so the panel is populated straight away; the
+// socket takes over from there and anything it delivered wins
 fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`)
   .then(response => response.json())
   .then(body => {
@@ -342,14 +241,11 @@ function connect() {
       return;
     }
 
-    if (op === 0 && (t === 'INIT_STATE' || t === 'PRESENCE_UPDATE')) {
-      render(d);
-    }
+    if (op === 0 && (t === 'INIT_STATE' || t === 'PRESENCE_UPDATE')) render(d);
   });
 
   socket.addEventListener('close', () => {
     clearInterval(heartbeat);
-    // Try again after a pause, without hammering it
     setTimeout(connect, 12000);
   });
 
@@ -368,24 +264,28 @@ function render(data) {
   const user = data.discord_user;
   const status = data.discord_status || 'offline';
 
-  el.panel.dataset.state = 'ready';
+  el.slab.dataset.state = 'ready';
   el.name.textContent = user.display_name || user.global_name || user.username;
-  el.avatar.alt = `Discord avatar of ${user.username}`;
+  el.avatar.alt = `${user.username} on Discord`;
 
   if (user.avatar) {
     const ext = user.avatar.startsWith('a_') ? 'gif' : 'png';
-    el.avatar.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=128`;
+    const url = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=256`;
+    // re-assigning the same src restarts an animated avatar from frame
+    // one, and presence updates arrive on every song change
+    if (el.avatar.src !== url) el.avatar.src = url;
+  } else {
+    el.avatar.hidden = true;
+    el.avatar.removeAttribute('src');
   }
 
-  // Careful: className is read-only on SVG elements
-  el.dot.setAttribute('class', `head-dot is-${status}`);
+  el.dot.className = `dot is-${status}`;
 
-  // A custom status (type 4) outranks everything else
+  // a custom status outranks everything else
   const custom = data.activities.find(a => a.type === 4);
   const customText = custom && [custom.emoji?.name, custom.state].filter(Boolean).join(' ');
   el.state.textContent = customText || STATUS_TEXT[status] || status;
 
-  // Everything actually open: games, apps, streams — however many
   const doing = data.activities.filter(a => a.type !== 4 && a.name !== 'Spotify');
   el.doing.replaceChildren(...doing.map(activityRow));
 
@@ -397,35 +297,23 @@ function render(data) {
 
 function activityRow(activity) {
   const li = document.createElement('li');
-
-  // The border is drawn, not ruled, hence an SVG over the top
-  const art = document.createElement('span');
-  art.className = 'art';
-
   const url = artworkUrl(activity);
+
   if (url) {
     const img = document.createElement('img');
     img.src = url;
     img.alt = '';
     img.loading = 'lazy';
-    art.append(img);
+    li.append(img);
   } else {
-    const letter = document.createElement('span');
-    letter.className = 'art-letter';
-    letter.textContent = activity.name.slice(0, 1).toUpperCase();
-    letter.setAttribute('aria-hidden', 'true');
-    art.append(letter);
+    const box = document.createElement('span');
+    box.className = 'no-art';
+    box.textContent = activity.name.slice(0, 1).toUpperCase();
+    box.setAttribute('aria-hidden', 'true');
+    li.append(box);
   }
 
-  art.insertAdjacentHTML(
-    'beforeend',
-    '<svg class="art-frame" viewBox="0 0 300 200" preserveAspectRatio="none" aria-hidden="true">' +
-      '<use href="#frame" /></svg>'
-  );
-  li.append(art);
-
   const body = document.createElement('div');
-  body.className = 'doing-body';
 
   const name = document.createElement('p');
   name.className = 'doing-name';
@@ -444,9 +332,7 @@ function activityRow(activity) {
   if (start) {
     const time = document.createElement('p');
     time.className = 'doing-time';
-    const tick = () => {
-      time.textContent = `${elapsed(start)} in`;
-    };
+    const tick = () => { time.textContent = `${elapsed(start)} in`; };
     tick();
     liveTimers.push(setInterval(tick, 1000));
     body.append(time);
@@ -472,13 +358,11 @@ function elapsed(startMs) {
   const h = Math.floor(total / 3600);
   const m = Math.floor((total % 3600) / 60);
   const s = total % 60;
-  const pad = n => String(n).padStart(2, '0');
+  const pad2 = n => String(n).padStart(2, '0');
 
-  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+  return h > 0 ? `${h}:${pad2(m)}:${pad2(s)}` : `${pad2(m)}:${pad2(s)}`;
 }
 
-/* Whatever is playing goes in the frame. Otherwise fall back to the
-   track sitting in the HTML. */
 function showTrack(track) {
   if (!frame) return;
 
@@ -497,8 +381,8 @@ function showTrack(track) {
 }
 
 function fail() {
-  el.panel.dataset.state = 'ready';
+  el.slab.dataset.state = 'ready';
   el.name.textContent = 'Strohut';
-  el.state.textContent = "can't reach Discord right now";
+  el.state.textContent = "can't reach discord right now";
   el.quiet.hidden = true;
 }

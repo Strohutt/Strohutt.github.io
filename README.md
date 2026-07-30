@@ -1,90 +1,82 @@
 # strohutt.github.io
 
-My page. Ink on paper, dark by default.
+My page. Dark, jujutsu kaisen flavoured.
 
-Runs on GitHub Pages. No build step, no framework — open the files and type.
+Runs on GitHub Pages. No build step, no framework — four files, open them
+and type.
 
-## What lives where
+| File          | Contents                                                  |
+| ------------- | --------------------------------------------------------- |
+| `index.html`  | The page, plus the icons and the ring as inline SVG        |
+| `styles.css`  | Colours, layout, the cursed energy                         |
+| `script.js`   | Scroll reveals, the doodle pad, the Discord presence       |
+| `favicon.svg` | The purple orb                                             |
 
-| File           | Contents                                                          |
-| -------------- | ----------------------------------------------------------------- |
-| `index.html`   | The page, plus every drawing as SVG in the `<svg class="sprite">` at the top |
-| `styles.css`   | Colours, layout, the drawn rules                                  |
-| `script.js`    | Light switch, scroll reveals, the Discord presence                |
-| `favicon.svg`  | Straw hat for the tab                                             |
+## The look
 
-## The drawings
+Everything on the page is built out of the three techniques and nothing
+else: **blue** pulls, **red** pushes, and where they collide you get
+**purple**. Those are the only three accents in `styles.css` — links,
+pens, the status dot, the ring, the slashes. No fourth colour.
 
-Everything drawn is an SVG path — hat, wordmark, cassette, record, manga
-volume, controller, terminal, tape, icons — placed by hand. No icon
-library, which is why nothing sits perfectly straight.
+The orb in the header is that collision: a blue field and a red field on
+`mix-blend-mode: screen`, drifting against each other on opposite
+schedules, so the overlap really does go violet rather than being painted
+violet. The live Discord avatar sits inside it.
 
-Three of them were too fiddly to place by hand and got generated once
-from a fixed seed instead: the focus lines behind the hat, the burst
-behind `BELLO!` and the ink splatter in the footer. The generator is not
-in the repo — the paths are baked into the sprite, so there is nothing to
-run. The seed is fixed so the wobble is uneven but always the same.
+Nothing is rounded except the orb and the avatar. Every panel, button and
+tag is cleaved — a `clip-path` polygon with two corners cut off — and the
+dividers between sections are slash marks, not rules.
 
-The rules under the headings and links aren't `border`s. They're a wobbly
-SVG line used as a `mask` over a block of colour, so they pick up the ink
-colour of whichever mode is on without needing a second copy.
+The name is set three times on top of each other: blue, red, then bone.
+The blue and red layers drift a few pixels apart on opposite cycles, so
+the edges of the letters bleed the two techniques.
 
-To add a drawing: drop it in the sprite as `<symbol id="…">` and place it
-with `<use href="#…">`. Don't hard-code the colour inside the symbol —
-`stroke` is inherited from outside, otherwise it stays wrong in one of the
-two modes.
+## Japanese
 
-## Why the drawings read as objects
+The small vertical labels are section names: 領域展開 domain expansion,
+現在 now, 自己紹介 about me, 落書き scribble, 音楽 music. The characters
+around the ring are technique names.
 
-The hat, the cassette, the book, the controller and the terminal get
-their depth inside the line work, not from fills: four nib weights
-(`w1`–`w4`, light on the lit side and heavy where the form turns away),
-hatching and halftone drawn in the mode's ink at low opacity, and a
-ground of two or three loose strokes instead of a shadow blob. Because
-nothing is filled, the drawings sit in the page in both modes rather
-than floating on top of it.
+They are stacked as individual `<span>` elements rather than with
+`writing-mode: vertical-rl`, because vertical layout needs vertical
+metrics that a fallback font may not have — and when it doesn't, every
+glyph lands on top of the last one.
 
-`vector-effect` does not inherit in SVG, so `non-scaling-stroke` sits on
-the individual paths that need it (the stretched frames), not on the
-parent `<svg>`.
+## The doodle pad
 
-## Depth
+A patch of the page visitors can draw on, in blue, red or purple. It
+lives in `localStorage` and never leaves the browser.
 
-The cover is stacked layers, and they move by different amounts: the
-pointer tilts them and scrolling drifts them apart. `script.js` writes
-`--px`, `--py` and `--drift` onto `.hero` once per frame and each layer
-multiplies them differently — the focus lines shift about a third as far
-as the hat. Pointer tracking is fine-pointer only; there is nothing to
-follow on a touchscreen.
+Strokes are stored as normalised 0–1 coordinates and a pen *name*, not a
+colour or a pixel position — so the drawing survives a resize and would
+survive a repaint in a different palette. Anything already under the
+storage key gets checked stroke by stroke before it is drawn: bad data
+used to throw, and because the script is one file, that took the Discord
+panel down with it.
 
-## Scroll and poke
-
-Sections fade up once as they come into view, and the panel border wipes
-on like it is being drawn. The hat in the header wobbles and throws
-sparkles when you poke it. All of it is skipped for anyone browsing with
-`prefers-reduced-motion`.
+One pointer at a time, or a second finger hijacks the stroke in progress.
 
 ## Discord presence
 
-`script.js` hangs off [Lanyard](https://github.com/Phineas/lanyard) and
-gets changes pushed down a WebSocket instead of asking every few seconds.
-For that to work you have to be in the [Lanyard
-Discord](https://discord.gg/lanyard).
+`script.js` hangs off [Lanyard](https://github.com/Phineas/lanyard). It
+fills from the REST endpoint immediately so the panel is never empty
+while waiting, then a WebSocket keeps it live — anything the socket has
+already delivered wins over a slow REST reply.
 
-It shows the custom status, then every activity Discord reports — however
-many are open — each with its own elapsed timer counting up.
+It shows the custom status, then every activity Discord reports, each
+with its own timer counting up. If Lanyard can't be reached it says so
+and the rest of the page carries on.
 
-Different Discord account? Change the `DISCORD_ID` constant at the top of
-`script.js` and the two profile links in `index.html`.
-
-If Lanyard can't be reached it says so and the rest of the page carries on.
+Different account: change `DISCORD_ID` at the top of `script.js` and the
+two profile links in `index.html`.
 
 ## Music
 
-The `in my ears` card holds one fixed Spotify track. If something is
-actually playing, `script.js` swaps it for that and the heading changes
-from "stuck in my head" to "playing right now". Behind the player sits a
-plain link, for anyone whose browser blocks embeds.
+The `in my ears` card holds one pinned Spotify track. If something is
+actually playing, `script.js` swaps it and the kicker changes from
+"stuck in my head" to "playing right now". Behind the player is a plain
+link, for anyone whose browser blocks embeds.
 
 ## Running it locally
 
