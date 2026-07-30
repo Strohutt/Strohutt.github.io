@@ -256,6 +256,6 @@ if (wheelHit && wheel) {
     adapted += 1;
     remember();
     wheel.style.setProperty('--adapt', adapted);
-    knock(wheelHit, 'is-struck');
+    knock(wheel, 'is-struck');
   });
 }

@@ -276,8 +276,15 @@ el.art.addEventListener('error', () => { el.art.hidden = true; });
 
 // The portrait only covers the empty ring once the picture has really
 // loaded, so a blocked CDN leaves the ring rather than a broken image
-el.avatar.addEventListener('load', () => { el.avatar.hidden = false; });
-el.avatar.addEventListener('error', () => { el.avatar.hidden = true; });
+const portrait = el.avatar.closest('.portrait');
+const showPortrait = on => {
+  el.avatar.hidden = !on;
+  if (portrait) portrait.classList.toggle('is-empty', !on);
+};
+showPortrait(false);
+
+el.avatar.addEventListener('load', () => showPortrait(true));
+el.avatar.addEventListener('error', () => showPortrait(false));
 
 const STATUS_TEXT = {
   online: 'online',
@@ -359,7 +366,7 @@ function render(data) {
     // one, and presence updates arrive on every song change
     if (el.avatar.src !== url) el.avatar.src = url;
   } else {
-    el.avatar.hidden = true;
+    showPortrait(false);
     el.avatar.removeAttribute('src');
   }
 
