@@ -35,7 +35,7 @@ keep their own colours instead of being repainted violet:
 | | |
 | --- | --- |
 | **Mahoraga's wheel** | Behind the avatar. Hub sphere, eight spokes running through the rim, eight spheres outside it. Turns on its own, and lurches a spoke further every time a black flash lands. |
-| **Jin Mori's crown** | Over the name. A shallow arch — the middle is the high point, both ends fall away to outward blades — with two scroll curls rolled up on the centre. |
+| **The Loop of Binding** | Round the name. A metal ring that floats about the forehead, red in the nirvana form — so it is a hoop, not a band: the near edge crosses above the name, the far edge sinks away behind it. Two scroll curls rolled up on the near edge. |
 | **Nyoibō** | Between the sections. It comes in stubby and pushes out to full width as you reach it, because extending is the only thing it does. No two are the same length or struck at the same angle. |
 | **Gear 5 clouds** | Drifting behind everything. Inked outlines, not fills — at the opacity they need to sit at, a fill just disappears. |
 | **Jolly Roger** | At the foot. |
