@@ -4,26 +4,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Strohut</title>
-  <meta name="description" content="Mico. What I'm doing right now, and where to find me.">
-  <link rel="canonical" href="https://strohutt.github.io/">
+  <title>Nothing here — Strohut</title>
+  <meta name="description" content="That page does not exist.">
+  <meta name="robots" content="noindex">
 
   <link rel="icon" href="favicon.svg?v=2" type="image/svg+xml">
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
-  <link rel="manifest" href="site.webmanifest?v=2">
   <meta name="theme-color" content="#08080b">
-
-  <!-- Posting the link used to give a blank card. The image is built from
-       the page's own parts, so it cannot drift away from the site. -->
-  <meta property="og:title" content="Strohut">
-  <meta property="og:description" content="Mico. What I'm doing right now, and where to find me.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://strohutt.github.io/">
-  <meta property="og:image" content="https://strohutt.github.io/og.png?v=2">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="STROHUT, in white serif on black, over a red brush stroke, with Mahoraga's wheel cropped by the right edge.">
-  <meta name="twitter:card" content="summary_large_image">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,16 +18,12 @@
     href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=2">
-
-  <!-- set before first paint, so nothing that js reveals starts hidden -->
-  <script>document.documentElement.setAttribute('data-js', '');</script>
 </head>
 
-<body>
+<body class="lost">
   <div class="tone" aria-hidden="true"></div>
   <div class="strikes" id="strikes" aria-hidden="true"></div>
 
-  <!-- hidden until the first one lands, so it reads as something you found -->
   <div class="tally" id="tally" hidden>
     <p class="tally-label"><span>黒</span><span>閃</span></p>
     <p class="tally-now"><b id="tally-streak">0</b><span>in a row</span></p>
@@ -207,111 +190,42 @@
 
   <main class="sheet">
     <div class="spread">
-    <section class="panel hero">
-      <svg class="speed" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <section class="panel hero">
+        <svg class="speed" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <g class="sp"><path d="M767.87 265.35L-237.81 327.79L-237.65 330.38Z" style="opacity:0.1"/><path d="M1355.87 289.25L2015.3 370.14L2016.65 358.19Z" style="opacity:0.52"/><path d="M892.82 409.16L585.98 819.57L592.06 824.05Z" style="opacity:0.3"/><path d="M1433.67 89.23L2399.36 -271.46L2395.53 -281.54Z" style="opacity:0.44"/><path d="M844.48 244.63L-178.29 208.56L-178.48 214.3Z" style="opacity:0.19"/><path d="M1424.37 361.02L2037.05 525.92L2037.43 524.52Z" style="opacity:0.08"/><path d="M906.43 68.76L626.83 -426.93L621.33 -423.79Z" style="opacity:0.25"/><path d="M1210.09 436.44L1898.48 1084.12L1904.69 1077.46Z" style="opacity:0.33"/><path d="M748.36 217.74L28.73 127.01L28.24 130.98Z" style="opacity:0.16"/><path d="M933.21 92.11L599.88 -598.97L595.38 -596.78Z" style="opacity:0.18"/><path d="M971.85 156.26L697.53 -540.58L681.65 -534.11Z" style="opacity:0.55"/><path d="M686.69 152.1L-129.46 -97.42L-130.79 -93.06Z" style="opacity:0.19"/><path d="M1070.12 332.78L1362.57 739.54L1366.5 736.68Z" style="opacity:0.17"/><path d="M785.03 219.64L-422.64 48.83L-424.72 64.22Z" style="opacity:0.52"/><path d="M1454.65 154.82L2143.41 8.73L2142.86 6.15Z" style="opacity:0.13"/><path d="M1150.82 162.25L1936.08 -319.9L1929.66 -330.2Z" style="opacity:0.41"/><path d="M558.56 135.12L-384.31 -105.63L-384.7 -104.1Z" style="opacity:0.07"/><path d="M576.67 144.25L21.74 6.68L20.76 10.71Z" style="opacity:0.21"/><path d="M839.37 71.65L326.5 -467.32L323.61 -464.55Z" style="opacity:0.16"/><path d="M1203.04 270.53L2147.86 378.02L2149.34 364.14Z" style="opacity:0.48"/><path d="M657.61 207.76L-294.18 90.67L-294.89 96.61Z" style="opacity:0.24"/><path d="M848 113.08L385.31 -279.52L383.79 -277.74Z" style="opacity:0.1"/><path d="M845.47 247.88L-116.6 233.22L-116.66 237.69Z" style="opacity:0.15"/><path d="M823.42 130.1L411.44 -136.62L409.63 -133.8Z" style="opacity:0.14"/><path d="M599.34 210.69L-464.5 107.66L-464.73 110.06Z" style="opacity:0.1"/><path d="M951 -102.36L859.23 -666.05L854.15 -665.2Z" style="opacity:0.24"/><path d="M1498.39 249.76L2140.4 250.07L2140.39 248.81Z" style="opacity:0.07"/><path d="M1642.1 169.86L2687.21 38.72L2686.87 36.02Z" style="opacity:0.13"/><path d="M1339.36 446.73L2157.19 938.75L2160.29 933.55Z" style="opacity:0.24"/><path d="M837.34 208.86L155.31 42.43L153.53 49.9Z" style="opacity:0.28"/><path d="M1339.43 328.7L2043.15 502.15L2045.55 492.09Z" style="opacity:0.43"/><path d="M922.73 -18.48L797.61 -409.25L794.15 -408.12Z" style="opacity:0.18"/><path d="M1404.35 35.79L1965.58 -268.32L1964.95 -269.48Z" style="opacity:0.07"/><path d="M1073.27 362.31L1418.75 978.67L1421.42 977.17Z" style="opacity:0.11"/><path d="M959.23 128.1L765.71 -342.39L761.57 -340.67Z" style="opacity:0.17"/><path d="M1551.74 453.46L2389.15 769.3L2390.04 766.94Z" style="opacity:0.12"/><path d="M1498.2 185.78L2373.97 72.79L2373.4 68.44Z" style="opacity:0.2"/><path d="M453.99 257.72L-719.76 269.95L-719.65 278.11Z" style="opacity:0.34"/><path d="M1530.03 84.97L2374.55 -182.3L2374.13 -183.64Z" style="opacity:0.07"/><path d="M1050.23 406.88L1206.57 1024.23L1210.23 1023.29Z" style="opacity:0.14"/><path d="M585.89 517.52L-138.16 973.43L-137.42 974.6Z" style="opacity:0.07"/><path d="M729.51 243.12L96.64 222.89L96.41 232.31Z" style="opacity:0.39"/><path d="M1173.1 74.87L1830.34 -622.64L1822.12 -630.29Z" style="opacity:0.4"/><path d="M634.51 -14.65L108.33 -390.11L104 -383.96Z" style="opacity:0.37"/><path d="M1181.28 190.17L2209.84 -163.24L2206.21 -173.64Z" style="opacity:0.37"/><path d="M1478.3 140.23L2208.51 -30.23L2208.2 -31.55Z" style="opacity:0.07"/></g>
     </svg>
 
-      <button class="sigil" id="wheel-hit" type="button" aria-label="Turn the wheel">
-        <svg class="wheel" viewBox="0 0 400 400" aria-hidden="true">
-          <g class="wheel-turn"><use href="#dharma" /></g>
-        </svg>
-      </button>
+        <button class="sigil" id="wheel-hit" type="button" aria-label="Turn the wheel">
+          <svg class="wheel" viewBox="0 0 400 400" aria-hidden="true">
+            <g class="wheel-turn"><use href="#dharma" /></g>
+          </svg>
+        </button>
 
-      <div class="hero-text">
-        <h1 class="name"><button id="name-hit" type="button" aria-label="Redraw the stroke">STROHUT</button></h1>
-        <svg class="brush" id="brush" viewBox="0 0 1200 84" preserveAspectRatio="none" aria-hidden="true">
-      <path class="bs-body" d="M12 44.8C20.91 43.02 47.64 36.61 65.45 34.07C83.27 31.54 101.09 30.61 118.91 29.61C136.73 28.61 154.55 28.65 172.36 28.05C190.18 27.45 208 26.42 225.82 26.01C243.64 25.6 261.45 25.55 279.27 25.6C297.09 25.64 314.91 26.17 332.73 26.28C350.55 26.4 368.36 25.97 386.18 26.28C404 26.6 421.82 27.62 439.64 28.16C457.45 28.7 475.27 29.08 493.09 29.52C510.91 29.96 528.73 30.51 546.55 30.8C564.36 31.1 582.18 31.09 600 31.3C617.82 31.51 635.64 31.52 653.45 32.07C671.27 32.61 689.09 34.12 706.91 34.57C724.73 35.01 742.55 34.29 760.36 34.72C778.18 35.15 796 36.5 813.82 37.14C831.64 37.79 849.45 38.33 867.27 38.57C885.09 38.8 902.91 38.37 920.73 38.55C938.55 38.72 956.36 39.42 974.18 39.64C992 39.85 1009.82 39.59 1027.64 39.82C1045.45 40.04 1063.27 40.66 1081.09 40.98C1098.91 41.29 1116.73 41.67 1134.55 41.71C1152.36 41.75 1179.09 41.31 1188 41.24L1188 41.87C1179.09 42.28 1152.36 43.56 1134.55 44.31C1116.73 45.07 1098.91 45.77 1081.09 46.4C1063.27 47.02 1045.45 47.38 1027.64 48.06C1009.82 48.75 992 49.86 974.18 50.51C956.36 51.17 938.55 51.27 920.73 51.99C902.91 52.7 885.09 53.96 867.27 54.79C849.45 55.61 831.64 56.2 813.82 56.92C796 57.65 778.18 58.42 760.36 59.14C742.55 59.86 724.73 60.68 706.91 61.23C689.09 61.78 671.27 61.86 653.45 62.44C635.64 63.01 617.82 64.04 600 64.69C582.18 65.33 564.36 65.93 546.55 66.29C528.73 66.66 510.91 66.59 493.09 66.88C475.27 67.18 457.45 67.7 439.64 68.07C421.82 68.45 404 69.16 386.18 69.14C368.36 69.12 350.55 68.01 332.73 67.96C314.91 67.9 297.09 68.86 279.27 68.81C261.45 68.76 243.64 68.22 225.82 67.67C208 67.12 190.18 66.52 172.36 65.5C154.55 64.49 136.73 63 118.91 61.58C101.09 60.16 83.27 59.67 65.45 56.97C47.64 54.27 20.91 47.31 12 45.38Z"/><path class="bs-skip" d="M630.02 27.58L943.79 28.07" style="stroke-width:0.9"/><path class="bs-skip" d="M586.22 50.31L816.64 50.42" style="stroke-width:3.18"/><path class="bs-skip" d="M995.01 33.85L1200 32.16" style="stroke-width:1.92"/><path class="bs-skip" d="M1023.32 51.07L1200 50.51" style="stroke-width:2.68"/><path class="bs-skip" d="M620.85 54.62L841.42 52.72" style="stroke-width:1.96"/><path class="bs-skip" d="M1044.59 37.71L1200 36.16" style="stroke-width:2.52"/><path class="bs-skip" d="M779.11 54.37L1056.89 52.61" style="stroke-width:2.64"/>
-    </svg>
-        <p class="who">Mico<i></i>Germany<i></i><span id="clock">—</span></p>
-        <nav class="links" aria-label="Me, elsewhere">
-          <a href="https://discord.com/users/402858450926829568" rel="me">
-            <svg viewBox="0 0 32 32" aria-hidden="true"><use href="#ic-discord" /></svg><span>Discord</span>
-          </a>
-          <a href="https://steamcommunity.com/profiles/76561198814076728/" rel="me">
-            <svg viewBox="0 0 32 32" aria-hidden="true"><use href="#ic-steam" /></svg><span>Steam</span>
-          </a>
-          <a href="https://www.instagram.com/stro._.hut" rel="me">
-            <svg viewBox="0 0 32 32" aria-hidden="true"><use href="#ic-instagram" /></svg><span>Instagram</span>
-          </a>
-          <a href="https://twitter.com/Kooaaa_" rel="me">
-            <svg viewBox="0 0 32 32" aria-hidden="true"><use href="#ic-x" /></svg><span>Twitter</span>
-          </a>
-        </nav>
-      </div>
-    </section>
-
-    <!-- the one thing allowed to cross a gutter -->
-    <button class="band" id="cloud-hit" type="button" aria-label="Nudge the cloud">
-      <svg viewBox="0 0 900 120" aria-hidden="true"><use href="#cloudbar" /></svg>
-    </button>
-    <section class="panel now reveal" aria-labelledby="now-h">
-      <div class="head">
-        <h2 id="now-h">right now</h2>
-      </div>
-
-      <div class="slab" data-state="loading">
-        <div class="presence">
-          <span class="dot" id="dc-dot" aria-hidden="true"></span>
-          <div class="presence-who">
-            <p class="dc-name" id="dc-name">Strohut</p>
-            <p class="dc-state" id="dc-state">reaching discord</p>
-          </div>
-          <div class="portrait">
-            <img id="dc-avatar" width="160" height="160" alt="" hidden>
-            <span class="portrait-void" aria-hidden="true"></span>
-          </div>
+        <div class="hero-text">
+          <p class="code">404</p>
+          <h1 class="name">nothing here</h1>
+          <p class="who">that page<i></i>does not exist</p>
+          <p class="lost-line">
+            Either it never did, or it did and I moved it without telling
+            anyone. Both are on me.
+          </p>
+          <nav class="links">
+            <a href="/">back to the front</a>
+            <a href="https://github.com/Strohutt/Strohutt.github.io">read the source</a>
+          </nav>
         </div>
+      </section>
 
-        <ul class="doing" id="dc-doing"></ul>
+      <svg class="band" viewBox="0 0 900 120" aria-hidden="true"><use href="#cloudbar" /></svg>
 
-        <p class="quiet" id="dc-quiet" hidden>nothing open. probably asleep.</p>
-      </div>
-    </section>
-    <section class="panel music reveal" aria-labelledby="music-h">
-      <div class="head">
-        <h2 id="music-h">in my ears</h2>
-      </div>
-
-      <p class="kicker" id="music-kicker">stuck in my head</p>
-
-      <div class="track" id="music-embed">
-        <div class="sleeve">
-          <img id="track-art" width="120" height="120" alt="" hidden>
-          <span class="sleeve-void" aria-hidden="true"></span>
-        </div>
-        <div class="track-text">
-          <p class="track-song" id="track-song">checking…</p>
-          <p class="track-artist" id="track-artist"></p>
-          <a class="track-link" id="music-link" href="https://open.spotify.com/track/2N7umuRBdK014bDuwREFZS">open in spotify</a>
-        </div>
-        <div class="track-bar" id="track-bar" hidden>
-          <span id="track-fill"></span>
-        </div>
-      </div>
-    </section>
-    <section class="panel pushes reveal" id="pushes" aria-labelledby="pushes-h" hidden>
-      <div class="head">
-        <h2 id="pushes-h">lately</h2>
-      </div>
-      <ol class="push-list" id="push-list"></ol>
-    </section>
-
-    <footer class="panel foot">
-      <button class="flag" id="flag-hit" type="button" aria-label="Swing the flag">
-        <svg viewBox="0 0 320 300" aria-hidden="true"><use href="#roger" /></svg>
-      </button>
-      <div class="foot-text">
-        <p><a href="https://github.com/Strohutt/Strohutt.github.io">read the source</a></p>
-      </div>
-      <p class="hint"><span>everything here can be hit</span><span>some of it hits back</span></p>
-    </footer>
-
+      <footer class="panel foot">
+        <svg class="flag" viewBox="0 0 320 300" aria-hidden="true"><use href="#roger" /></svg>
+        <p class="hint"><span>still hittable</span><span>still hits back</span></p>
+      </footer>
     </div>
   </main>
 
   <script src="flash.js?v=2" defer></script>
-  <script src="script.js?v=2" defer></script>
 </body>
 
 </html>

@@ -1,15 +1,16 @@
 /* ════════════════════════════════════════════════════════════════
    strohut
+   Loaded after flash.js, which carries 黒閃 and the wheel.
+
    1. Sections arriving as you scroll
-   2. Black flash, and the wheel that adapts to it
-   3. Things you can hit
-   4. The clock, and what he has pushed
-   5. Discord presence, via Lanyard
+   2. Things you can hit
+   3. The clock, and what he has pushed
+   4. Discord presence, via Lanyard
    ════════════════════════════════════════════════════════════════ */
 
 const DISCORD_ID = '402858450926829568';
 const root = document.documentElement;
-const stillPlease = window.matchMedia('(prefers-reduced-motion: reduce)');
+/* stillPlease, strikes and the wheel come from flash.js */
 
 /* ───────────────────────── Arriving ────────────────────────────── */
 
@@ -30,115 +31,6 @@ if (stillPlease.matches || !('IntersectionObserver' in window)) {
 }
 
 
-/* ─────────────────────── 黒閃 / black flash ────────────────────── */
-
-/* Hit the page and you land a strike. Most are nothing. A black flash
-   is a hair's breadth of timing, and once someone lands one they tend
-   to land the next — so the odds climb with the streak and reset when
-   you miss. Every one that lands turns Mahoraga's wheel a spoke on. */
-const strikes = document.getElementById('strikes');
-const tally = document.getElementById('tally');
-const sigil = document.querySelector('.hero');
-const wheel = document.querySelector('.wheel');
-
-const BASE_ODDS = 0.13;
-const ODDS_STEP = 0.12;
-const ODDS_CAP = 0.55;
-const DOMAIN_AT = 5;
-
-let streak = 0;
-let adapted = 0;
-
-function readBest() {
-  try {
-    return Math.max(0, parseInt(localStorage.getItem('strohut-flash'), 10) || 0);
-  } catch {
-    return 0;
-  }
-}
-
-let best = readBest();
-document.getElementById('tally-best').textContent = best;
-
-// Anything you can actually operate is off limits, or the flash would
-// fire on top of every link and button press
-const OFF_LIMITS = 'a, button, input, iframe, .tally';
-
-function strikeAt(x, y, kind) {
-  const mark = document.createElement('div');
-  mark.className = `strike strike-${kind}`;
-  mark.style.left = `${x}px`;
-  mark.style.top = `${y}px`;
-
-  if (kind === 'flash') {
-    const which = 1 + Math.floor(Math.random() * 2);
-    mark.innerHTML =
-      `<svg viewBox="0 0 400 400"><use href="#flash-${which}" /></svg>`;
-  }
-
-  strikes.append(mark);
-  mark.addEventListener('animationend', () => mark.remove(), { once: true });
-}
-
-function landed() {
-  streak += 1;
-  adapted += 1;
-
-  if (streak > best) {
-    best = streak;
-    try {
-      localStorage.setItem('strohut-flash', String(best));
-    } catch {
-      /* it just won't survive a reload */
-    }
-  }
-
-  tally.hidden = false;
-  tally.classList.toggle('is-hot', streak > 1);
-  document.getElementById('tally-streak').textContent = streak;
-  document.getElementById('tally-best').textContent = best;
-
-  // the wheel takes the hit and turns
-  wheel.style.setProperty('--adapt', adapted);
-  sigil.classList.add('is-adapted');
-
-  document.body.classList.remove('is-flashing');
-  void document.body.offsetWidth;
-  document.body.classList.add('is-flashing');
-
-  // a long streak stops being a counter and takes the room
-  if (streak >= DOMAIN_AT) {
-    document.body.classList.remove('is-domain');
-    void document.body.offsetWidth;
-    document.body.classList.add('is-domain');
-  }
-}
-
-if (!stillPlease.matches) {
-  document.addEventListener('pointerdown', event => {
-    if (event.button !== 0) return;
-    if (event.target.closest(OFF_LIMITS)) return;
-
-    const odds = Math.min(ODDS_CAP, BASE_ODDS + streak * ODDS_STEP);
-
-    if (Math.random() < odds) {
-      strikeAt(event.clientX, event.clientY, 'flash');
-      landed();
-    } else {
-      strikeAt(event.clientX, event.clientY, 'hit');
-      streak = 0;
-      tally.classList.remove('is-hot');
-      document.getElementById('tally-streak').textContent = '0';
-    }
-  });
-
-  document.body.addEventListener('animationend', event => {
-    if (event.animationName === 'room') document.body.classList.remove('is-flashing');
-    if (event.animationName === 'domain') document.body.classList.remove('is-domain');
-  });
-}
-
-
 /* ─────────────────────── Things you can hit ────────────────────── */
 
 /* Every drawn thing on the page answers to a click, and each answers in
@@ -150,22 +42,6 @@ const STROKES = [
   "<path class=\"bs-body\" d=\"M12 45C20.91 43.1 47.64 36.1 65.45 33.61C83.27 31.13 101.09 31.14 118.91 30.09C136.73 29.03 154.55 27.72 172.36 27.28C190.18 26.85 208 27.71 225.82 27.46C243.64 27.21 261.45 25.99 279.27 25.79C297.09 25.59 314.91 26.19 332.73 26.26C350.55 26.34 368.36 25.92 386.18 26.23C404 26.54 421.82 27.61 439.64 28.12C457.45 28.63 475.27 29.01 493.09 29.3C510.91 29.6 528.73 29.62 546.55 29.9C564.36 30.18 582.18 30.4 600 30.97C617.82 31.55 635.64 32.69 653.45 33.33C671.27 33.97 689.09 34.42 706.91 34.82C724.73 35.23 742.55 35.5 760.36 35.77C778.18 36.05 796 36.03 813.82 36.46C831.64 36.9 849.45 37.86 867.27 38.38C885.09 38.9 902.91 39.27 920.73 39.6C938.55 39.93 956.36 40.21 974.18 40.34C992 40.47 1009.82 40.28 1027.64 40.38C1045.45 40.48 1063.27 40.78 1081.09 40.97C1098.91 41.16 1116.73 41.23 1134.55 41.52C1152.36 41.82 1179.09 42.53 1188 42.73L1188 41.5C1179.09 41.93 1152.36 43.43 1134.55 44.11C1116.73 44.78 1098.91 44.95 1081.09 45.53C1063.27 46.12 1045.45 46.95 1027.64 47.62C1009.82 48.28 992 48.64 974.18 49.53C956.36 50.41 938.55 52.11 920.73 52.93C902.91 53.75 885.09 53.71 867.27 54.45C849.45 55.19 831.64 56.71 813.82 57.34C796 57.98 778.18 57.63 760.36 58.24C742.55 58.86 724.73 60.19 706.91 61.03C689.09 61.87 671.27 62.81 653.45 63.26C635.64 63.71 617.82 63.29 600 63.75C582.18 64.21 564.36 65.52 546.55 66.02C528.73 66.51 510.91 66.41 493.09 66.71C475.27 67.02 457.45 67.44 439.64 67.87C421.82 68.3 404 69.05 386.18 69.3C368.36 69.55 350.55 69.43 332.73 69.36C314.91 69.29 297.09 69.28 279.27 68.88C261.45 68.49 243.64 67.51 225.82 66.99C208 66.47 190.18 66.69 172.36 65.76C154.55 64.82 136.73 62.81 118.91 61.38C101.09 59.94 83.27 59.73 65.45 57.16C47.64 54.58 20.91 47.8 12 45.93Z\"/><path class=\"bs-skip\" d=\"M1006.59 53.78L1115.18 52.99\" style=\"stroke-width:3.09\"/><path class=\"bs-skip\" d=\"M733.03 33.86L881.1 33.32\" style=\"stroke-width:1.68\"/><path class=\"bs-skip\" d=\"M748.5 52.56L854.63 51.54\" style=\"stroke-width:1.41\"/><path class=\"bs-skip\" d=\"M949.65 42.75L1107.62 43.01\" style=\"stroke-width:2.56\"/><path class=\"bs-skip\" d=\"M642.42 47.43L927.39 48.44\" style=\"stroke-width:0.83\"/><path class=\"bs-skip\" d=\"M656.76 48.28L780.97 48.96\" style=\"stroke-width:1.45\"/><path class=\"bs-skip\" d=\"M556.26 21.78L823.4 19.85\" style=\"stroke-width:1.83\"/>",
   "<path class=\"bs-body\" d=\"M12 45.33C20.91 43.45 47.64 36.57 65.45 34.05C83.27 31.53 101.09 31.33 118.91 30.21C136.73 29.1 154.55 27.99 172.36 27.36C190.18 26.73 208 26.62 225.82 26.44C243.64 26.25 261.45 26.25 279.27 26.23C297.09 26.22 314.91 26.2 332.73 26.36C350.55 26.52 368.36 27.07 386.18 27.22C404 27.37 421.82 26.92 439.64 27.26C457.45 27.59 475.27 28.81 493.09 29.22C510.91 29.63 528.73 29.3 546.55 29.73C564.36 30.16 582.18 31.22 600 31.82C617.82 32.42 635.64 33 653.45 33.34C671.27 33.68 689.09 33.45 706.91 33.85C724.73 34.25 742.55 35.33 760.36 35.72C778.18 36.11 796 35.71 813.82 36.18C831.64 36.66 849.45 38.07 867.27 38.57C885.09 39.07 902.91 39 920.73 39.21C938.55 39.41 956.36 39.47 974.18 39.81C992 40.15 1009.82 41 1027.64 41.24C1045.45 41.48 1063.27 41.26 1081.09 41.24C1098.91 41.21 1116.73 40.92 1134.55 41.08C1152.36 41.24 1179.09 42.01 1188 42.19L1188 42.5C1179.09 42.84 1152.36 44.03 1134.55 44.55C1116.73 45.08 1098.91 45.15 1081.09 45.67C1063.27 46.18 1045.45 46.97 1027.64 47.63C1009.82 48.29 992 48.83 974.18 49.63C956.36 50.42 938.55 51.53 920.73 52.39C902.91 53.24 885.09 54.13 867.27 54.75C849.45 55.36 831.64 55.54 813.82 56.08C796 56.62 778.18 57.12 760.36 57.97C742.55 58.81 724.73 60.35 706.91 61.12C689.09 61.89 671.27 61.98 653.45 62.59C635.64 63.2 617.82 64.26 600 64.8C582.18 65.34 564.36 65.37 546.55 65.85C528.73 66.33 510.91 67.27 493.09 67.69C475.27 68.11 457.45 68.29 439.64 68.36C421.82 68.44 404 68.15 386.18 68.13C368.36 68.1 350.55 68.18 332.73 68.22C314.91 68.27 297.09 68.55 279.27 68.39C261.45 68.22 243.64 67.8 225.82 67.22C208 66.64 190.18 65.66 172.36 64.93C154.55 64.2 136.73 64.08 118.91 62.84C101.09 61.59 83.27 60.32 65.45 57.48C47.64 54.64 20.91 47.74 12 45.79Z\"/><path class=\"bs-skip\" d=\"M747.26 32.59L969 31.9\" style=\"stroke-width:1.5\"/><path class=\"bs-skip\" d=\"M977.35 54.41L1200 52.52\" style=\"stroke-width:3.12\"/><path class=\"bs-skip\" d=\"M821.61 55.33L990.62 55.52\" style=\"stroke-width:1.42\"/><path class=\"bs-skip\" d=\"M793.93 27.86L877.32 27.77\" style=\"stroke-width:0.86\"/><path class=\"bs-skip\" d=\"M801.94 21.1L1057.05 20.33\" style=\"stroke-width:3.13\"/><path class=\"bs-skip\" d=\"M681.98 31.3L776.47 32.23\" style=\"stroke-width:1.66\"/><path class=\"bs-skip\" d=\"M594.05 61.35L786.72 61.53\" style=\"stroke-width:2.28\"/>"
   ];
-
-function knock(el, cls) {
-  if (!el) return;
-  el.classList.remove(cls);
-  void el.offsetWidth;                       // restart the animation
-  el.classList.add(cls);
-}
-
-const wheelHit = document.getElementById('wheel-hit');
-if (wheelHit) {
-  wheelHit.addEventListener('click', () => {
-    adapted += 1;
-    wheel.style.setProperty('--adapt', adapted);
-    knock(wheelHit, 'is-struck');
-  });
-}
 
 const cloudHit = document.getElementById('cloud-hit');
 if (cloudHit) {
