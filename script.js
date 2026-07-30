@@ -2,7 +2,7 @@
    strohut
    Loaded after flash.js, which carries 黒閃 and the wheel.
 
-   1. Sections arriving as you scroll
+   1. Sections arriving, and the layers that lean and drift
    2. Things you can hit
    3. The clock, and what he has pushed
    4. Discord presence, via Lanyard
@@ -30,6 +30,56 @@ if (stillPlease.matches || !('IntersectionObserver' in window)) {
   sections.forEach(s => watcher.observe(s));
 }
 
+
+
+/* ───────────────────────── Lean and drift ──────────────────────── */
+
+/* A page that only moves when it is clicked reads as a screenshot. The
+   layers behind the header lean away from the pointer and lag behind the
+   scroll, at different rates, so there is depth to look at while nothing
+   is happening. Both are written to custom properties and let css do the
+   easing — setting transforms per frame fights the transitions. */
+
+const hero = document.querySelector('.hero');
+
+if (hero && !stillPlease.matches && matchMedia('(pointer: fine)').matches) {
+  let queued = false;
+  let lx = 0;
+  let ly = 0;
+
+  addEventListener('pointermove', event => {
+    lx = (event.clientX / innerWidth - .5) * 2;
+    ly = (event.clientY / innerHeight - .5) * 2;
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      hero.style.setProperty('--lean-x', lx.toFixed(3));
+      hero.style.setProperty('--lean-y', ly.toFixed(3));
+      queued = false;
+    });
+  }, { passive: true });
+}
+
+const drifters = document.querySelectorAll('.band svg, .flag svg');
+
+if (drifters.length && !stillPlease.matches) {
+  const RATE = [.05, .04];
+  let waiting = false;
+
+  const shift = () => {
+    const y = scrollY;
+    drifters.forEach((el, i) => el.style.setProperty('--drift', `${(y * RATE[i % RATE.length]).toFixed(1)}px`));
+    waiting = false;
+  };
+
+  addEventListener('scroll', () => {
+    if (waiting) return;
+    waiting = true;
+    requestAnimationFrame(shift);
+  }, { passive: true });
+
+  shift();
+}
 
 /* ─────────────────────── Things you can hit ────────────────────── */
 
