@@ -10,8 +10,7 @@ Runs on GitHub Pages. No build step, no framework — open the files and type.
 | -------------- | ----------------------------------------------------------------- |
 | `index.html`   | The page, plus every drawing as SVG in the `<svg class="sprite">` at the top |
 | `styles.css`   | Colours, layout, the drawn rules                                  |
-| `script.js`    | Light switch, scroll reveals, the desk cards, the Discord presence |
-| `projects.js`  | The list behind `on my desk`. The only file to edit for that      |
+| `script.js`    | Light switch, scroll reveals, the Discord presence                |
 | `favicon.svg`  | Straw hat for the tab                                             |
 
 ## The drawings
@@ -35,29 +34,15 @@ with `<use href="#…">`. Don't hard-code the colour inside the symbol —
 `stroke` is inherited from outside, otherwise it stays wrong in one of the
 two modes.
 
-## On my desk
+## Why the drawings read as objects
 
-The cards come out of `projects.js`. Each entry needs a `name`; `stack`
-and `note` are optional, and a card with no note just shows the name and
-the stack, which is deliberate — nothing gets invented to fill the gap.
-Empty the list and the whole section disappears.
-
-There are no links on the cards on purpose: none of that is public, so
-each one gets a drawn `private` stamp instead.
-
-## Why the objects look solid
-
-The hat, the cassette, the manga volume, the controller and the terminal
-are not outlines — they are lit objects. Each one is a cream face with
-dark ink over it, shaded away from a light in the upper left: halftone
-dots for the turn, `hatch` over that, `cross` at the darkest edge, then a
-heavier nib along the shadow contour and a flick of highlight where it
-catches. There is a cast shadow under each of them.
-
-That is why their colours are fixed instead of following the mode. The
-face is always light, so the ink and the hatching have to stay dark or
-the shading would read inside out. The `--obj-*` variables at the top of
-`styles.css` hold them.
+The hat, the cassette, the book, the controller and the terminal get
+their depth inside the line work, not from fills: four nib weights
+(`w1`–`w4`, light on the lit side and heavy where the form turns away),
+hatching and halftone drawn in the mode's ink at low opacity, and a
+ground of two or three loose strokes instead of a shadow blob. Because
+nothing is filled, the drawings sit in the page in both modes rather
+than floating on top of it.
 
 `vector-effect` does not inherit in SVG, so `non-scaling-stroke` sits on
 the individual paths that need it (the stretched frames), not on the
@@ -71,9 +56,6 @@ pointer tilts them and scrolling drifts them apart. `script.js` writes
 multiplies them differently — the focus lines shift about a third as far
 as the hat. Pointer tracking is fine-pointer only; there is nothing to
 follow on a touchscreen.
-
-The project cards are three drawn sheets offset behind each other, so a
-card has thickness. Hovering lifts the top one off the stack.
 
 ## Scroll and poke
 
