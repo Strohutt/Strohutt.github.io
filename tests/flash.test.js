@@ -80,6 +80,32 @@ const rings = p => p.evaluate(() => document.querySelectorAll('.charge').length)
   check('reduced motion stays still', await rings(p) === 0 && await p.evaluate(() => document.querySelectorAll('.strike').length) === 0);
   await rm.close();
 
+  // ── a miss says which side of the window it was on
+  p = await fresh();
+  const hint = () => p.evaluate(() => {
+    const h = document.getElementById('tally-hint');
+    return h.hidden ? '' : h.textContent;
+  });
+  const hold = async ms => {
+    await p.mouse.move(...AT); await p.mouse.down();
+    await p.waitForTimeout(ms); await p.mouse.up(); await p.waitForTimeout(120);
+    return hint();
+  };
+  check('early miss is named', await hold(120) === 'too early');
+  check('a landing is named', await hold(520) === 'landed');
+  check('late miss is named', await hold(1000) === 'too late');
+  await p.close();
+
+  // ── the wheel keeps what it adapted to
+  p = await fresh();
+  const adaptOf = () => p.evaluate(() =>
+    getComputedStyle(document.querySelector('.wheel')).getPropertyValue('--adapt').trim());
+  await p.click('#wheel-hit'); await p.waitForTimeout(150);
+  const spun = await adaptOf();
+  await p.reload(); await p.waitForTimeout(800);
+  check('adaptation survives a reload', await adaptOf() === spun, `${spun} → ${await adaptOf()}`);
+  await p.close();
+
   // ── the best score survives a reload
   p = await fresh();
   await p.mouse.move(...AT);

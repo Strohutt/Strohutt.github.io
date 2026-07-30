@@ -31,8 +31,27 @@ const HOLD_LIMIT = 2200;    // holding past this is a miss, not a pause
 const DOMAIN_AT = 5;
 
 let streak = 0;
-let adapted = 0;
 let charge = null;
+
+/* the wheel keeps what it has already adapted to — that is the whole
+   point of the thing */
+function readAdapt() {
+  try {
+    return Math.max(0, parseInt(localStorage.getItem('strohut-adapt'), 10) || 0);
+  } catch {
+    return 0;
+  }
+}
+
+let adapted = readAdapt();
+
+function remember() {
+  try {
+    localStorage.setItem('strohut-adapt', String(adapted));
+  } catch {
+    /* it just starts over next time */
+  }
+}
 
 function readBest() {
   try {
@@ -44,6 +63,7 @@ function readBest() {
 
 let best = readBest();
 if (tally) document.getElementById('tally-best').textContent = best;
+if (wheel && adapted) wheel.style.setProperty('--adapt', adapted);
 
 // anything you can actually operate is off limits, or this fires on top
 // of every link and button press
@@ -96,11 +116,25 @@ function shutCharge(hit) {
   charge = null;
 }
 
-function missed() {
+/* A miss that tells you nothing is a miss you cannot learn from, so it
+   says which side of the window you were on. */
+function missed(how) {
   streak = 0;
   if (!tally) return;
   tally.classList.remove('is-hot');
   document.getElementById('tally-streak').textContent = '0';
+  say(how);
+}
+
+let sayTimer = null;
+
+function say(word) {
+  const hint = document.getElementById('tally-hint');
+  if (!hint) return;
+  clearTimeout(sayTimer);
+  hint.textContent = word || '';
+  hint.hidden = !word;
+  if (word) sayTimer = setTimeout(() => { hint.hidden = true; }, 1600);
 }
 
 function landed() {
@@ -116,6 +150,8 @@ function landed() {
     }
   }
 
+  say('landed');
+
   if (tally) {
     tally.hidden = false;
     tally.classList.toggle('is-hot', streak > 1);
@@ -124,6 +160,7 @@ function landed() {
   }
 
   // the wheel takes the hit and turns
+  remember();
   if (wheel) wheel.style.setProperty('--adapt', adapted);
   if (sigil) sigil.classList.add('is-adapted');
 
@@ -157,7 +194,7 @@ if (!stillPlease.matches) {
         if (!charge) return;
         strikeAt(charge.x, charge.y, 'hit');
         shutCharge(false);
-        missed();
+        missed('too late');
       }, HOLD_LIMIT)
     };
   }, { passive: true });
@@ -178,21 +215,21 @@ if (!stillPlease.matches) {
     shutCharge(inside);
 
     if (inside) landed();
-    else missed();
+    else missed(held < open ? 'too early' : 'too late');
   };
 
   addEventListener('pointerup', release, { passive: true });
   addEventListener('pointercancel', () => {
     if (!charge) return;
     shutCharge(false);
-    missed();
+    missed('');
   }, { passive: true });
 
   // a drag that leaves the window would otherwise leave the ring hanging
   addEventListener('blur', () => {
     if (!charge) return;
     shutCharge(false);
-    missed();
+    missed('');
   });
 
   document.body.addEventListener('animationend', event => {
@@ -215,6 +252,7 @@ const wheelHit = document.getElementById('wheel-hit');
 if (wheelHit && wheel) {
   wheelHit.addEventListener('click', () => {
     adapted += 1;
+    remember();
     wheel.style.setProperty('--adapt', adapted);
     knock(wheelHit, 'is-struck');
   });
