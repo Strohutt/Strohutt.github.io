@@ -206,6 +206,24 @@ const PINNED = {
   url: el.link ? el.link.href : ''
 };
 
+/* The pinned track is a bare id in the markup, so the quiet state had
+   nothing to call it. Spotify's oembed endpoint needs no key and no auth
+   and hands back the title; if it is blocked or slow the panel keeps the
+   wording it already had. */
+if (PINNED.url) {
+  fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(PINNED.url)}`)
+    .then(r => (r.ok ? r.json() : null))
+    .then(data => {
+      if (!data || !data.title) return;
+      PINNED.artist = data.title;
+      // only take effect if nothing has started playing in the meantime
+      if (!lastPresence || !lastPresence.listening_to_spotify) showTrack(null);
+    })
+    .catch(() => {
+      /* the wording it already has is true either way */
+    });
+}
+
 el.art.addEventListener('load', () => { el.art.hidden = false; });
 el.art.addEventListener('error', () => { el.art.hidden = true; });
 
@@ -382,7 +400,7 @@ function showTrack(track) {
   el.artist.textContent = track ? track.artist : PINNED.artist;
   el.artist.hidden = !el.artist.textContent;
   el.link.href = track ? `https://open.spotify.com/track/${track.track_id}` : PINNED.url;
-  el.link.textContent = track ? 'open in spotify' : 'the one I keep going back to';
+  el.link.textContent = 'open in spotify';
 
   if (track && track.album_art_url) {
     // re-assigning the same src restarts the fade, and presence updates

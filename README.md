@@ -113,8 +113,12 @@ Discord link in `index.html`.
 The track is drawn here rather than dropped in as Spotify's own embed,
 which was the one thing on the page in somebody else's visual language.
 Sleeve, title, artist, and a bar showing how far through it is, all from
-what Lanyard already reports. When nothing is playing it says so and the
-link goes to the pinned track.
+what Lanyard already reports.
+
+When nothing is playing it says so and names the pinned track instead. The
+markup only holds a bare track id, so the title comes from Spotify's
+oembed endpoint — no key, no auth. If that is blocked the panel keeps the
+wording it already had.
 
 ## Running it locally
 
