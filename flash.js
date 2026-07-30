@@ -105,6 +105,7 @@ function openCharge(x, y) {
 }
 
 function shutCharge(hit) {
+  document.body.classList.remove('is-charging');
   if (!charge) return;
   const { ring, timer } = charge;
   clearTimeout(timer);
@@ -183,6 +184,7 @@ if (!stillPlease.matches) {
 
     const at = performance.now();
     const ring = openCharge(event.clientX, event.clientY);
+    document.body.classList.add('is-charging');
 
     charge = {
       ring,

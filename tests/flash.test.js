@@ -1,5 +1,5 @@
 const BASE = `http://localhost:${process.env.PORT || 8899}`;
-const { chromium } = require('playwright');
+const { chromium, devices } = require('playwright');
 
 const AT = [710, 610];                       // a spot that is not a control
 const streak = p => p.evaluate(() => document.getElementById('tally-streak').textContent);
@@ -55,21 +55,41 @@ const rings = p => p.evaluate(() => document.querySelectorAll('.charge').length)
   check('link still navigable', typeof before === 'string');
   await p.close();
 
-  // ── touch
-  p = await fresh({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
+  // ── a finger, with real touch events rather than a mouse
+  const phone = await b.newContext({ ...devices['iPhone 13'] });
+  p = await phone.newPage();
+  p.on('pageerror', e => fails.push('touch pageerror: ' + e.message));
+  await p.goto(BASE + '/index.html');
+  await p.waitForTimeout(1200);
   const spot = await p.evaluate(() => {
-    for (let y = 300; y < 700; y += 20) for (let x = 40; x < 340; x += 40) {
+    for (let y = 520; y < 780; y += 20) for (let x = 60; x < 330; x += 40) {
       const el = document.elementFromPoint(x, y);
       if (el && !el.closest('a,button,input,iframe,.tally')) return [x, y];
     }
     return null;
   });
-  if (spot) {
-    await p.touchscreen.tap(spot[0], spot[1]);
-    await p.waitForTimeout(900);
-    check('a tap does not strand a ring', await rings(p) === 0, `${await rings(p)} left`);
-  } else check('touch spot found', false);
-  await p.close();
+  const cdp = await phone.newCDPSession(p);
+  const touch = (type, x, y) => cdp.send('Input.dispatchTouchEvent', {
+    type, touchPoints: type === 'touchEnd' ? [] : [{ x, y, radiusX: 12, radiusY: 12, force: 1, id: 1 }]
+  });
+  const finger = async ms => {
+    await touch('touchStart', ...spot);
+    const sel = await p.evaluate(() => getComputedStyle(document.body).webkitUserSelect);
+    await p.waitForTimeout(ms);
+    await touch('touchEnd', ...spot);
+    await p.waitForTimeout(150);
+    return { sel, streak: await streak(p) };
+  };
+  check('touch-action lets a finger scroll but not zoom',
+    await p.evaluate(() => getComputedStyle(document.body).touchAction) === 'manipulation');
+  let r = await finger(520);
+  check('a held finger lands', r.streak === '1');
+  check('the callout is suppressed while holding', r.sel === 'none');
+  r = await finger(120);
+  check('a tap is too early', r.streak === '0');
+  check('selection comes back after release',
+    await p.evaluate(() => getComputedStyle(document.body).webkitUserSelect) !== 'none');
+  await phone.close();
 
   // ── reduced motion: nothing fires at all
   const rm = await b.newContext({ reducedMotion: 'reduce' });
