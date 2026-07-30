@@ -170,7 +170,8 @@ a {
 .sheet {
   position: relative;
   z-index: 1;
-  overflow-x: clip;
+  overflow-x: hidden;    /* the floor */
+  overflow-x: clip;      /* better where it exists: makes no scroll container */
 }
 
 .spread {
@@ -598,11 +599,12 @@ a {
   display: none;
 }
 
-.portrait:has(img[hidden]) {
+/* set from js rather than with :has(), which is a 2023 selector and this
+   is the difference between a portrait and an empty box */
+.portrait.is-empty {
   display: none;
 }
 
-/* only reached where :has() is not supported */
 .portrait-void {
   position: absolute;
   inset: 30%;
@@ -1012,8 +1014,8 @@ a {
   animation-play-state: paused;
 }
 
-.hero:has(.sigil:hover) .wheel,
-.hero:has(.sigil:focus-visible) .wheel { opacity: .85; }
+.sigil:hover ~ .wheel,
+.sigil:focus-visible ~ .wheel { opacity: .85; }
 
 .band:hover svg,
 .band:focus-visible svg { filter: drop-shadow(0 0 10px rgba(239, 236, 228, .35)); }
@@ -1029,7 +1031,7 @@ a {
   pointer-events: auto;
 }
 
-.hero:has(.sigil.is-struck) .mg-body {
+.wheel.is-struck .mg-body {
   animation: adapt .5s ease-out;
 }
 
