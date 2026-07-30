@@ -537,13 +537,28 @@ a {
 }
 
 /* an empty sleeve reads as a missing image; a mark reads as deliberate */
-/* no artwork: a flat plate rather than an outlined box with an icon in it,
-   which reads as a picture that failed to load */
+/* No artwork. A plate with the same red mark the status dot uses, so an
+   empty sleeve reads as part of the page rather than a failed image. */
 .sleeve-void {
   position: absolute;
   inset: 0;
-  background: var(--ink-3);
-  box-shadow: inset 0 0 0 1px var(--paper-3);
+  display: grid;
+  place-items: center;
+  background: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--ink-3);
+}
+
+.sleeve-void::after {
+  content: "";
+  width: .7rem;
+  height: .7rem;
+  background: var(--blood);
+  opacity: .5;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+.track-artist[hidden] {
+  display: none;
 }
 
 .sleeve img:not([hidden]) + .sleeve-void {

@@ -202,7 +202,7 @@ const el = {
 
 const PINNED = {
   song: 'nothing playing',
-  artist: 'the link goes to what I keep coming back to',
+  artist: '',
   url: el.link ? el.link.href : ''
 };
 
@@ -380,7 +380,9 @@ function showTrack(track) {
   el.kicker.textContent = track ? 'playing right now' : 'stuck in my head';
   el.song.textContent = track ? track.song : PINNED.song;
   el.artist.textContent = track ? track.artist : PINNED.artist;
+  el.artist.hidden = !el.artist.textContent;
   el.link.href = track ? `https://open.spotify.com/track/${track.track_id}` : PINNED.url;
+  el.link.textContent = track ? 'open in spotify' : 'the one I keep going back to';
 
   if (track && track.album_art_url) {
     // re-assigning the same src restarts the fade, and presence updates
