@@ -21,6 +21,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+  <script>
+    // runs before first paint: keep the stored theme, and only arm the
+    // scroll-reveal styles when scripts actually run
+    try {
+      if (localStorage.getItem('strohut-theme') === 'day') {
+        document.documentElement.dataset.theme = 'day';
+        document.querySelector('meta[name="theme-color"]').content = '#f2ecdf';
+      }
+    } catch (e) { }
+    document.documentElement.dataset.js = '';
+  </script>
   <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -130,7 +141,6 @@
       <path class="redink" d="M47.6 60.8c14 10 32.5 14.4 52.4 14.5 19.9.1 38.4-4.2 52.4-14.2l1 12.4c-13.4 9.6-32.4 13.6-53.3 13.5-20.9-.1-39.7-4.4-52.8-14.1Z" />
       <path class="w2" d="M47.6 60.8c14 10 32.5 14.4 52.4 14.5 19.9.1 38.4-4.2 52.4-14.2M48.6 73.2c13.1 9.7 31.9 14 52.8 14.1 20.9.1 39.9-3.9 53.3-13.5" />
       </g>
-      </g>
     </symbol>
 
     <!-- Wordmark, drawn with a marker: one line per letter, each one
@@ -214,7 +224,6 @@
       </g>
       <path class="redink" d="M84 21.6c2.6.8 5.2 1.8 7.8 3l-.6 20-3.4-6.4-4.4 5.2Z" />
       </g>
-      </g>
     </symbol>
 
     <!-- Controller, well used -->
@@ -230,7 +239,6 @@
       <path class="w2" d="M31 40.5c4.6-1 9.2-1 13.8 0M38 33.5c-1 4.6-1 9.2 0 13.8" />
       <path class="redink" d="M82 33.4c3 0 5.2 2.2 5.2 5.2 0 3-2.4 5-5.4 4.9-2.8-.1-4.8-2.3-4.7-5.2.1-2.8 2.2-4.9 4.9-4.9Z" />
       <path class="w2" d="M95.5 45.6c2.9 0 5 2.2 5 5.1 0 2.9-2.3 5-5.2 4.9-2.8-.1-4.8-2.3-4.7-5.1.1-2.8 2.2-4.9 4.9-4.9Z" />
-      </g>
       </g>
     </symbol>
 
@@ -251,7 +259,6 @@
       <path class="redink" d="M19 45.6l9.4 6.6-9.6 6.6-1.8-2.6 6-4-5.8-4.2Z" />
       <g class="w2"><path d="M34 53c12-2 24-2 34 .2M18.5 68c20-2 40-2 44 .2" /></g>
       </g>
-      </g>
     </symbol>
 
     <!-- Cassette for the music panel -->
@@ -269,7 +276,6 @@
       <path d="M85 56c10-3 20-3 31 0" />
       </g>
       <g class="w1 fade2"><path d="M48 100c34-2 70-2 105 0" /><path d="M60 111c28-1.6 58-1.6 82 0" /></g>
-      </g>
       </g>
     </symbol>
 
@@ -309,6 +315,23 @@
       </g>
     </symbol>
 
+    <!-- Placeholder portrait for the presence panel, so the panel
+         does not repeat the polaroid while Discord is still thinking -->
+    <symbol id="face" viewBox="0 0 40 40">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.4 6.4c8.2-.2 14.6 6.2 14 14.2-.6 7.6-7.6 13.2-15.2 12-6.8-1-11.8-7-11.2-13.8.5-7 5.8-12.2 12.4-12.4Z" />
+        <path d="M15.2 23.2c.4 1 1.2 1.6 2.2 1.6M23 23.2c.4 1 1.2 1.6 2.2 1.6" />
+        <path d="M17.4 28.6c1.8 1.2 3.8 1.2 5.6 0" />
+        <path class="fill-red" stroke="none" d="M10.8 15.4c3-1.2 6.2-1.8 9.4-1.8 3.2 0 6.4.6 9.4 1.8l.4 2.6c-3.2-1.2-6.6-1.8-9.8-1.8-3.2 0-6.4.6-9.8 1.8Z" />
+        <path d="M13 14.6c.2-3.6 3.2-6.4 7.2-6.4s7 2.8 7.2 6.4" />
+        <path d="M8.4 16.6c3.6-1.6 7.6-2.4 11.8-2.4 4.2 0 8.2.8 11.8 2.4" />
+      </g>
+    </symbol>
+
+    <symbol id="blob" viewBox="0 0 40 40">
+      <path d="M20.4 3.4c9.6-.2 17 7.8 16.2 17.2-.8 9-9 15.4-18 14-8-1.2-13.8-8.4-13.2-16.4C6 10.4 12.6 3.6 20.4 3.4Z" />
+    </symbol>
+
     <symbol id="ic-sun" viewBox="0 0 32 32">
       <g fill="none" stroke-linecap="round" stroke-linejoin="round">
         <path d="M22.4 16.2c0 3.6-3 6.5-6.6 6.4a6.5 6.5 0 0 1-6.3-6.6c0-3.5 3-6.3 6.6-6.2 3.5 0 6.3 2.9 6.3 6.4Z" />
@@ -323,6 +346,7 @@
   </svg>
 
   <button class="lamp" type="button" aria-label="Switch the light" aria-pressed="true">
+    <svg class="lamp-bg" viewBox="0 0 40 40" aria-hidden="true"><use href="#blob" /></svg>
     <svg class="lamp-sun" viewBox="0 0 32 32" aria-hidden="true"><use href="#ic-sun" /></svg>
     <svg class="lamp-moon" viewBox="0 0 32 32" aria-hidden="true"><use href="#ic-moon" /></svg>
   </button>
@@ -387,6 +411,14 @@
     </header>
 
     <!-- ══════════════ Live presence ══════════════ -->
+    <!-- lives entirely off Discord, so without scripts it hides
+         instead of saying "loading" forever -->
+    <noscript>
+      <style>
+        .now, .doodle { display: none; }
+      </style>
+    </noscript>
+
     <section class="now reveal" aria-labelledby="now-h">
       <h2 class="label" id="now-h">right now<svg class="label-flick" viewBox="0 0 40 40" aria-hidden="true"><use href="#sparkle" /></svg></h2>
 
@@ -400,7 +432,8 @@
 
         <div class="presence">
           <div class="head">
-            <img class="head-img" id="dc-avatar" src="images/pfp.gif" width="96" height="96" alt="">
+            <svg class="head-face" viewBox="0 0 40 40" aria-hidden="true"><use href="#face" /></svg>
+            <img class="head-img" id="dc-avatar" width="96" height="96" alt="" hidden>
             <svg class="head-dot" viewBox="0 0 40 40" aria-hidden="true">
               <path d="M20.4 3.4c9.6-.2 17 7.8 16.2 17.2-.8 9-9 15.4-18 14-8-1.2-13.8-8.4-13.2-16.4C6 10.4 12.6 3.6 20.4 3.4Z" />
             </svg>
@@ -417,6 +450,31 @@
         <p class="quiet" id="dc-quiet" hidden>
           nothing open right now. probably asleep.
         </p>
+      </div>
+    </section>
+
+    <!-- ══════════════ Doodle box ══════════════ -->
+    <section class="doodle reveal" aria-labelledby="doodle-h">
+      <h2 class="label" id="doodle-h">your turn</h2>
+      <p class="doodle-note">the rest of the page is mine, this bit is yours.
+        scribble something — it stays in your browser.</p>
+
+      <div class="doodle-wrap">
+        <canvas id="doodle-pad" aria-label="Drawing area"></canvas>
+        <svg class="frame" viewBox="0 0 300 200" preserveAspectRatio="none" aria-hidden="true"><use href="#frame" /></svg>
+      </div>
+
+      <div class="pens" role="group" aria-label="Pens">
+        <button class="pen" type="button" data-pen="ink" aria-label="Ink pen" aria-pressed="true">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#blob" /></svg>
+        </button>
+        <button class="pen" type="button" data-pen="red" aria-label="Red pen" aria-pressed="false">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#blob" /></svg>
+        </button>
+        <button class="pen" type="button" data-pen="straw" aria-label="Straw pen" aria-pressed="false">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#blob" /></svg>
+        </button>
+        <button class="wipe" type="button">start over</button>
       </div>
     </section>
 
