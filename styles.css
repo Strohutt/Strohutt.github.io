@@ -1,28 +1,42 @@
 /* ════════════════════════════════════════════════════════════════
    strohut
 
-   Built on the three cursed techniques: blue pulls, red pushes, and
-   where they meet you get purple. Every accent on the page is one of
-   those three, nothing else. Dark throughout — a domain has no daylight.
+   A manga spread, not a column of sections. Panels sit on black with
+   real gutters between them, every one of them cut on the skew, and the
+   drawings are cropped by the panel edges the way a panel crops a
+   drawing. One thing is allowed to break a gutter, and it does it once.
+
+   One drawing rule, applied to everything: line art, paper-white stroke,
+   ink fill so that shapes occlude one another. No gloss, no specular
+   highlight, no gradient, no solid colour fields. Red is not decoration —
+   it marks exactly two things, the loop of binding and the black flash.
+   The flag is the one solid, because a flag is a silhouette.
+
+   Objects drawn in four different languages is what made an earlier
+   version read as clutter, not the number of them.
+
+   Depth is line weight, the way it is on a drawn page: the flag and the
+   brush stroke are foreground, the cloud sits in the middle, the wheel and
+   the speed lines are background and are drawn thin. Every line at the
+   same weight is what makes a page read flat.
    ════════════════════════════════════════════════════════════════ */
 
 :root {
   color-scheme: dark;
 
-  --void: #07060b;
-  --void-2: #100c1a;
-  --slab: rgba(168, 85, 247, .055);
+  --ink: #08080b;
+  --ink-2: #101015;
+  --ink-3: #16161d;
 
-  --blue: #2f6bff;
-  --red: #ff2547;
-  --violet: #a855f7;
+  --paper: #efece4;
+  --paper-2: #b8b4ab;
+  --paper-3: #8a877f;
 
-  --bone: #ece9f2;
-  --ash: #8f889e;
-  --ash-dim: #5d566b;
+  --blood: #e01b2e;
+  /* the drawing red misses 4.5:1 at small sizes, so text gets its own */
+  --blood-lit: #ff3d4e;
 
-  --edge: rgba(168, 85, 247, .32);
-  --cleave: 20px;
+  --rule: 2px;
 }
 
 *,
@@ -37,73 +51,25 @@ html {
 
 body {
   margin: 0;
-  background: var(--void);
-  color: var(--bone);
+  background: var(--ink);
+  color: var(--paper);
   font-family: "Zen Kaku Gothic New", ui-sans-serif, system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif;
-  font-size: clamp(1rem, .95rem + .2vw, 1.08rem);
-  line-height: 1.7;
+  font-size: clamp(.98rem, .93rem + .2vw, 1.06rem);
+  line-height: 1.65;
   overflow-x: hidden;
 }
 
-/* ── cursed energy, drifting ────────────────────────────────── */
-.veil {
+/* Screentone over the whole page. A dot grid is what shades a manga
+   panel; a blurred gradient is what shades a template. */
+.tone {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: 40;
   pointer-events: none;
-  overflow: hidden;
-}
-
-.cloud {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(90px);
-  mix-blend-mode: screen;
-  opacity: .5;
-}
-
-.cloud-b {
-  width: 60vw;
-  height: 60vw;
-  top: -18vw;
-  left: -14vw;
-  background: radial-gradient(circle, var(--blue) 0%, transparent 64%);
-  animation: roil 26s ease-in-out infinite alternate;
-}
-
-.cloud-r {
-  width: 52vw;
-  height: 52vw;
-  top: 8vw;
-  right: -16vw;
-  background: radial-gradient(circle, var(--red) 0%, transparent 64%);
-  animation: roil 31s ease-in-out infinite alternate-reverse;
-}
-
-.cloud-v {
-  width: 70vw;
-  height: 70vw;
-  bottom: -26vw;
-  left: 22vw;
-  background: radial-gradient(circle, var(--violet) 0%, transparent 62%);
-  opacity: .38;
-  animation: roil 37s ease-in-out infinite alternate;
-}
-
-@keyframes roil {
-  from { transform: translate3d(-4%, 3%, 0) scale(1); }
-  to { transform: translate3d(5%, -4%, 0) scale(1.16); }
-}
-
-.grain {
-  position: fixed;
-  inset: 0;
-  z-index: 9;
-  pointer-events: none;
-  opacity: .16;
+  opacity: .28;
+  background-image: radial-gradient(var(--paper) .6px, transparent .7px);
+  background-size: 4px 4px;
   mix-blend-mode: overlay;
-  background-size: 190px 190px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='190' height='190'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='190' height='190' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 .sprite {
@@ -116,14 +82,12 @@ body {
 /* ── type ───────────────────────────────────────────────────── */
 h1,
 h2,
-.shout,
-.vert,
 .dc-name,
 .kicker,
-.pen span {
-  font-family: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+.tally b {
+  font-family: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", Georgia, serif;
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1.05;
   margin: 0;
 }
 
@@ -131,258 +95,326 @@ a {
   color: inherit;
 }
 
-b {
-  font-weight: 700;
-  color: var(--bone);
-}
-
-/* Vertical japanese down the margin. Stacked as separate elements
+/* Vertical japanese down a panel edge. Stacked as separate elements
    rather than writing-mode, because that needs vertical metrics the
-   fallback font may not have. */
-.vert {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .3em;
-  font-weight: 600;
-  font-size: .95rem;
-  line-height: 1;
-  color: var(--violet);
-  opacity: .75;
-}
+   fallback font may not have — and without them every glyph lands on
+   top of the last one. */
 
-main {
+
+/* ── the spread ─────────────────────────────────────────────── */
+
+/* The wheel runs past the right margin on purpose. Clipping on the grid
+   itself cuts at the column edge, straight through the wheel, so the crop
+   has to happen on a full-width wrapper. overflow-x:hidden on body does
+   not do it either — the document still reports the wider scroll width. */
+.sheet {
   position: relative;
   z-index: 1;
+  overflow-x: clip;
 }
 
-section {
-  width: min(100% - 2.6rem, 52rem);
+.spread {
+  width: min(100% - 1.6rem, 78rem);
   margin-inline: auto;
-}
-
-.domain,
-footer {
-  width: min(100% - 2.6rem, 66rem);
-  margin-inline: auto;
-}
-
-/* ══ 領域展開 ═══════════════════════════════════════════════ */
-.domain {
-  min-height: min(78vh, 40rem);
-  padding-block: clamp(3rem, 9vh, 6rem) clamp(2rem, 6vh, 4rem);
+  padding-block: clamp(1.4rem, 4vw, 3rem);
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  column-gap: clamp(1.2rem, 4vw, 3.4rem);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(1.6rem, 4vw, 3rem) clamp(1.6rem, 4vw, 3.4rem);
 }
 
-.vert-lead {
-  font-size: 1.1rem;
-  letter-spacing: .55em;
-  opacity: .9;
-}
-
-.domain-text {
+/* No frames. Thin light outlines with clipped corners on black read as a
+   sci-fi interface kit, not as a drawn page — a real panel border is a
+   black line on paper, and inverting that lands somewhere else entirely.
+   So the regions are held apart by space, by the cloud, and by the rule
+   under each heading. Nothing is boxed. */
+.panel {
+  position: relative;
   min-width: 0;
 }
 
-/* the name, split into blue and red the way the techniques are */
-.name {
+/* where each region sits on the twelve columns */
+.hero { grid-column: 1 / -1; }
+.now { grid-column: 1 / 7; align-content: start; }
+.music { grid-column: 7 / -1; align-content: start; }
+
+.foot {
+  grid-column: 1 / -1;
+  padding-top: clamp(1rem, 3vw, 2rem);
+  border-top: 1px solid var(--ink-3);
+}
+
+/* ══ the hero panel ═════════════════════════════════════════ */
+.hero {
+  align-content: center;
+  min-height: min(42vh, 20rem);
   display: grid;
-  font-size: clamp(2.9rem, 10vw, 6.4rem);
-  letter-spacing: .04em;
-  margin-bottom: 1.4rem;
+  grid-template-columns: minmax(0, 1fr);
+  padding-block: clamp(.6rem, 1.8vw, 1.4rem);
 }
 
-.name .lay {
-  grid-area: 1 / 1;
+/* speed lines, converging off the right edge */
+/* slice makes the artwork overflow its own viewport on purpose, so the
+   element itself has to do the clipping or it widens the document */
+.speed {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
 }
 
-.lay-b {
-  color: var(--blue);
-  mix-blend-mode: screen;
-  animation: split 5s ease-in-out infinite alternate;
+.sp path {
+  fill: var(--paper);
 }
 
-.lay-r {
-  color: var(--red);
-  mix-blend-mode: screen;
-  animation: split 5s ease-in-out infinite alternate-reverse;
+/* The wheel is cropped by the panel edge. That is what a panel is for —
+   it is not a sticker placed inside the frame. */
+.sigil {
+  position: absolute;
+  top: 44%;
+  right: -15%;
+  width: min(36rem, 50%);
+  aspect-ratio: 1;
+  translate: 0 -50%;
+  pointer-events: none;
+  opacity: .55;
 }
 
-.lay-w {
-  color: var(--bone);
+.wheel {
+  width: 100%;
+  height: 100%;
+  --adapt: 0;
 }
 
-@keyframes split {
-  from { transform: translate(-3px, 2px); }
-  to { transform: translate(3px, -2px); }
+/* Adaptation lands, it does not ease. steps() makes it click round
+   instead of sweeping. */
+.wheel-turn {
+  transform-origin: 200px 200px;
+  transform: rotate(calc(var(--adapt) * 45deg));
+  animation: turn 288s steps(24, end) infinite;
+}
+
+@keyframes turn {
+  to { transform: rotate(calc(var(--adapt) * 45deg + 360deg)); }
+}
+
+/* ink fill, not none — the spokes have to be occluded by the rim */
+.mg-body {
+  fill: var(--ink);
+  stroke: var(--paper);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* the gloss highlight is the thing that made this read as a game asset */
+.mg-lit {
+  display: none;
+}
+
+/* each adaptation burns a little hotter */
+.hero.is-adapted .mg-body { stroke: var(--blood); }
+
+/* Sized to its own content. Left as a full-width block it lies across the
+   wheel, and every click meant for the wheel lands on the text instead. */
+.hero-text {
+  position: relative;
+  z-index: 2;
+  width: fit-content;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* A brush stroke under the name — the one red mark in the header, and
+   mine rather than an object lifted from a panel. */
+.brush {
+  display: block;
+  width: min(100%, 38rem);
+  height: clamp(1.5rem, 3vw, 2.4rem);
+  margin: -.7rem 0 .4rem;
+}
+
+.bs-body {
+  fill: var(--blood);
+}
+
+.bs-skip {
+  stroke: var(--ink-2);
+  stroke-linecap: round;
+  opacity: .85;
+}
+
+.name {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(2.6rem, 9vw, 6rem);
+  letter-spacing: .02em;
+  margin: 0 0 .5rem;
+  text-shadow: 0 0 26px var(--ink), 0 0 12px var(--ink);
 }
 
 .who {
-  margin: 0;
   display: flex;
   align-items: center;
-  gap: .8rem;
-  font-size: .78rem;
-  letter-spacing: .26em;
+  gap: .7rem;
+  margin: 0 0 .9rem;
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .3em;
   text-transform: uppercase;
-  color: var(--ash);
+  color: var(--paper-2);
 }
 
 .who i {
-  width: 1.6rem;
-  height: 1px;
-  background: var(--violet);
-  opacity: .7;
+  width: 1.8rem;
+  height: var(--rule);
+  background: var(--blood);
 }
 
-.tagline {
-  margin: 1rem 0 0;
-  max-width: 26ch;
-  font-size: clamp(1.05rem, .95rem + .5vw, 1.3rem);
-  color: var(--ash);
+.line {
+  margin: 0 0 1.6rem clamp(.4rem, 2vw, 1.6rem);
+  max-width: 42ch;
+  color: var(--paper-2);
 }
 
-/* ── links ──────────────────────────────────────────────────── */
+/* ── links, as inked tags ───────────────────────────────────── */
 .links {
-  margin-top: 2.2rem;
   display: flex;
   flex-wrap: wrap;
-  gap: .6rem;
+  gap: .5rem;
 }
 
+/* every target clears 44px — the tags were 35, which is a miss on a
+   phone and a fiddle everywhere else */
 .links a {
-  position: relative;
   display: inline-flex;
   align-items: center;
   gap: .5rem;
+  min-height: 44px;
   padding: .5rem .95rem;
-  font-size: .92rem;
-  font-weight: 500;
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .08em;
   text-decoration: none;
-  color: var(--ash);
-  background: rgba(255, 255, 255, .03);
-  border: 1px solid rgba(255, 255, 255, .07);
-  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
-  transition: color .2s ease, background-color .2s ease, border-color .2s ease;
+  color: var(--paper);
+  background: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--paper-3);
+  transition: background-color .15s, box-shadow .15s, color .15s;
 }
 
 .links a svg {
-  width: 1.05rem;
-  height: 1.05rem;
+  width: 1rem;
+  height: 1rem;
   fill: currentColor;
 }
 
 .links a:hover,
 .links a:focus-visible {
-  color: var(--bone);
-  background: rgba(168, 85, 247, .14);
-  border-color: var(--violet);
+  color: var(--ink);
+  background: var(--paper);
+  box-shadow: inset 0 0 0 var(--rule) var(--paper);
 }
 
-/* ── the sigil: orb, ring, and the live avatar inside ───────── */
-.sigil {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: clamp(13rem, 26vw, 20rem);
-  aspect-ratio: 1;
+/* ── the cloud, the one thing that crosses a gutter ─────────── */
+.band {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(100%, 62rem);
+  margin-block: clamp(-1rem, -2vw, -.4rem);
 }
 
-.sigil > * {
-  grid-area: 1 / 1;
+.cb-body {
+  fill: var(--ink);
+  stroke: var(--paper);
+  stroke-width: 3;
+  stroke-linejoin: round;
 }
 
-.orb {
-  position: relative;
-  width: 112%;
-  aspect-ratio: 1;
-}
-
-.orb i {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  filter: blur(34px);
-  mix-blend-mode: screen;
-  opacity: .55;
-}
-
-.orb-b {
-  background: radial-gradient(circle at 38% 42%, var(--blue) 0%, transparent 60%);
-  animation: collide 8s ease-in-out infinite alternate;
-}
-
-.orb-r {
-  background: radial-gradient(circle at 62% 58%, var(--red) 0%, transparent 60%);
-  animation: collide 8s ease-in-out infinite alternate-reverse;
-}
-
-.orb-v {
-  background: radial-gradient(circle at 50% 50%, var(--violet) 0%, transparent 46%);
-  filter: blur(26px);
-  opacity: .45;
-}
-
-.orb-core {
-  /* just a rim of light behind the portrait, not a second sun */
-  inset: 26%;
-  background: radial-gradient(circle at 46% 42%, rgba(255, 255, 255, .5) 0%, rgba(168, 85, 247, .5) 42%, transparent 68%);
-  filter: blur(14px);
-  opacity: .8;
-}
-
-@keyframes collide {
-  from { transform: translate(-8px, 5px) scale(1); }
-  to { transform: translate(8px, -5px) scale(1.07); }
-}
-
-.ring {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-.ring-spin {
-  transform-origin: 200px 200px;
-  animation: turn 90s linear infinite;
-}
-
-@keyframes turn {
-  to { transform: rotate(360deg); }
-}
-
-.ring-line {
+.cb-curl {
   fill: none;
-  stroke-width: 1;
-}
-
-.ring-outer { stroke: var(--violet); stroke-opacity: .55; }
-.ring-mid { stroke: var(--blue); stroke-opacity: .45; }
-
-.tick-fine {
-  stroke: var(--violet);
-  stroke-opacity: .5;
-  stroke-width: 1;
-}
-
-.tick-bold {
-  stroke: var(--red);
-  stroke-opacity: .5;
+  stroke: var(--paper);
   stroke-width: 2;
+  stroke-opacity: .55;
+  stroke-linecap: round;
 }
 
-.ring-ch {
-  fill: #7b7290;
-  font-family: "Shippori Mincho B1", serif;
-  text-anchor: middle;
+/* ── panel heads ────────────────────────────────────────────── */
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+  padding-bottom: .6rem;
+  border-bottom: 1px solid var(--ink-3);
+}
+
+/* the one heavy mark in the rule, so the eye knows where a region starts */
+.head::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 3.2rem;
+  height: var(--rule);
+  background: var(--blood);
+}
+
+.head {
+  position: relative;
+}
+
+.head h2 {
+  font-size: clamp(1.4rem, 3.4vw, 2rem);
+}
+
+.head .vert {
+  flex: none;
+}
+
+/* ══ 現在 — the live readout ════════════════════════════════ */
+.slab[data-state="loading"] .dc-state {
+  color: var(--paper-3);
+}
+
+.presence {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .8rem;
+}
+
+.presence-who {
+  min-width: 0;
+}
+
+.dot {
+  width: .62rem;
+  height: .62rem;
+  background: var(--paper-3);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+.dot.is-online { background: var(--blood); }
+.dot.is-idle { background: var(--paper-2); }
+.dot.is-dnd { background: var(--blood); opacity: .55; }
+.dot.is-offline { background: var(--paper-3); }
+
+.dc-name {
+  font-size: 1.22rem;
+}
+
+.dc-state {
+  margin: .1rem 0 0;
+  font-size: .88rem;
+  color: var(--paper-2);
+  overflow-wrap: anywhere;
 }
 
 .portrait {
   position: relative;
-  width: 54%;
+  width: clamp(3rem, 8vw, 4.4rem);
   aspect-ratio: 1;
   display: grid;
   place-items: center;
@@ -391,413 +423,605 @@ footer {
 .portrait img {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
   object-fit: cover;
-  box-shadow: 0 0 0 1px var(--edge), 0 0 40px -6px rgba(168, 85, 247, .55);
+  box-shadow: 0 0 0 var(--rule) var(--paper);
 }
 
 .portrait img[hidden] {
   display: none;
 }
 
-/* what shows before the avatar arrives, or if it never does */
+.portrait:has(img[hidden]) {
+  display: none;
+}
+
+/* only reached where :has() is not supported */
 .portrait-void {
   position: absolute;
-  inset: 12%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 45%, rgba(168, 85, 247, .22), transparent 70%);
-  box-shadow: inset 0 0 0 1px var(--edge);
+  inset: 30%;
+  background: var(--paper-3);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
 }
 
 .portrait img:not([hidden]) + .portrait-void {
   display: none;
 }
 
-/* ── slash between sections ─────────────────────────────────── */
-.rule {
-  display: block;
-  width: min(100% - 2.6rem, 56rem);
-  height: clamp(1.8rem, 3.6vw, 2.6rem);
-  margin: clamp(2.4rem, 6vw, 4rem) auto;
-  transform: rotate(-1.4deg);
-}
-
-.rule.flip {
-  transform: scaleX(-1) rotate(-1.4deg);
-}
-
-.cut-1 { fill: var(--bone); fill-opacity: .8; }
-.cut-2 { fill: var(--red); fill-opacity: .65; }
-
-/* ── section heads ──────────────────────────────────────────── */
-.head {
-  display: flex;
-  align-items: flex-end;
-  gap: 1rem;
-  margin-bottom: 1.6rem;
-}
-
-.head h2 {
-  font-size: clamp(1.8rem, 1.3rem + 2vw, 2.9rem);
-  letter-spacing: .02em;
-}
-
-.head .vert {
-  margin-bottom: .35rem;
-}
-
-.lede {
-  margin: -.7rem 0 1.6rem;
-  max-width: 48ch;
-  color: var(--ash);
-}
-
-/* ── slab: the cleaved panel used across the page ───────────── */
-.slab {
-  --cleave: 20px;
-  position: relative;
-  padding: clamp(1.3rem, 3.4vw, 1.9rem);
-  background: var(--slab);
-  clip-path: polygon(var(--cleave) 0, 100% 0, 100% calc(100% - var(--cleave)),
-      calc(100% - var(--cleave)) 100%, 0 100%, 0 var(--cleave));
-}
-
-.slab::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  padding: 1px;
-  background: linear-gradient(155deg, var(--violet), rgba(47, 107, 255, .5) 45%, transparent 78%);
-  clip-path: polygon(var(--cleave) 0, 100% 0, 100% calc(100% - var(--cleave)),
-      calc(100% - var(--cleave)) 100%, 0 100%, 0 var(--cleave));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-/* ══ 現在 ═══════════════════════════════════════════════════ */
-.now .slab {
-  max-width: none;
-}
-
-.presence {
-  display: flex;
-  align-items: center;
-  gap: .9rem;
-}
-
-.dot {
-  flex: none;
-  width: .62rem;
-  height: .62rem;
-  border-radius: 50%;
-  background: var(--ash-dim);
-  box-shadow: 0 0 12px currentColor;
-  transition: background-color .3s ease;
-}
-
-.dot.is-online { background: #3ddc84; }
-.dot.is-idle { background: #ffb03a; }
-.dot.is-dnd { background: var(--red); }
-
-.dc-name {
-  font-size: 1.35rem;
-}
-
-.dc-state {
-  margin: .05rem 0 0;
-  font-size: .93rem;
-  color: var(--ash);
-}
-
-.dc-name,
-.dc-state,
-.doing-name,
-.doing-line {
-  overflow-wrap: anywhere;
-}
-
 .doing {
   list-style: none;
-  margin: 1.4rem 0 0;
+  margin: 1.1rem 0 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.doing:empty {
-  margin: 0;
+  display: grid;
+  gap: .7rem;
 }
 
 .doing li {
-  display: flex;
-  align-items: center;
-  gap: .9rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, .07);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: .8rem;
+  align-items: start;
+  padding-top: .7rem;
+  border-top: 1px solid var(--ink-3);
 }
 
 .doing img,
-.doing .no-art {
-  flex: none;
-  width: 3rem;
-  height: 3rem;
+.no-art {
+  width: 2.6rem;
+  height: 2.6rem;
   object-fit: cover;
-  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  box-shadow: inset 0 0 0 1px var(--paper-3);
 }
 
-.doing .no-art {
+.no-art {
   display: grid;
   place-items: center;
-  background: rgba(168, 85, 247, .14);
-  font-family: "Shippori Mincho B1", serif;
-  font-size: 1.3rem;
-  color: var(--violet);
+  font-weight: 700;
+  font-size: .95rem;
+  color: var(--ink);
+  background: var(--paper-3);
 }
 
 .doing-name {
   margin: 0;
   font-weight: 700;
-  font-size: 1rem;
 }
 
-.doing-line {
-  margin: .1rem 0 0;
-  font-size: .9rem;
-  color: var(--ash);
-}
 
 .doing-time {
-  margin: .1rem 0 0;
-  font-size: .82rem;
-  letter-spacing: .06em;
-  color: var(--violet);
+  margin: .18rem 0 0;
+  font-size: .78rem;
   font-variant-numeric: tabular-nums;
+  letter-spacing: .06em;
+  color: var(--blood-lit);
 }
 
 .quiet {
-  margin: 1.2rem 0 0;
-  color: var(--ash-dim);
-}
-
-.slab[data-state="loading"] .dc-name,
-.slab[data-state="loading"] .dc-state {
-  opacity: .5;
-}
-
-/* ══ 自己紹介 ═══════════════════════════════════════════════ */
-/* the shout gets a technique plate: red ground, cleaved, tilted */
-.shout {
-  display: inline-block;
-  margin: 0 0 1.4rem;
-  padding: .3rem 1.5rem .45rem;
-  font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.1rem);
-  letter-spacing: .08em;
-  color: var(--void);
-  background: var(--red);
-  clip-path: polygon(13px 0, 100% 0, calc(100% - 13px) 100%, 0 100%);
-  transform: rotate(-1.6deg);
-}
-
-.prose p {
-  margin: 0 0 1rem;
-  max-width: 56ch;
-  color: var(--ash);
-}
-
-.prose b {
-  position: relative;
-  white-space: nowrap;
-  color: var(--bone);
-}
-
-.prose b::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -.15em;
-  height: 1px;
-  background: var(--violet);
-}
-
-/* ══ 落書き ═════════════════════════════════════════════════ */
-.pad-wrap {
-  position: relative;
-  height: clamp(13rem, 32vw, 18rem);
-  background: rgba(255, 255, 255, .022);
-  box-shadow: inset 0 0 0 1px rgba(168, 85, 247, .2);
-  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
-}
-
-.pad-wrap canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  touch-action: none;
-  cursor: crosshair;
-}
-
-.pens {
-  margin-top: 1rem;
-  display: flex;
-  align-items: center;
-  gap: .55rem;
-}
-
-.pen {
-  display: inline-flex;
-  align-items: center;
-  gap: .45rem;
-  padding: .4rem .75rem;
-  border: 1px solid rgba(255, 255, 255, .08);
-  background: rgba(255, 255, 255, .03);
-  color: var(--ash);
-  font-size: 1rem;
-  cursor: pointer;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-  transition: color .2s ease, border-color .2s ease, background-color .2s ease;
-}
-
-.pen i {
-  width: .6rem;
-  height: .6rem;
-  border-radius: 50%;
-  box-shadow: 0 0 10px currentColor;
-}
-
-.pen[data-pen="blue"] i { background: var(--blue); color: var(--blue); }
-.pen[data-pen="red"] i { background: var(--red); color: var(--red); }
-.pen[data-pen="violet"] i { background: var(--violet); color: var(--violet); }
-
-.pen[aria-pressed="true"] {
-  color: var(--bone);
-  border-color: var(--violet);
-  background: rgba(168, 85, 247, .13);
-}
-
-.wipe {
-  margin-left: auto;
-  padding: .4rem .2rem;
-  border: 0;
-  background: none;
-  color: var(--ash-dim);
-  font-family: inherit;
-  font-size: .9rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  cursor: pointer;
-  border-bottom: 1px solid rgba(255, 255, 255, .12);
-}
-
-.wipe:hover {
-  color: var(--red);
-  border-bottom-color: var(--red);
+  margin: 1.1rem 0 0;
+  color: var(--paper-3);
 }
 
 /* ══ 音楽 ═══════════════════════════════════════════════════ */
 .kicker {
-  margin: -.8rem 0 1rem;
-  font-size: 1.05rem;
-  color: var(--violet);
+  margin: 0 0 .9rem;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--blood-lit);
 }
 
-.embed {
-  position: relative;
-  max-width: none;
-  min-height: 152px;
+.track {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: clamp(.8rem, 2vw, 1.2rem);
+  align-items: center;
 }
 
-.embed iframe {
+.sleeve {
   position: relative;
-  z-index: 1;
-  display: block;
+  width: clamp(4.4rem, 11vw, 6.4rem);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+}
+
+.sleeve img {
   width: 100%;
-  height: 152px;
-  border: 0;
+  height: 100%;
+  object-fit: cover;
+  box-shadow: 0 0 0 var(--rule) var(--paper);
 }
 
-.embed-fallback {
+.sleeve img[hidden] {
+  display: none;
+}
+
+/* an empty sleeve reads as a missing image; a mark reads as deliberate */
+/* No artwork. A plate with the same red mark the status dot uses, so an
+   empty sleeve reads as part of the page rather than a failed image. */
+.sleeve-void {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  display: grid;
+  place-items: center;
+  background: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--ink-3);
+}
+
+.sleeve-void::after {
+  content: "";
+  width: .7rem;
+  height: .7rem;
+  background: var(--blood);
+  opacity: .5;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+.track-artist[hidden] {
+  display: none;
+}
+
+.sleeve img:not([hidden]) + .sleeve-void {
+  display: none;
+}
+
+.track-text {
+  min-width: 0;
+}
+
+.track-song {
   margin: 0;
-  display: flex;
+  font-weight: 700;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.track-artist {
+  margin: .1rem 0 .45rem;
+  font-size: .88rem;
+  color: var(--paper-2);
+  overflow-wrap: anywhere;
+}
+
+.track-link {
+  display: inline-flex;
   align-items: center;
-  padding: 0 1rem;
-  color: var(--ash);
-}
-
-.embed-fallback a {
-  border-bottom: 1px solid var(--violet);
-  text-decoration: none;
-}
-
-/* ── foot ───────────────────────────────────────────────────── */
-footer {
-  padding-block: clamp(3rem, 8vw, 5rem) 3rem;
-  font-size: .85rem;
-  letter-spacing: .1em;
+  min-height: 44px;
+  font-size: .78rem;
+  letter-spacing: .12em;
   text-transform: uppercase;
-  color: var(--ash-dim);
+  color: var(--paper-2);
+  text-decoration: underline;
+  text-decoration-color: var(--blood);
+  text-decoration-thickness: var(--rule);
+  text-underline-offset: .35em;
 }
 
-footer a {
-  color: var(--ash);
-  text-decoration: none;
-  border-bottom: 1px solid var(--edge);
+.track-link:hover,
+.track-link:focus-visible {
+  color: var(--paper);
 }
 
-footer a:hover {
-  color: var(--violet);
+/* how far through the song it is */
+.track-bar {
+  grid-column: 1 / -1;
+  height: 6px;
+  margin-top: .3rem;
+  background: var(--ink-3);
+  box-shadow: inset 0 0 0 1px var(--paper-3);
 }
 
-/* ── sections arriving ──────────────────────────────────────── */
+.track-bar[hidden] {
+  display: none;
+}
+
+.track-bar span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--blood);
+  transition: width 1s linear;
+}
+
+/* ══ 海賊旗 ═════════════════════════════════════════════════ */
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2.4rem);
+  padding-block: clamp(.8rem, 1.6vw, 1.2rem);
+}
+
+.flag {
+  width: clamp(3.6rem, 7vw, 5.2rem);
+  flex: none;
+}
+
+.jr-ink {
+  stroke: var(--ink);
+  stroke-width: 6;
+  stroke-linejoin: round;
+}
+
+/* the flag is the one solid — a jolly roger is a silhouette */
+.jr-bone { fill: var(--paper); }
+.jr-hole { fill: var(--ink); stroke: none; }
+.jr-straw { fill: var(--paper); }
+.jr-band { fill: var(--blood); }
+
+.jr-teeth {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 4.5;
+  stroke-linecap: butt;
+}
+
+.foot-text {
+  flex: 1 1 14rem;
+  font-size: .82rem;
+  letter-spacing: .08em;
+  color: var(--paper-3);
+}
+
+.foot-text p {
+  margin: 0;
+}
+
+.foot-text a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--paper-2);
+  text-decoration: underline;
+  text-decoration-color: var(--blood);
+  text-decoration-thickness: var(--rule);
+  text-underline-offset: .3em;
+}
+
+.foot-text a:hover {
+  color: var(--paper);
+}
+
+.hint {
+  margin: 0 0 0 auto;
+  display: grid;
+  gap: .1rem;
+  text-align: right;
+  font-size: .68rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--paper-3);
+}
+
+/* ══ things you can hit ═════════════════════════════════════
+   Buttons, so they are reachable by keyboard and announced, but with
+   every scrap of button styling taken off — the drawing is the control. */
+.sigil,
+.band,
+.flag,
+.name button {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.name button {
+  display: block;
+  text-align: left;
+  letter-spacing: inherit;
+}
+
+/* hover and focus have to say "this is a control" without a chrome box */
+.sigil,
+.band,
+.flag,
+.name button {
+  transition: opacity .2s ease, filter .2s ease;
+}
+
+.sigil:hover,
+.sigil:focus-visible { opacity: .85; }
+
+.band:hover svg,
+.band:focus-visible svg { filter: drop-shadow(0 0 10px rgba(239, 236, 228, .35)); }
+
+.flag:hover svg,
+.flag:focus-visible svg { filter: drop-shadow(0 0 12px rgba(224, 27, 46, .45)); }
+
+.name button:hover,
+.name button:focus-visible { color: var(--blood); }
+
+/* the wheel takes the hit and turns a spoke on */
+.sigil {
+  pointer-events: auto;
+}
+
+.sigil.is-struck .mg-body {
+  animation: adapt .5s ease-out;
+}
+
+@keyframes adapt {
+  0% { stroke: var(--blood); stroke-width: 4; }
+  100% { stroke: var(--paper); stroke-width: 2.4; }
+}
+
+/* the cloud gets shoved along and settles */
+.band {
+  --shove: 0;
+}
+
+.band svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  transform: translateX(calc(var(--shove) * 1.6%)) skewX(calc(var(--shove) * -.6deg));
+  transition: transform .7s cubic-bezier(.2, .9, .2, 1);
+}
+
+.band.is-struck svg {
+  animation: puff .7s cubic-bezier(.2, .9, .2, 1);
+}
+
+@keyframes puff {
+  0% { scale: 1 1; }
+  35% { scale: 1.03 .93; }
+  100% { scale: 1 1; }
+}
+
+/* the flag swings on its pole */
+.flag svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform-origin: 50% 0;
+}
+
+.flag.is-struck svg {
+  animation: swing .8s cubic-bezier(.3, .8, .3, 1);
+}
+
+@keyframes swing {
+  0% { rotate: 0deg; }
+  25% { rotate: -9deg; }
+  55% { rotate: 6deg; }
+  80% { rotate: -2deg; }
+  100% { rotate: 0deg; }
+}
+
+/* the stroke is pulled again */
+.brush.is-struck {
+  animation: pull .45s cubic-bezier(.2, .9, .2, 1);
+}
+
+@keyframes pull {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+/* ══ 黒閃 ═══════════════════════════════════════════════════
+   Hit the page and you might land one. In the manga it is a hair's
+   breadth of timing and the odds climb once you are in the zone, so
+   they climb here too — and the wheel adapts to each one. */
+.strikes {
+  position: fixed;
+  inset: 0;
+  z-index: 41;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.strike {
+  position: absolute;
+  translate: -50% -50%;
+  pointer-events: none;
+}
+
+/* the ordinary hit: gone in a blink */
+.strike-hit {
+  width: 3rem;
+  height: 3rem;
+  border: var(--rule) solid var(--paper);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  animation: hit .45s ease-out forwards;
+}
+
+@keyframes hit {
+  from { opacity: .8; scale: .3; }
+  to { opacity: 0; scale: 1.8; }
+}
+
+.strike-flash {
+  width: clamp(11rem, 26vw, 17rem);
+  aspect-ratio: 1;
+  animation: flash .5s cubic-bezier(.15, .85, .3, 1) forwards;
+}
+
+.strike-flash svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* It is named for the black, so the hole carries the shape and the red
+   is only the edge. The bolts are filled tapers, not strokes — an even
+   width reads as a diagram. */
+.bf-bolt {
+  fill: var(--ink);
+  stroke: var(--blood);
+  stroke-width: 3.2;
+  stroke-linejoin: round;
+}
+
+.bf-spark {
+  fill: var(--ink);
+  stroke: var(--blood);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.bf-void {
+  fill: #000;
+  stroke: var(--blood);
+  stroke-width: 2;
+  stroke-opacity: .8;
+}
+
+.bf-core { fill: var(--blood); }
+.bf-hole { fill: #000; }
+.bf-hot { fill: var(--paper); }
+
+.bf-warp {
+  fill: none;
+  stroke: var(--blood);
+  stroke-opacity: .5;
+  stroke-linecap: round;
+}
+
+@keyframes flash {
+  0% { opacity: 0; scale: .35; rotate: -8deg; }
+  18% { opacity: 1; scale: 1.08; }
+  40% { scale: 1; }
+  100% { opacity: 0; scale: 1.14; rotate: 4deg; }
+}
+
+/* the room reacts for a moment */
+body.is-flashing::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+  pointer-events: none;
+  background: var(--blood);
+  opacity: .12;
+  animation: room .42s ease-out forwards;
+}
+
+@keyframes room {
+  from { opacity: .16; }
+  to { opacity: 0; }
+}
+
+/* ── the tally ──────────────────────────────────────────────── */
+.tally {
+  position: fixed;
+  right: clamp(.7rem, 2vw, 1.4rem);
+  bottom: clamp(.7rem, 2vw, 1.4rem);
+  z-index: 42;
+  padding: .6rem .8rem;
+  text-align: right;
+  background: var(--ink);
+  border-left: var(--rule) solid var(--blood);
+}
+
+.tally[hidden] {
+  display: none;
+}
+
+.tally p {
+  margin: 0;
+}
+
+.tally-label {
+  display: flex;
+  justify-content: flex-end;
+  gap: .1em;
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--blood);
+}
+
+.tally-now {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: .4rem;
+}
+
+.tally-now b {
+  font-size: 1.5rem;
+}
+
+.tally-now span,
+.tally-best {
+  font-size: .66rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--paper-3);
+}
+
+.tally.is-hot .tally-now b {
+  color: var(--blood-lit);
+}
+
+/* ── panels arriving ────────────────────────────────────────── */
 [data-js] .reveal {
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(16px);
 }
 
 [data-js] .reveal.is-in {
   opacity: 1;
   transform: none;
-  transition: opacity .7s ease, transform .7s cubic-bezier(.22, .8, .3, 1);
+  transition: opacity .55s ease, transform .55s cubic-bezier(.22, .8, .3, 1);
 }
 
-/* ── narrow ─────────────────────────────────────────────────── */
+:focus-visible {
+  outline: var(--rule) solid var(--blood);
+  outline-offset: 3px;
+}
+
+/* ── narrower ───────────────────────────────────────────────── */
 @media (max-width: 60rem) {
-  .domain {
-    grid-template-columns: auto minmax(0, 1fr);
-    row-gap: clamp(2rem, 6vw, 3rem);
+  .now,
+  .music,
+  .hero,
+  .foot {
+    grid-column: 1 / -1;
   }
 
+  .hero {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* stacked, the label has nowhere to sit beside the text, so it goes
+     above it and runs across instead of down */
+  .hero > .vert {
+    flex-direction: row;
+    gap: .5em;
+    margin-bottom: .8rem;
+  }
+
+  /* on a narrow screen the wheel sits right behind the running text, so
+     it gets pushed further out and dropped back */
   .sigil {
-    grid-column: 2;
-    justify-self: start;
-    width: clamp(11rem, 40vw, 15rem);
+    top: 22%;
+    right: -34%;
+    width: min(26rem, 74%);
+    translate: 0 0;
+    opacity: .3;
   }
 }
 
 @media (max-width: 34rem) {
-  .vert-lead {
-    display: none;
+  .presence {
+    grid-template-columns: auto minmax(0, 1fr);
   }
 
-  .domain {
-    grid-template-columns: minmax(0, 1fr);
+  .portrait {
+    grid-column: 2;
+    justify-self: start;
+    margin-top: .6rem;
   }
 
-  .sigil {
-    grid-column: 1;
-  }
-
-  .links a {
-    font-size: .86rem;
-    padding: .45rem .75rem;
+  .foot {
+    gap: 1rem;
   }
 }
 
@@ -810,13 +1034,12 @@ footer a:hover {
     transition-duration: .01ms !important;
   }
 
-  [data-js] .reveal {
-    opacity: 1;
-    transform: none;
-  }
-}
+  .strikes { display: none; }
 
-:focus-visible {
-  outline: 2px solid var(--violet);
-  outline-offset: 3px;
+  .sigil.is-struck .mg-body,
+  .band.is-struck svg,
+  .flag.is-struck svg,
+  .brush.is-struck {
+    animation: none !important;
+  }
 }
