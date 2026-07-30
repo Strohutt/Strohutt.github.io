@@ -11,7 +11,7 @@ favicon, open them and type.
 | `index.html`  | The page, plus every drawn thing as inline SVG         |
 | `styles.css`  | The panel system, the palette, the black flash         |
 | `script.js`   | Reveals, the black flash, the hit targets, the presence |
-| `favicon.svg` | The wheel                                              |
+| `favicon.svg` | The wheel, drawn the same way as the one on the page   |
 
 ## The look
 
@@ -89,6 +89,10 @@ button styling taken off — the drawing is the control.
 
 Clicking anywhere else may land a black flash. 黒閃 on the counter is what
 that is.
+
+Both live panels are hidden when JavaScript is off. They are fed by a
+socket, and without it they would sit on "reaching discord" forever, which
+is worse than not being there.
 
 ## Discord presence
 

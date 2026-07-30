@@ -190,6 +190,14 @@
     </symbol>
   </svg>
 
+  <noscript>
+    <!-- both live panels are fed by a socket; without it they would sit on
+         "reaching discord" forever, which is worse than not being there -->
+    <style>
+      .now, .music { display: none; }
+    </style>
+  </noscript>
+
   <main class="sheet">
     <div class="spread">
     <section class="panel hero">
@@ -239,7 +247,7 @@
         <div class="presence">
           <span class="dot" id="dc-dot" aria-hidden="true"></span>
           <div class="presence-who">
-            <p class="dc-name" id="dc-name">…</p>
+            <p class="dc-name" id="dc-name">Strohut</p>
             <p class="dc-state" id="dc-state">reaching discord</p>
           </div>
           <div class="portrait">
@@ -266,7 +274,7 @@
           <span class="sleeve-void" aria-hidden="true"></span>
         </div>
         <div class="track-text">
-          <p class="track-song" id="track-song">—</p>
+          <p class="track-song" id="track-song">checking…</p>
           <p class="track-artist" id="track-artist"></p>
           <a class="track-link" id="music-link" href="https://open.spotify.com/track/2N7umuRBdK014bDuwREFZS">open in spotify</a>
         </div>
