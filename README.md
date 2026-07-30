@@ -36,8 +36,8 @@ keep their own colours instead of being repainted violet:
 | --- | --- |
 | **Mahoraga's wheel** | Behind the avatar. Hub sphere, eight spokes running through the rim, eight spheres outside it. Clicks round a step at a time rather than gliding — adaptation lands, it does not ease — and lurches a whole spoke every time a black flash hits. |
 | **The Loop of Binding** | Round the name. A metal ring that floats about the forehead, red in the nirvana form — so it is a hoop, not a band: the near edge crosses above the name, the far edge sinks away behind it. Two scroll curls rolled up on the near edge. |
-| **Nyoibō** | Between the sections, thrown at you rather than laid on its side — side-on it is a pencil no matter how well it is drawn. Broad at the near end, running to a point, air torn open behind it. It arrives short and pushes out as you reach it, because extending is the only thing it does. |
-| **Gear 5 clouds** | Drifting behind everything. Not weather: these are the old auspicious-cloud motif, inked as one line that uncoils out of a spiral, runs over the back in scallops and rolls into a spiral at the far end. |
+| **The cloud scarf** | Between the sections. The band that hangs round Luffy in gear 5 — white where every other zoan awakening billows black — laid out flat. It blows in from one side as the section arrives. |
+| **Gear 5 clouds** | Drifting behind everything, the same motif smaller. Not weather: they are inked as one line that uncoils out of a spiral, runs over the back in scallops and rolls into a spiral at the far end. |
 | **Jolly Roger** | At the foot. |
 
 Every outline is generated with a fixed seed and shaken off its ideal
@@ -53,6 +53,10 @@ variation has to ride on a variable rather than an ancestor class.
 The wheel runs past the right margin on purpose. Clip that on `.domain`
 and the cut lands on the column edge, straight through the wheel — it has
 to be clipped on `main`, which spans the viewport.
+
+Every neighbouring lobe of a cloud has to genuinely overlap. Where two
+only touch, the outline pinches to nothing and the whole band reads as
+beads on a wire. `cloudBar()` widens any pair that comes up short.
 
 ## Japanese
 
