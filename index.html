@@ -7,13 +7,13 @@
 
   <title>strohut</title>
   <meta name="description"
-    content="Mico, known as Strohut online. Python, Lua, HTML, anime, manga and way too many games.">
+    content="Mico, known as Strohut online. Python, Lua, TypeScript, anime, manga and way too many games.">
   <meta name="theme-color" content="#15171d">
 
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <meta property="og:type" content="website">
   <meta property="og:title" content="strohut">
-  <meta property="og:description" content="Mico. Python, Lua, HTML, anime, manga, way too many games.">
+  <meta property="og:description" content="Mico. Python, Lua, TypeScript, anime, manga, way too many games.">
   <meta property="og:url" content="https://strohutt.github.io/">
   <meta name="twitter:card" content="summary">
 
@@ -27,7 +27,10 @@
 <body>
   <div class="grain" aria-hidden="true"></div>
 
-  <!-- ───── Every drawing below is an SVG path placed by hand ───── -->
+  <!-- ───── Every drawing below is an SVG path. The focus lines,
+             the impact burst and the splatter were each generated once
+             from a fixed seed so the wobble is uneven but repeatable;
+             everything else was placed by hand. ───── -->
   <svg class="sprite" aria-hidden="true" focusable="false">
     <defs>
       <!-- Halftone dots, like printed manga. Deliberately uneven. -->
@@ -37,7 +40,26 @@
         <circle cx="10.6" cy="2.6" r="1.15" />
         <circle cx="2.4" cy="10.4" r="1.3" />
       </pattern>
+      <pattern id="tone-fine" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(-8)">
+        <circle cx="2" cy="2.2" r="1.1" />
+        <circle cx="6.6" cy="6.4" r="1" />
+      </pattern>
     </defs>
+
+    <!-- Focus lines. The device manga uses when something matters. -->
+    <symbol id="focus" viewBox="0 0 600 600">
+      <path data-gen="focus" stroke="none" d="M420.7 303Q494.1 299.3 567.5 296.2L567 317.2Q494 306.1 420.7 303ZM417 313.1Q497 320.4 577.3 324.7L575.9 337.3Q496.6 324.5 417 313.1ZM415 326Q476.9 338.5 540.2 343.2L535.4 364.4Q475.2 345.5 415 326ZM399.2 340.6Q458.9 363 519.1 383.7L514.9 394Q457.5 366.3 399.2 340.6ZM402.1 355.2Q454.3 382.1 507.4 407L503.2 414.8Q452.8 384.7 402.1 355.2ZM402.8 366.1Q465.2 401 528.9 433.5L516.4 452.9Q461.1 407.5 402.8 366.1ZM384.1 367.6Q442 409.7 499.5 452.3L491.7 462Q439.6 412.8 384.1 367.6ZM376.4 376.8Q429.2 427.9 484.8 476L475.2 485.6Q426 431 376.4 376.8ZM365.4 380.7Q409.3 435.5 457.5 486.8L450.1 492.8Q406.9 437.4 365.4 380.7ZM358.1 392.2Q391.7 446.2 428.5 498.1L423.2 501.4Q389.9 447.2 358.1 392.2ZM347.8 399Q377.1 459.5 410.5 517.8L401.9 522Q374.2 460.8 347.8 399ZM328.9 404.2Q356.2 486.7 387.2 568L363.2 574.7Q348.7 488.8 328.9 404.2ZM326.3 419.8Q339.7 473.3 359.6 525.2L340.3 529.4Q333 474.7 326.3 419.8ZM303.3 413.7Q307 484.8 313.4 555.9L301.4 556.2Q303.2 484.9 303.3 413.7ZM290.7 417.2Q287.9 482.6 288.3 548.2L272.6 546.9Q282.7 482.2 290.7 417.2ZM277.6 427.2Q267.8 494.7 265.4 563.2L242.6 559.2Q260.1 493.3 277.6 427.2ZM266.8 420.1Q249.3 485.9 238.9 553.4L222.3 548.9Q243.8 484.3 266.8 420.1ZM256.2 393.4Q227.1 464.5 197.4 535.3L184.6 529.3Q223.1 462.6 256.2 393.4ZM241.3 402.3Q206.8 470.4 170.5 537.5L160.3 531.7Q203.5 468.6 241.3 402.3ZM224 395Q181 453 139.4 511.9L128.6 503.3Q177.4 450.1 224 395ZM207.9 390.8Q165.2 437.5 121.2 482.9L114.5 476.1Q162.9 435.2 207.9 390.8ZM206.9 380Q147.5 433.1 90.6 489.1L81.5 478.5Q144.5 429.6 206.9 380ZM190.5 367.4Q142.8 403.7 94.6 439L83.5 421Q139 397.6 190.5 367.4ZM187.3 356.1Q122.1 391 57.7 427.4L52.2 416.3Q120.3 387.4 187.3 356.1ZM195.7 337.1Q120.3 367.3 47 402.9L38.8 380.1Q117.7 360.1 195.7 337.1ZM180.7 329.2Q107.5 350.8 34.5 372.9L30.9 358Q106.3 345.9 180.7 329.2ZM170.9 312.1Q105.4 322.5 39.7 331.8L38.3 317Q104.8 317.5 170.9 312.1ZM179.6 301.3Q111.4 304.5 43.5 312.3L43.3 293.2Q111.4 298.2 179.6 301.3ZM183.3 283.3Q121.1 278.1 58.8 273.7L61.1 257.7Q121.8 272.8 183.3 283.3ZM190.4 273.1Q111.1 255.4 30.7 242.9L34.8 226Q112.4 250 190.4 273.1ZM202.6 259.6Q140.3 234.6 75.6 216L82 200.6Q142.5 229.6 202.6 259.6ZM201.7 252.9Q140.4 225 78.6 198.3L81.9 191.4Q141.5 222.8 201.7 252.9ZM195.9 230.8Q144.4 199.5 93.7 166.8L97.3 161.4Q145.6 197.7 195.9 230.8ZM203.7 212.7Q151.5 171.5 98.9 130.8L111.9 116.5Q155.8 166.7 203.7 212.7ZM212.4 209.6Q154.6 156.3 98.4 101.4L107.7 92.4Q157.6 153.3 212.4 209.6ZM227.4 201.7Q180 146.1 133.1 90.2L148.5 78.9Q185 142.4 227.4 201.7ZM244.1 207.4Q205.9 146.5 162.9 88.8L177 80.2Q210.5 143.8 244.1 207.4ZM251 198.3Q212.9 124.4 174.9 50.4L182.6 46.7Q215.3 123.2 251 198.3ZM268.9 182.4Q248.8 125.7 229.4 68.9L247.3 64.2Q254.8 124.1 268.9 182.4ZM282 171.9Q271.8 119.1 258.1 66.9L276.1 64.4Q278.1 118.2 282 171.9ZM294.7 187.5Q288.9 114.4 276.2 41.8L299.4 40.7Q296.4 114.1 294.7 187.5ZM305.1 184.6Q304.8 103.6 303.3 22.7L321.3 23.5Q310.6 103.9 305.1 184.6ZM326.6 178.6Q335.8 120.5 342.7 61.9L360.7 65.9Q341.9 121.8 326.6 178.6ZM337.9 185.8Q353.4 130.7 364.7 74.4L382.9 80.5Q359.6 132.8 337.9 185.8ZM344.7 183.5Q365.2 130.7 381 76.3L389.4 79.5Q368.1 131.9 344.7 183.5ZM347.1 209.4Q382.8 138.2 411.1 63.3L430.1 73.1Q388.7 141.3 347.1 209.4ZM368.9 205.2Q410.9 141.7 455.3 79.9L461.6 84.5Q412.9 143.1 368.9 205.2ZM380.1 217.7Q424.1 170 463.4 118L477.4 131.6Q428.7 174.5 380.1 217.7ZM380.8 235.4Q443.3 182.5 501.7 124.8L515.2 141.7Q447.5 187.9 380.8 235.4ZM390.4 236Q457.4 185.9 523 133.9L530.7 144.7Q459.9 189.3 390.4 236ZM395.1 255.2Q466.8 218 539.7 183.2L542.7 189.6Q467.7 220 395.1 255.2ZM397.5 268.1Q460.3 247.5 521.5 222L524.7 231.8Q461.3 250.7 397.5 268.1ZM421.2 276.4Q483.3 262 544.4 243.5L547.8 260.7Q484.4 267.8 421.2 276.4ZM405 285.6Q477.9 273.8 550.8 261.1L552 270Q478.3 276.6 405 285.6Z" />
+    </symbol>
+
+    <!-- Impact burst, sits behind the shout -->
+    <symbol id="burst" viewBox="-1 -4 316 114" preserveAspectRatio="none">
+      <path data-gen="burst" stroke="none" d="M272.1 51.8L250.6 59.8L256.5 65.9L239.2 71.1L254.6 86.6L214.2 81.7L224.6 107.5L180.8 87.4L160.7 95.4L141.4 88L118.2 93.4L106.7 84.4L57.9 91.5L73.8 76.4L1 84.7L54.5 66.2L20.9 59.2L43.3 51.3L16.4 43L50.7 39.2L40.5 27.1L69 28.2L75.7 19.2L105 19.7L106.4 2.5L137.1 16L164 -2.5L177.6 16.2L210.5 9.3L216.7 23.5L260.5 18.7L240.1 34.1L312.5 29.6L254.2 46.3Z" />
+    </symbol>
+
+    <!-- Ink splatter -->
+    <symbol id="splat" viewBox="17 3 74 62">
+      <path data-gen="splat" stroke="none" d="M58 18.5c14.7 0.2 15.4 23 -2.1 24.2c-15.4 1.3 -14 -23 0 -24.2ZM85.2 17.2c4.5 0.5 4.7 7 0.6 15.8c-4.7 -0.4 -4.2 -7 0 -15.8ZM51.9 9c3.8 0.4 4 6 -0.2 11.9c-4 -0.3 -3.6 -6 0 -11.9ZM42 31.8c3.9 0.5 4.1 6.1 0 15c-4.1 0.4 -3.7 -6.1 0 -15ZM67.7 25.1c1.3 -0.1 1.3 2 -0.1 2c-1.3 -0.1 -1.2 -2 0 -2ZM61.2 37.3c3.6 -0.3 3.8 5.6 -0.1 5.6c-3.8 0.1 -3.4 -5.6 0 -5.6ZM61.2 34.6c3 0 3.1 4.6 0.3 4.6c-3.1 0.2 -2.8 -4.6 0 -4.6ZM74.8 41.6c3.6 -0.5 3.7 5.6 0.6 5.6c-3.7 0.1 -3.4 -5.6 0 -5.6ZM54.9 56.8c2.6 -0.1 2.7 4 -0.2 4c-2.7 -0.2 -2.4 -4 0 -4ZM39.4 37c1.1 0 1.2 1.7 0 1.7c-1.2 0.1 -1.1 -1.7 0 -1.7ZM64.3 33.4c3.2 0.5 3.3 4.9 0.1 4.9c-3.3 -0.4 -3 -4.9 0 -4.9ZM44.5 30c1.8 -0.1 1.9 2.9 0.2 2.9c-1.9 -0.2 -1.8 -2.9 0 -2.9ZM78.7 30.3c3.4 0.5 3.6 5.4 0.3 5.4c-3.6 -0.4 -3.3 -5.4 0 -5.4ZM50.6 22c2.8 0.1 2.9 4.4 -0.5 4.4c-2.9 -0.3 -2.7 -4.4 0 -4.4ZM62.2 20.5c3.4 -0.2 3.6 5.4 0.5 5.4c-3.6 0.1 -3.3 -5.4 0 -5.4ZM84.6 42c3.1 -0.1 3.2 4.8 -0.1 4.8c-3.2 0.2 -2.9 -4.8 0 -4.8ZM70 20.9c3.7 0.2 3.9 5.8 0.4 5.8c-3.9 -0.5 -3.6 -5.8 0 -5.8ZM47.7 24.5c2.1 0.3 2.2 3.3 -0.5 3.3c-2.2 0.3 -2 -3.3 0 -3.3ZM48 18.5c1.9 0.3 2 3 0.2 3c-2 0 -1.8 -3 0 -3ZM23.3 18.4c2.2 -0.3 2.3 3.5 -0.1 3.5c-2.3 0.3 -2.1 -3.5 0 -3.5Z" />
+    </symbol>
 
     <!-- Straw hat, seen from the front and slightly above -->
     <symbol id="hat" viewBox="0 0 200 128">
@@ -50,7 +72,6 @@
           d="M47.6 60.8c14 10 32.5 14.4 52.4 14.5 19.9.1 38.4-4.2 52.4-14.2l1 12.4c-13.4 9.6-32.4 13.6-53.3 13.5-20.9-.1-39.7-4.4-52.8-14.1Z" />
         <path class="band-line"
           d="M47.6 60.8c14 10 32.5 14.4 52.4 14.5 19.9.1 38.4-4.2 52.4-14.2M48.6 73.2c13.1 9.7 31.9 14 52.8 14.1 20.9.1 39.9-3.9 53.3-13.5" />
-        <!-- straw texture on the brim -->
         <g class="hatch">
           <path d="M22 79c8.6 5.2 20 8.6 33 10.4" />
           <path d="M44 89.6c9 3 19.6 4.8 31 5.2" />
@@ -60,7 +81,6 @@
           <path d="M30 68c-6.4 3.2-10.4 7-10.6 10.6" />
           <path d="M170 68.6c6.6 3.2 10.8 7 11 10.6" />
         </g>
-        <!-- and on the crown -->
         <g class="hatch">
           <path d="M66 24.5C58.5 36 54 50 53.5 63.5" />
           <path d="M84.5 17.6C76 30 71 45.5 70 60.6" />
@@ -125,6 +145,15 @@
       </g>
     </symbol>
 
+    <!-- Rubber stamp. Used on the desk cards, since none of that is
+         public and there is nothing to link to. -->
+    <symbol id="stamp" viewBox="0 0 130 48">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 11c.2-4.4 3.4-6.6 9.4-7 32-2.2 71-2.4 103-.4 6.4.4 9.6 2.6 9.8 7 .5 8.6.4 17.2-.2 25.6-.3 4.4-3.4 6.6-9.4 7-32 2.2-70 2.2-102 .2-6.4-.4-9.8-2.6-10-7-.6-8.6-.5-17.2.4-25.4Z" />
+        <path d="M12 16.5c34-2 74-2.4 108-1" />
+      </g>
+    </symbol>
+
     <!-- Record, in case the player never shows up -->
     <symbol id="record" viewBox="0 0 60 60">
       <g fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -158,6 +187,20 @@
       </g>
     </symbol>
 
+    <!-- Terminal window, with something half-typed in it -->
+    <symbol id="term" viewBox="0 0 120 90">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path class="fill-paper"
+          d="M8 16c34-3 70-3 104 0 3 .3 4.4 2 4.4 5 .6 20 .6 40 0 58-.2 3-1.4 4.4-4.4 4.6-34 3-68 3-100 0-3-.3-4.2-1.6-4.4-4.6-.6-19-.6-38 0-58 .2-3 1.4-4.6 4.4-5Z" />
+        <path d="M8.4 30.5c34-2.6 70-2.6 103.6 0" />
+        <path d="M18.5 21.4c1.7 0 3 1.3 3 3 0 1.7-1.4 3-3.1 2.9-1.6-.1-2.8-1.4-2.8-3 0-1.6 1.3-2.9 2.9-2.9Z" />
+        <path d="M28.5 21.6c1.7 0 3 1.3 3 3 0 1.7-1.4 3-3.1 2.9-1.6-.1-2.8-1.4-2.8-3 0-1.6 1.3-2.9 2.9-2.9Z" />
+        <path d="M38.5 21.4c1.7 0 3 1.3 3 3 0 1.7-1.4 3-3.1 2.9-1.6-.1-2.8-1.4-2.8-3 0-1.6 1.3-2.9 2.9-2.9Z" />
+        <path class="fill-red" stroke="none" d="M19 43.6l9.4 6.6-9.6 6.6-1.8-2.6 6-4-5.8-4.2Z" />
+        <path d="M34 51c12-2 24-2 34 .2M18.5 68c20-2 40-2 56 .2M18.5 79.6c14-1.6 28-1.6 40 .2" />
+      </g>
+    </symbol>
+
     <!-- Cassette for the music panel -->
     <symbol id="cassette" viewBox="0 0 200 128">
       <g fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -170,20 +213,6 @@
         <path d="M85 56c10-3 20-3 31 0" />
         <path d="M48 100c34-2 70-2 105 0" />
         <path d="M60 111c28-1.6 58-1.6 82 0" />
-      </g>
-    </symbol>
-
-    <!-- Terminal window, with something half-typed in it -->
-    <symbol id="term" viewBox="0 0 120 90">
-      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path class="fill-paper"
-          d="M8 16c34-3 70-3 104 0 3 .3 4.4 2 4.4 5 .6 20 .6 40 0 58-.2 3-1.4 4.4-4.4 4.6-34 3-68 3-100 0-3-.3-4.2-1.6-4.4-4.6-.6-19-.6-38 0-58 .2-3 1.4-4.6 4.4-5Z" />
-        <path d="M8.4 30.5c34-2.6 70-2.6 103.6 0" />
-        <path d="M18.5 21.4c1.7 0 3 1.3 3 3 0 1.7-1.4 3-3.1 2.9-1.6-.1-2.8-1.4-2.8-3 0-1.6 1.3-2.9 2.9-2.9Z" />
-        <path d="M28.5 21.6c1.7 0 3 1.3 3 3 0 1.7-1.4 3-3.1 2.9-1.6-.1-2.8-1.4-2.8-3 0-1.6 1.3-2.9 2.9-2.9Z" />
-        <path d="M38.5 21.4c1.7 0 3 1.3 3 3 0 1.7-1.4 3-3.1 2.9-1.6-.1-2.8-1.4-2.8-3 0-1.6 1.3-2.9 2.9-2.9Z" />
-        <path class="fill-red" stroke="none" d="M19 43.6l9.4 6.6-9.6 6.6-1.8-2.6 6-4-5.8-4.2Z" />
-        <path d="M34 51c12-2 24-2 34 .2M18.5 68c20-2 40-2 56 .2M18.5 79.6c14-1.6 28-1.6 40 .2" />
       </g>
     </symbol>
 
@@ -245,12 +274,18 @@
 
     <!-- ══════════════ Cover ══════════════ -->
     <header class="hero">
-      <div class="hero-art">
+      <div class="hero-stage">
+        <svg class="focus" viewBox="0 0 600 600" aria-hidden="true"><use href="#focus" /></svg>
         <svg class="tone-blob" viewBox="0 0 300 300" aria-hidden="true">
           <path fill="url(#tone)"
             d="M150 8c62 0 118 44 130 100 12 58-24 122-84 146-58 24-128 4-158-48C8 154 22 82 74 40 96 20 122 8 150 8Z" />
         </svg>
-        <svg class="hat" viewBox="0 0 200 128" aria-hidden="true"><use href="#hat" /></svg>
+        <button class="hat-hit" type="button" aria-label="Poke the hat">
+          <svg class="hat" viewBox="0 0 200 128" aria-hidden="true"><use href="#hat" /></svg>
+          <span class="pop pop-1" aria-hidden="true"><svg viewBox="0 0 40 40"><use href="#sparkle" /></svg></span>
+          <span class="pop pop-2" aria-hidden="true"><svg viewBox="0 0 40 40"><use href="#sparkle" /></svg></span>
+          <span class="pop pop-3" aria-hidden="true"><svg viewBox="0 0 40 40"><use href="#sparkle" /></svg></span>
+        </button>
       </div>
 
       <div class="hero-text">
@@ -295,7 +330,7 @@
     </header>
 
     <!-- ══════════════ Live presence ══════════════ -->
-    <section class="now" aria-labelledby="now-h">
+    <section class="now reveal" aria-labelledby="now-h">
       <h2 class="label" id="now-h">right now<svg class="label-flick" viewBox="0 0 40 40" aria-hidden="true"><use href="#sparkle" /></svg></h2>
 
       <p class="aside-note">
@@ -328,16 +363,27 @@
       </div>
     </section>
 
+    <!-- ══════════════ Projects ══════════════ -->
+    <section class="desk reveal" id="desk" aria-labelledby="desk-h" hidden>
+      <h2 class="label" id="desk-h">on my desk</h2>
+      <p class="lede">Some of it works. Most of it is private, so there is
+        nothing to click — you get the gist instead.</p>
+      <ul class="cards" id="desk-cards"></ul>
+    </section>
+
     <!-- ══════════════ About + shelf, side by side ══════════════ -->
-    <div class="band">
+    <div class="band reveal">
       <section class="about" aria-labelledby="about-h">
         <h2 class="label" id="about-h">about me</h2>
         <div class="sheet">
-          <p class="lead">BELLO!</p>
+          <p class="shout">
+            <svg class="shout-burst" viewBox="-1 -4 316 114" preserveAspectRatio="none" aria-hidden="true"><use href="#burst" /></svg>
+            <span>BELLO!</span>
+          </p>
           <p>
             I'm Mico, and on the internet I go by <b>Strohut</b>. I enjoy
-            messing around with <b>Python</b>, <b>Lua</b>, <b>HTML</b> and
-            whatever else I get my hands on.
+            messing around with <b>Python</b>, <b>Lua</b>, <b>TypeScript</b>
+            and whatever else I get my hands on.
           </p>
           <p>
             If you're curious, slide into my DMs on Discord or anywhere else.
@@ -367,7 +413,7 @@
     </div>
 
     <!-- ══════════════ Music ══════════════ -->
-    <section class="music" aria-labelledby="music-h">
+    <section class="music reveal" aria-labelledby="music-h">
       <h2 class="label" id="music-h">in my ears</h2>
 
       <div class="deck-row">
@@ -377,7 +423,6 @@
           <div class="deck-body">
             <p class="deck-kicker" id="music-kicker">stuck in my head</p>
             <div class="embed" id="music-embed">
-              <!-- sits behind the player, only shows if it never arrives -->
               <p class="embed-fallback">
                 <svg viewBox="0 0 60 60" aria-hidden="true"><use href="#record" /></svg>
                 <a id="music-link" href="https://open.spotify.com/track/2N7umuRBdK014bDuwREFZS">Listen on Spotify</a>
@@ -394,9 +439,7 @@
     </section>
 
     <footer class="foot">
-      <svg class="wave" viewBox="0 0 400 20" preserveAspectRatio="none" aria-hidden="true">
-        <path fill="none" d="M2 12c22-9 44 8 66 1 22-8 44 7 66 0 22-8 44 8 66 1 22-8 44 6 66-1 22-8 44 8 66 2" />
-      </svg>
+      <svg class="splat foot-splat" viewBox="17 3 74 62" aria-hidden="true"><use href="#splat" /></svg>
       <p>
         Every drawing here is hand-made.
         <a href="https://github.com/Strohutt/Strohutt.github.io">Source</a>
@@ -404,6 +447,7 @@
     </footer>
   </main>
 
+  <script src="projects.js" defer></script>
   <script src="script.js" defer></script>
 </body>
 
