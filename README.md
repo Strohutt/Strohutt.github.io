@@ -6,18 +6,25 @@ Runs on GitHub Pages. No build step, no framework — open the files and type.
 
 ## What lives where
 
-| File          | Contents                                                          |
-| ------------- | ----------------------------------------------------------------- |
-| `index.html`  | The page, plus every drawing as SVG in the `<svg class="sprite">` at the top |
-| `styles.css`  | Colours, layout, the drawn rules                                  |
-| `script.js`   | Light switch and the Discord presence                              |
-| `favicon.svg` | Straw hat for the tab                                             |
+| File           | Contents                                                          |
+| -------------- | ----------------------------------------------------------------- |
+| `index.html`   | The page, plus every drawing as SVG in the `<svg class="sprite">` at the top |
+| `styles.css`   | Colours, layout, the drawn rules                                  |
+| `script.js`    | Light switch, scroll reveals, the desk cards, the Discord presence |
+| `projects.js`  | The list behind `on my desk`. The only file to edit for that      |
+| `favicon.svg`  | Straw hat for the tab                                             |
 
 ## The drawings
 
-Everything drawn is an SVG path placed by hand — hat, wordmark, cassette,
-record, manga volume, controller, terminal, tape, icons. No icon library
-and no generator, which is why nothing sits perfectly straight.
+Everything drawn is an SVG path — hat, wordmark, cassette, record, manga
+volume, controller, terminal, tape, icons — placed by hand. No icon
+library, which is why nothing sits perfectly straight.
+
+Three of them were too fiddly to place by hand and got generated once
+from a fixed seed instead: the focus lines behind the hat, the burst
+behind `BELLO!` and the ink splatter in the footer. The generator is not
+in the repo — the paths are baked into the sprite, so there is nothing to
+run. The seed is fixed so the wobble is uneven but always the same.
 
 The rules under the headings and links aren't `border`s. They're a wobbly
 SVG line used as a `mask` over a block of colour, so they pick up the ink
@@ -27,6 +34,23 @@ To add a drawing: drop it in the sprite as `<symbol id="…">` and place it
 with `<use href="#…">`. Don't hard-code the colour inside the symbol —
 `stroke` is inherited from outside, otherwise it stays wrong in one of the
 two modes.
+
+## On my desk
+
+The cards come out of `projects.js`. Each entry needs a `name`; `stack`
+and `note` are optional, and a card with no note just shows the name and
+the stack, which is deliberate — nothing gets invented to fill the gap.
+Empty the list and the whole section disappears.
+
+There are no links on the cards on purpose: none of that is public, so
+each one gets a drawn `private` stamp instead.
+
+## Scroll and poke
+
+Sections fade up once as they come into view, and the panel border wipes
+on like it is being drawn. The hat in the header wobbles and throws
+sparkles when you poke it. All of it is skipped for anyone browsing with
+`prefers-reduced-motion`.
 
 ## Discord presence
 

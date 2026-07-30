@@ -1,10 +1,14 @@
 /* ════════════════════════════════════════════════════════════════
    strohut — the small stuff
    1. Light switch. Night is the default.
-   2. Live Discord presence over the Lanyard socket.
+   2. Sections inking in as you scroll, and a pokeable hat.
+   3. The desk cards, read straight out of projects.js.
+   4. Live Discord presence over the Lanyard socket.
    ════════════════════════════════════════════════════════════════ */
 
 const DISCORD_ID = '402858450926829568';
+
+const stillPlease = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 /* ─────────────────────────── Light switch ──────────────────────── */
 
@@ -45,6 +49,99 @@ function setTheme(theme) {
   document
     .querySelector('meta[name="theme-color"]')
     .setAttribute('content', theme === 'night' ? '#15171d' : '#f2ecdf');
+}
+
+/* ──────────────────── Inking in, and the hat ───────────────────── */
+
+// Sections fade up once, then the observer lets go of them
+const sections = document.querySelectorAll('.reveal');
+
+if (stillPlease.matches || !('IntersectionObserver' in window)) {
+  sections.forEach(s => s.classList.add('is-in'));
+} else {
+  const watcher = new IntersectionObserver(
+    (entries, self) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-in');
+        self.unobserve(entry.target);
+      });
+    },
+    { rootMargin: '0px 0px -12% 0px', threshold: 0.12 }
+  );
+  sections.forEach(s => watcher.observe(s));
+}
+
+// Poking the hat makes it wobble and throw sparkles
+const hatHit = document.querySelector('.hat-hit');
+
+hatHit.addEventListener('click', () => {
+  if (stillPlease.matches) return;
+  hatHit.classList.remove('is-poked');
+  // reflow, otherwise a second click inside the animation does nothing
+  void hatHit.offsetWidth;
+  hatHit.classList.add('is-poked');
+});
+
+hatHit.addEventListener('animationend', event => {
+  if (event.target === hatHit.querySelector('.hat')) {
+    hatHit.classList.remove('is-poked');
+  }
+});
+
+/* ────────────────────────── On my desk ─────────────────────────── */
+
+// projects.js is the only place to edit. No list, no section.
+const desk = document.getElementById('desk');
+const deskCards = document.getElementById('desk-cards');
+
+if (Array.isArray(window.PROJECTS) && window.PROJECTS.length) {
+  deskCards.replaceChildren(...window.PROJECTS.map(projectCard));
+  desk.hidden = false;
+}
+
+function projectCard(project) {
+  const li = document.createElement('li');
+  li.className = 'card';
+
+  li.insertAdjacentHTML(
+    'afterbegin',
+    '<svg class="frame" viewBox="0 0 300 200" preserveAspectRatio="none" aria-hidden="true">' +
+      '<use href="#frame" /></svg>'
+  );
+
+  const name = document.createElement('p');
+  name.className = 'card-name';
+  name.textContent = project.name;
+  li.append(name);
+
+  if (project.stack) {
+    const stack = document.createElement('span');
+    stack.className = 'card-stack';
+    stack.textContent = project.stack;
+    li.append(stack);
+  }
+
+  // Missing on purpose when nothing has been written about it yet
+  if (project.note) {
+    const note = document.createElement('p');
+    note.className = 'card-note';
+    note.textContent = project.note;
+    li.append(note);
+  }
+
+  const stamp = document.createElement('span');
+  stamp.className = 'stamp';
+  stamp.insertAdjacentHTML(
+    'afterbegin',
+    '<svg viewBox="0 0 130 48" aria-hidden="true"><use href="#stamp" /></svg>'
+  );
+  const word = document.createElement('em');
+  word.textContent = 'private';
+  stamp.append(word);
+  li.append(stamp);
+
+  return li;
 }
 
 /* ───────────────────────── Discord presence ────────────────────── */
