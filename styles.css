@@ -850,6 +850,7 @@ a {
 .band,
 .flag,
 .name button {
+  -webkit-appearance: none;
   appearance: none;
   border: 0;
   background: none;
