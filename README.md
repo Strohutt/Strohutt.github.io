@@ -34,10 +34,10 @@ keep their own colours instead of being repainted violet:
 
 | | |
 | --- | --- |
-| **Mahoraga's wheel** | Behind the avatar. Hub sphere, eight spokes running through the rim, eight spheres outside it. Turns on its own, and lurches a spoke further every time a black flash lands. |
+| **Mahoraga's wheel** | Behind the avatar. Hub sphere, eight spokes running through the rim, eight spheres outside it. Clicks round a step at a time rather than gliding — adaptation lands, it does not ease — and lurches a whole spoke every time a black flash hits. |
 | **The Loop of Binding** | Round the name. A metal ring that floats about the forehead, red in the nirvana form — so it is a hoop, not a band: the near edge crosses above the name, the far edge sinks away behind it. Two scroll curls rolled up on the near edge. |
-| **Nyoibō** | Between the sections. It comes in stubby and pushes out to full width as you reach it, because extending is the only thing it does. No two are the same length or struck at the same angle. |
-| **Gear 5 clouds** | Drifting behind everything. Inked outlines, not fills — at the opacity they need to sit at, a fill just disappears. |
+| **Nyoibō** | Between the sections, thrown at you rather than laid on its side — side-on it is a pencil no matter how well it is drawn. Broad at the near end, running to a point, air torn open behind it. It arrives short and pushes out as you reach it, because extending is the only thing it does. |
+| **Gear 5 clouds** | Drifting behind everything. Not weather: these are the old auspicious-cloud motif, inked as one line that uncoils out of a spiral, runs over the back in scallops and rolls into a spiral at the far end. |
 | **Jolly Roger** | At the foot. |
 
 Every outline is generated with a fixed seed and shaken off its ideal
