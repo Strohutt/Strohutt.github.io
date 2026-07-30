@@ -1,8 +1,9 @@
 /* ════════════════════════════════════════════════════════════════
    strohut
    1. Sections arriving as you scroll
-   2. The doodle pad
-   3. Discord presence, via Lanyard
+   2. Black flash, and the wheel that adapts to it
+   3. The doodle pad
+   4. Discord presence, via Lanyard
    ════════════════════════════════════════════════════════════════ */
 
 const DISCORD_ID = '402858450926829568';
@@ -25,6 +26,106 @@ if (stillPlease.matches || !('IntersectionObserver' in window)) {
   }, { rootMargin: '0px 0px -12% 0px', threshold: 0.1 });
 
   sections.forEach(s => watcher.observe(s));
+}
+
+
+/* ─────────────────────── 黒閃 / black flash ────────────────────── */
+
+/* Hit the page and you land a strike. Most are nothing. A black flash
+   is a hair's breadth of timing, and once someone lands one they tend
+   to land the next — so the odds climb with the streak and reset when
+   you miss. Every one that lands turns Mahoraga's wheel a spoke on. */
+const strikes = document.getElementById('strikes');
+const tally = document.getElementById('tally');
+const sigil = document.querySelector('.sigil');
+const wheel = document.querySelector('.wheel');
+
+const BASE_ODDS = 0.13;
+const ODDS_STEP = 0.12;
+const ODDS_CAP = 0.55;
+
+let streak = 0;
+let adapted = 0;
+
+function readBest() {
+  try {
+    return Math.max(0, parseInt(localStorage.getItem('strohut-flash'), 10) || 0);
+  } catch {
+    return 0;
+  }
+}
+
+let best = readBest();
+document.getElementById('tally-best').textContent = best;
+
+// Anything you can actually operate is off limits, or the flash would
+// fire on top of every link and button press
+const OFF_LIMITS = 'a, button, input, canvas, iframe, .tally, .pad-wrap';
+
+function strikeAt(x, y, kind) {
+  const mark = document.createElement('div');
+  mark.className = `strike strike-${kind}`;
+  mark.style.left = `${x}px`;
+  mark.style.top = `${y}px`;
+
+  if (kind === 'flash') {
+    const which = 1 + Math.floor(Math.random() * 2);
+    mark.innerHTML =
+      `<svg viewBox="0 0 240 240"><use href="#flash-${which}" /></svg>`;
+  }
+
+  strikes.append(mark);
+  mark.addEventListener('animationend', () => mark.remove(), { once: true });
+}
+
+function landed() {
+  streak += 1;
+  adapted += 1;
+
+  if (streak > best) {
+    best = streak;
+    try {
+      localStorage.setItem('strohut-flash', String(best));
+    } catch {
+      /* it just won't survive a reload */
+    }
+  }
+
+  tally.hidden = false;
+  tally.classList.toggle('is-hot', streak > 1);
+  document.getElementById('tally-streak').textContent = streak;
+  document.getElementById('tally-best').textContent = best;
+
+  // the wheel takes the hit and turns
+  wheel.style.setProperty('--adapt', adapted);
+  sigil.classList.add('is-adapted');
+
+  document.body.classList.remove('is-flashing');
+  void document.body.offsetWidth;
+  document.body.classList.add('is-flashing');
+}
+
+if (!stillPlease.matches) {
+  document.addEventListener('pointerdown', event => {
+    if (event.button !== 0) return;
+    if (event.target.closest(OFF_LIMITS)) return;
+
+    const odds = Math.min(ODDS_CAP, BASE_ODDS + streak * ODDS_STEP);
+
+    if (Math.random() < odds) {
+      strikeAt(event.clientX, event.clientY, 'flash');
+      landed();
+    } else {
+      strikeAt(event.clientX, event.clientY, 'hit');
+      streak = 0;
+      tally.classList.remove('is-hot');
+      document.getElementById('tally-streak').textContent = '0';
+    }
+  });
+
+  document.body.addEventListener('animationend', event => {
+    if (event.animationName === 'room') document.body.classList.remove('is-flashing');
+  });
 }
 
 /* ──────────────────────── The doodle pad ───────────────────────── */
