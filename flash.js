@@ -1,29 +1,38 @@
 /* ════════════════════════════════════════════════════════════════
    黒閃 — shared by the front page and the 404, because both are worth
-   hitting. Everything here guards on its element being present, so a
-   page that carries only some of the markup still works.
+   hitting. Everything guards on its element being present, so a page
+   carrying only some of the markup still works.
    ════════════════════════════════════════════════════════════════ */
 
 const stillPlease = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-/* ─────────────────────── 黒閃 / black flash ────────────────────── */
-
-/* Hit the page and you land a strike. Most are nothing. A black flash
-   is a hair's breadth of timing, and once someone lands one they tend
-   to land the next — so the odds climb with the streak and reset when
-   you miss. Every one that lands turns Mahoraga's wheel a spoke on. */
 const strikes = document.getElementById('strikes');
 const tally = document.getElementById('tally');
 const sigil = document.querySelector('.hero');
 const wheel = document.querySelector('.wheel');
 
-const BASE_ODDS = 0.13;
-const ODDS_STEP = 0.12;
-const ODDS_CAP = 0.55;
+/* A black flash is cursed energy landing inside a millionth of a second
+   of the hit. Rolling dice on every click was a slot machine wearing its
+   name — you were not doing anything, you were pulling a lever.
+
+   So it is timing. Hold, and a ring closes on the pointer. Let go while
+   it is inside the window and it lands. The window opens late and stays
+   open briefly, so early is a miss and so is waiting.
+
+   Landing one widens the next window a little, which is the one thing
+   the dice version had right: people who land one tend to land another. */
+
+const WIND_UP = 620;        // ms for the ring to close
+const WINDOW_AT = 0.80;     // where in the wind-up the window opens
+const WINDOW_BASE = 0.13;   // how much of the wind-up it stays open
+const WINDOW_STEP = 0.022;  // widened per landed flash
+const WINDOW_CAP = 0.26;
+const HOLD_LIMIT = 2200;    // holding past this is a miss, not a pause
 const DOMAIN_AT = 5;
 
 let streak = 0;
 let adapted = 0;
+let charge = null;
 
 function readBest() {
   try {
@@ -36,11 +45,16 @@ function readBest() {
 let best = readBest();
 if (tally) document.getElementById('tally-best').textContent = best;
 
-// Anything you can actually operate is off limits, or the flash would
-// fire on top of every link and button press
+// anything you can actually operate is off limits, or this fires on top
+// of every link and button press
 const OFF_LIMITS = 'a, button, input, iframe, .tally';
 
+function windowNow() {
+  return Math.min(WINDOW_CAP, WINDOW_BASE + streak * WINDOW_STEP);
+}
+
 function strikeAt(x, y, kind) {
+  if (!strikes) return;
   const mark = document.createElement('div');
   mark.className = `strike strike-${kind}`;
   mark.style.left = `${x}px`;
@@ -48,12 +62,45 @@ function strikeAt(x, y, kind) {
 
   if (kind === 'flash') {
     const which = 1 + Math.floor(Math.random() * 2);
-    mark.innerHTML =
-      `<svg viewBox="0 0 400 400"><use href="#flash-${which}" /></svg>`;
+    mark.innerHTML = `<svg viewBox="0 0 400 400"><use href="#flash-${which}" /></svg>`;
   }
 
   strikes.append(mark);
   mark.addEventListener('animationend', () => mark.remove(), { once: true });
+}
+
+/* the ring that shows the window. it carries its own timing as custom
+   properties so css runs the animation and js never touches a frame. */
+function openCharge(x, y) {
+  if (!strikes) return null;
+  const ring = document.createElement('div');
+  ring.className = 'charge';
+  ring.style.left = `${x}px`;
+  ring.style.top = `${y}px`;
+  ring.style.setProperty('--wind', `${WIND_UP}ms`);
+  ring.style.setProperty('--open-at', `${Math.round(WIND_UP * WINDOW_AT)}ms`);
+  ring.style.setProperty('--span', `${Math.round(WIND_UP * windowNow())}ms`);
+  strikes.append(ring);
+  return ring;
+}
+
+function shutCharge(hit) {
+  if (!charge) return;
+  const { ring, timer } = charge;
+  clearTimeout(timer);
+  if (ring) {
+    ring.classList.add(hit ? 'is-landed' : 'is-spent');
+    ring.addEventListener('animationend', () => ring.remove(), { once: true });
+    setTimeout(() => ring.remove(), 900);
+  }
+  charge = null;
+}
+
+function missed() {
+  streak = 0;
+  if (!tally) return;
+  tally.classList.remove('is-hot');
+  document.getElementById('tally-streak').textContent = '0';
 }
 
 function landed() {
@@ -93,23 +140,59 @@ function landed() {
 }
 
 if (!stillPlease.matches) {
-  document.addEventListener('pointerdown', event => {
-    if (event.button !== 0) return;
+  addEventListener('pointerdown', event => {
+    if (event.button !== 0 || charge) return;
     if (event.target.closest(OFF_LIMITS)) return;
 
-    const odds = Math.min(ODDS_CAP, BASE_ODDS + streak * ODDS_STEP);
+    const at = performance.now();
+    const ring = openCharge(event.clientX, event.clientY);
 
-    if (Math.random() < odds) {
-      strikeAt(event.clientX, event.clientY, 'flash');
-      landed();
-    } else {
-      strikeAt(event.clientX, event.clientY, 'hit');
-      streak = 0;
-      if (tally) {
-        tally.classList.remove('is-hot');
-        document.getElementById('tally-streak').textContent = '0';
-      }
-    }
+    charge = {
+      ring,
+      at,
+      x: event.clientX,
+      y: event.clientY,
+      // holding forever is not a pause, it is a miss
+      timer: setTimeout(() => {
+        if (!charge) return;
+        strikeAt(charge.x, charge.y, 'hit');
+        shutCharge(false);
+        missed();
+      }, HOLD_LIMIT)
+    };
+  }, { passive: true });
+
+  const release = event => {
+    if (!charge) return;
+
+    const held = performance.now() - charge.at;
+    const open = WIND_UP * WINDOW_AT;
+    const shut = WIND_UP * (WINDOW_AT + windowNow());
+    const inside = held >= open && held <= shut;
+
+    // the pointer may have travelled since it went down
+    const x = event && event.clientX != null ? event.clientX : charge.x;
+    const y = event && event.clientY != null ? event.clientY : charge.y;
+
+    strikeAt(x, y, inside ? 'flash' : 'hit');
+    shutCharge(inside);
+
+    if (inside) landed();
+    else missed();
+  };
+
+  addEventListener('pointerup', release, { passive: true });
+  addEventListener('pointercancel', () => {
+    if (!charge) return;
+    shutCharge(false);
+    missed();
+  }, { passive: true });
+
+  // a drag that leaves the window would otherwise leave the ring hanging
+  addEventListener('blur', () => {
+    if (!charge) return;
+    shutCharge(false);
+    missed();
   });
 
   document.body.addEventListener('animationend', event => {
@@ -117,7 +200,6 @@ if (!stillPlease.matches) {
     if (event.animationName === 'domain') document.body.classList.remove('is-domain');
   });
 }
-
 
 
 /* ─────────────────── the one control both pages share ──────────── */
@@ -130,11 +212,10 @@ function knock(el, cls) {
 }
 
 const wheelHit = document.getElementById('wheel-hit');
-if (wheelHit) {
+if (wheelHit && wheel) {
   wheelHit.addEventListener('click', () => {
     adapted += 1;
     wheel.style.setProperty('--adapt', adapted);
     knock(wheelHit, 'is-struck');
   });
 }
-

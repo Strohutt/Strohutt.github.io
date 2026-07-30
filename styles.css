@@ -193,13 +193,28 @@ a {
   pointer-events: none;
 }
 
+/* the layers behind never sit still, and they move at different rates,
+   so the header has depth without anything obviously animating */
+.sp {
+  animation: rush 19s ease-in-out infinite alternate;
+  transform-origin: 100% 40%;
+}
+
+@keyframes rush {
+  from { transform: translate3d(-1.4%, 0, 0) scaleX(1); opacity: .75; }
+  to { transform: translate3d(1.8%, -.6%, 0) scaleX(1.05); opacity: 1; }
+}
+
 .sp path {
   fill: var(--paper);
 }
 
 /* The wheel is cropped by the panel edge. That is what a panel is for —
    it is not a sticker placed inside the frame. */
-.sigil {
+/* The drawing. Not a control — its box is enormous and reaches down over
+   the cloud, so anything aiming at the wheel's middle hit the cloud
+   instead. It bleeds off the page and takes no clicks. */
+.wheel {
   position: absolute;
   top: 44%;
   right: -15%;
@@ -210,9 +225,19 @@ a {
   opacity: .55;
 }
 
+/* The control: a defined circle over the hub, where the wheel actually
+   looks like something you would press. */
+.sigil {
+  position: absolute;
+  top: 44%;
+  right: calc(-15% + min(36rem, 50%) * .5 - 5.5rem);
+  width: 11rem;
+  height: 11rem;
+  translate: 0 -50%;
+  border-radius: 50%;
+}
+
 .wheel {
-  width: 100%;
-  height: 100%;
   --adapt: 0;
 }
 
@@ -221,7 +246,7 @@ a {
 .wheel-turn {
   transform-origin: 200px 200px;
   transform: rotate(calc(var(--adapt) * 45deg));
-  animation: turn 288s steps(24, end) infinite;
+  animation: turn 96s steps(24, end) infinite;
 }
 
 @keyframes turn {
@@ -247,6 +272,27 @@ a {
 
 /* Sized to its own content. Left as a full-width block it lies across the
    wheel, and every click meant for the wheel lands on the text instead. */
+/* the pointer nudges the layers behind; the amounts come from js */
+.hero {
+  --lean-x: 0;
+  --lean-y: 0;
+}
+
+.speed {
+  will-change: transform;
+}
+
+/* The wheel moves by turning, which leaves its hub — and therefore the
+   control sitting on it — exactly where it was. Drifting the drawing
+   sideways either drags the control with it, in which case it cannot be
+   aimed at, or leaves it behind, in which case the drawing lies about
+   where to press. */
+
+.speed {
+  transform: translate3d(calc(var(--lean-x) * 14px), calc(var(--lean-y) * 9px), 0);
+  transition: transform 1.1s cubic-bezier(.2, .8, .2, 1);
+}
+
 .hero-text {
   position: relative;
   z-index: 2;
@@ -266,6 +312,10 @@ a {
 
 .bs-body {
   fill: var(--blood);
+}
+
+[data-js] .brush {
+  animation: pull .8s .25s cubic-bezier(.2, .9, .2, 1) backwards;
 }
 
 .bs-skip {
@@ -374,6 +424,18 @@ a {
   justify-self: center;
   width: min(100%, 62rem);
   margin-block: clamp(-1rem, -2vw, -.4rem);
+}
+
+/* the drawing drifts; the button holding it does not, or it cannot be
+   aimed at — same reason the wheel only turns */
+.band svg {
+  --drift: 0px;
+  animation: adrift 31s ease-in-out infinite alternate;
+}
+
+@keyframes adrift {
+  from { transform: translate3d(-2.2%, calc(.3rem + var(--drift)), 0); }
+  to { transform: translate3d(2.2%, calc(-.3rem + var(--drift)), 0); }
 }
 
 .cb-body {
@@ -787,6 +849,11 @@ a {
   flex: none;
 }
 
+.flag svg {
+  --drift: 0px;
+  translate: 0 var(--drift);
+}
+
 .jr-ink {
   stroke: var(--ink);
   stroke-width: 6;
@@ -902,8 +969,16 @@ a {
   transition: opacity .2s ease, filter .2s ease;
 }
 
-.sigil:hover,
-.sigil:focus-visible { opacity: .85; }
+/* A target that keeps drifting under the pointer is hard to hit. Reaching
+   for one settles it. */
+/* reaching for a target settles the drawing inside it */
+.band:hover svg,
+.band:focus-visible svg {
+  animation-play-state: paused;
+}
+
+.hero:has(.sigil:hover) .wheel,
+.hero:has(.sigil:focus-visible) .wheel { opacity: .85; }
 
 .band:hover svg,
 .band:focus-visible svg { filter: drop-shadow(0 0 10px rgba(239, 236, 228, .35)); }
@@ -919,7 +994,7 @@ a {
   pointer-events: auto;
 }
 
-.sigil.is-struck .mg-body {
+.hero:has(.sigil.is-struck) .mg-body {
   animation: adapt .5s ease-out;
 }
 
@@ -992,6 +1067,68 @@ a {
   z-index: 41;
   pointer-events: none;
   overflow: hidden;
+}
+
+/* The ring that shows the window. It closes over --wind; the red arc is
+   a second animation that is simply delayed until the window opens and
+   lasts exactly as long as it. Keyframe selectors cannot take var(), so
+   the timing has to live in delay and duration, not in percentages. */
+.charge {
+  position: absolute;
+  translate: -50% -50%;
+  width: 7.5rem;
+  height: 7.5rem;
+  pointer-events: none;
+}
+
+.charge::before,
+.charge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.charge::before {
+  border: var(--rule) solid var(--paper-3);
+  animation: close var(--wind, 620ms) linear forwards;
+}
+
+.charge::after {
+  border: 3px solid var(--blood);
+  opacity: 0;
+  animation:
+    close var(--wind, 620ms) linear forwards,
+    window var(--span, 80ms) var(--open-at, 496ms) linear;
+}
+
+@keyframes close {
+  from { scale: 1; }
+  to { scale: .17; }
+}
+
+/* on for exactly the length of the window, off either side of it */
+@keyframes window {
+  from, to { opacity: 1; }
+}
+
+.charge.is-landed::before,
+.charge.is-landed::after {
+  animation: burst .34s ease-out forwards;
+}
+
+.charge.is-spent::before,
+.charge.is-spent::after {
+  animation: fizzle .24s ease-out forwards;
+}
+
+@keyframes burst {
+  from { scale: .17; opacity: 1; }
+  to { scale: 1.6; opacity: 0; }
+}
+
+@keyframes fizzle {
+  to { opacity: 0; scale: .1; }
 }
 
 .strike {
