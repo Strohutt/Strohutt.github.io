@@ -168,6 +168,25 @@ does not fingerprint filenames and browsers hold onto both files, so
 new markup against an old stylesheet, which looks far more broken than a
 page that simply did not update.
 
+## Checks
+
+```sh
+npm install
+npm test
+```
+
+Four suites, run against a local server:
+
+| | |
+| --- | --- |
+| `page` | Nothing hidden without javascript, no sideways scroll from 1600 to 320, every hit target reacts, keyboard reaches all of them, no tap target under 44px |
+| `flash` | The timing window lands and misses where it should, rings never pile up, holding forever resolves, touch does not strand one, reduced motion stays still, the best score survives a reload |
+| `upstream` | Every upstream dead, github rate limited, github answering junk, twenty activities, a 200-character track title, a malformed presence payload, localStorage refusing to open |
+| `limits` | Offline, 280px wide, browser text at 200%, a response that arrives four seconds late, the 404 at 320px |
+
+The site itself has no build step and no dependencies. `package.json`
+exists for these and nothing else.
+
 ## Running it locally
 
 ```sh
