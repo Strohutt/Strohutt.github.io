@@ -45,43 +45,26 @@
         <circle cx="6.6" cy="6.4" r="1" />
       </pattern>
 
-      <!-- Shading kit. Objects are solid bodies with a light face, so
-           their ink stays dark in both modes and hatching reads the
-           normal way round: dark marks over a light surface. -->
-      <pattern id="hatch" width="6.2" height="6.2" patternUnits="userSpaceOnUse" patternTransform="rotate(42)">
-        <path d="M0 1.5c2.1-.5 4.2-.3 6.2.2" />
-        <path d="M0 4.7c2.3.4 4-.1 6.2-.3" />
+      <!-- Shading marks. They draw in the ink colour of the mode, so
+           the hatching belongs to the line work instead of fighting it. -->
+      <pattern id="hatch" width="6.4" height="6.4" patternUnits="userSpaceOnUse" patternTransform="rotate(42)">
+        <path d="M0 1.6c2.2-.5 4.4-.3 6.4.2" stroke-width=".95" opacity=".5" />
+        <path d="M0 4.9c2.4.4 4.2.2 6.4-.3" stroke-width=".8" opacity=".4" />
       </pattern>
-      <pattern id="cross" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(-46)">
-        <path d="M0 1.3c1.7-.4 3.4-.2 5 .2" />
-        <path d="M0 3.6c1.8.3 3.2-.1 5-.2" />
+      <pattern id="cross" width="4.8" height="4.8" patternUnits="userSpaceOnUse" patternTransform="rotate(-48)">
+        <path d="M0 1.3c1.7-.4 3.4-.2 4.8.2" stroke-width="1" opacity=".55" />
+        <path d="M0 3.5c1.8.3 3.1-.1 4.8-.2" stroke-width=".85" opacity=".45" />
       </pattern>
-      <pattern id="dots" width="4.4" height="4.4" patternUnits="userSpaceOnUse" patternTransform="rotate(12)">
-        <circle cx="1.1" cy="1.2" r=".62" />
-        <circle cx="3.3" cy="3.3" r=".5" />
+      <pattern id="dots" width="4.6" height="4.6" patternUnits="userSpaceOnUse" patternTransform="rotate(12)">
+        <circle cx="1.1" cy="1.2" r=".62" opacity=".5" />
+        <circle cx="3.4" cy="3.4" r=".5" opacity=".4" />
       </pattern>
 
-      <clipPath id="clipBrim">
-        <path d="M13.5 83.5c-1-14 36.5-24.5 87-24.8 51.5-.3 88.5 10.4 87.3 24.8-1.2 14.8-38.6 25.6-88.6 25-49.2-.6-84.8-11.2-85.7-25Z" />
-      </clipPath>
-      <clipPath id="clipCrown">
-        <path d="M49.5 76.5C46 51 58.5 24.5 79 16.4c14.4-5.7 30.8-5.4 44.6 1.4C144 28 154.4 51.6 151 76.8c-13.2 8.4-31.4 12-51.4 11.8-19.7-.2-37.2-4-50.1-12.1Z" />
-      </clipPath>
-      <clipPath id="clipBand">
-        <path d="M47.6 60.8c14 10 32.5 14.4 52.4 14.5 19.9.1 38.4-4.2 52.4-14.2l1 12.4c-13.4 9.6-32.4 13.6-53.3 13.5-20.9-.1-39.7-4.4-52.8-14.1Z" />
-      </clipPath>
-      <clipPath id="clipBook">
-        <path d="M9 26c17-8 34-10 49-4.6 15-5.6 32-3.6 51 4.6-2.4 18-3.4 35-2.4 51.5-18.6-8-34.6-10-48.6-4.6-14-5.6-30-3.6-48.4 4.6C11 61 10 44 9 26Z" />
-      </clipPath>
-      <clipPath id="clipPad">
-        <path d="M26 22C38 18 52 16.5 60 16.5c8 0 22 1.5 34 5.5 8 2.6 12.5 9.6 13.5 20 1 10.4-2 20-8.5 23.6-6.2 3.6-12-.4-16-6.4-3-4.6-6-7.4-10-7.4H47c-4 0-7 2.8-10 7.4-4 6-9.8 10-16 6.4C14.5 62 11.5 52.4 12.5 42 13.5 31.6 18 24.6 26 22Z" />
-      </clipPath>
-      <clipPath id="clipTerm">
-        <path d="M8 16c34-3 70-3 104 0 3 .3 4.4 2 4.4 5 .6 20 .6 40 0 58-.2 3-1.4 4.4-4.4 4.6-34 3-68 3-100 0-3-.3-4.2-1.6-4.4-4.6-.6-19-.6-38 0-58 .2-3 1.4-4.6 4.4-5Z" />
-      </clipPath>
-      <clipPath id="clipTape">
-        <path d="M8.5 12c40-3 143-3.4 183 0 4 .4 6 2.4 6 6 1 32 1 66 0 100-.4 4-2.4 6-6.4 6.4-40 3-142 3-182.6 0-4-.4-6-2.4-6.4-6.4-1-34-.8-68 0-100 .2-3.6 2.2-5.6 6.4-6Z" />
-      </clipPath>
+      <clipPath id="cBrim"><path d="M13.5 83.5c-1-14 36.5-24.5 87-24.8 51.5-.3 88.5 10.4 87.3 24.8-1.2 14.8-38.6 25.6-88.6 25-49.2-.6-84.8-11.2-85.7-25Z"/></clipPath>
+      <clipPath id="cCrown"><path d="M49.5 76.5C46 51 58.5 24.5 79 16.4c14.4-5.7 30.8-5.4 44.6 1.4C144 28 154.4 51.6 151 76.8c-13.2 8.4-31.4 12-51.4 11.8-19.7-.2-37.2-4-50.1-12.1Z"/></clipPath>
+      <clipPath id="cBook"><path d="M9 26c17-8 34-10 49-4.6 15-5.6 32-3.6 51 4.6-2.4 18-3.4 35-2.4 51.5-18.6-8-34.6-10-48.6-4.6-14-5.6-30-3.6-48.4 4.6C11 61 10 44 9 26Z"/></clipPath>
+      <clipPath id="cPad"><path d="M26 22C38 18 52 16.5 60 16.5c8 0 22 1.5 34 5.5 8 2.6 12.5 9.6 13.5 20 1 10.4-2 20-8.5 23.6-6.2 3.6-12-.4-16-6.4-3-4.6-6-7.4-10-7.4H47c-4 0-7 2.8-10 7.4-4 6-9.8 10-16 6.4C14.5 62 11.5 52.4 12.5 42 13.5 31.6 18 24.6 26 22Z"/></clipPath>
+      <clipPath id="cTerm"><path d="M8 16c34-3 70-3 104 0 3 .3 4.4 2 4.4 5 .6 20 .6 40 0 58-.2 3-1.4 4.4-4.4 4.6-34 3-68 3-100 0-3-.3-4.2-1.6-4.4-4.6-.6-19-.6-38 0-58 .2-3 1.4-4.6 4.4-5Z"/></clipPath>
     </defs>
 
     <!-- Focus lines. The device manga uses when something matters. -->
@@ -99,68 +82,54 @@
       <path data-gen="splat" stroke="none" d="M58 18.5c14.7 0.2 15.4 23 -2.1 24.2c-15.4 1.3 -14 -23 0 -24.2ZM85.2 17.2c4.5 0.5 4.7 7 0.6 15.8c-4.7 -0.4 -4.2 -7 0 -15.8ZM51.9 9c3.8 0.4 4 6 -0.2 11.9c-4 -0.3 -3.6 -6 0 -11.9ZM42 31.8c3.9 0.5 4.1 6.1 0 15c-4.1 0.4 -3.7 -6.1 0 -15ZM67.7 25.1c1.3 -0.1 1.3 2 -0.1 2c-1.3 -0.1 -1.2 -2 0 -2ZM61.2 37.3c3.6 -0.3 3.8 5.6 -0.1 5.6c-3.8 0.1 -3.4 -5.6 0 -5.6ZM61.2 34.6c3 0 3.1 4.6 0.3 4.6c-3.1 0.2 -2.8 -4.6 0 -4.6ZM74.8 41.6c3.6 -0.5 3.7 5.6 0.6 5.6c-3.7 0.1 -3.4 -5.6 0 -5.6ZM54.9 56.8c2.6 -0.1 2.7 4 -0.2 4c-2.7 -0.2 -2.4 -4 0 -4ZM39.4 37c1.1 0 1.2 1.7 0 1.7c-1.2 0.1 -1.1 -1.7 0 -1.7ZM64.3 33.4c3.2 0.5 3.3 4.9 0.1 4.9c-3.3 -0.4 -3 -4.9 0 -4.9ZM44.5 30c1.8 -0.1 1.9 2.9 0.2 2.9c-1.9 -0.2 -1.8 -2.9 0 -2.9ZM78.7 30.3c3.4 0.5 3.6 5.4 0.3 5.4c-3.6 -0.4 -3.3 -5.4 0 -5.4ZM50.6 22c2.8 0.1 2.9 4.4 -0.5 4.4c-2.9 -0.3 -2.7 -4.4 0 -4.4ZM62.2 20.5c3.4 -0.2 3.6 5.4 0.5 5.4c-3.6 0.1 -3.3 -5.4 0 -5.4ZM84.6 42c3.1 -0.1 3.2 4.8 -0.1 4.8c-3.2 0.2 -2.9 -4.8 0 -4.8ZM70 20.9c3.7 0.2 3.9 5.8 0.4 5.8c-3.9 -0.5 -3.6 -5.8 0 -5.8ZM47.7 24.5c2.1 0.3 2.2 3.3 -0.5 3.3c-2.2 0.3 -2 -3.3 0 -3.3ZM48 18.5c1.9 0.3 2 3 0.2 3c-2 0 -1.8 -3 0 -3ZM23.3 18.4c2.2 -0.3 2.3 3.5 -0.1 3.5c-2.3 0.3 -2.1 -3.5 0 -3.5Z" />
     </symbol>
 
-    <!-- Straw hat. A solid object: cream face, dark ink, shading that
-         turns away from a light in the upper left. -->
-    <symbol id="hat" viewBox="0 0 200 152">
-      <g class="obj">
-        <ellipse class="obj-cast" cx="108" cy="112" rx="62" ry="8.5" />
-        <ellipse class="obj-cast" cx="112" cy="110" rx="40" ry="5" />
+    <!-- Straw hat. Depth from nib weight and hatching, no fills. -->
+    <symbol id="hat" viewBox="0 0 200 132">
+      <g class="la">
+      <!-- ground: a few strokes, not a filled blob -->
+      <g class="w1 fade">
+      <path d="M50 116c14 3.4 32 5 52 4.6" />
+      <path d="M66 122c14 2 30 2.6 46 1.6" />
+      <path d="M92 127c12 .6 24 .2 34-1" />
+      <path d="M120 118c12-1 22-2.6 30-4.6" />
+      </g>
 
-        <path class="obj-face"
-          d="M13.5 83.5c-1-14 36.5-24.5 87-24.8 51.5-.3 88.5 10.4 87.3 24.8-1.2 14.8-38.6 25.6-88.6 25-49.2-.6-84.8-11.2-85.7-25Z" />
-        <g clip-path="url(#clipBrim)">
-          <path class="sh-dots" d="M118 58c34 2 62 11.6 70 25.6-8 15-36 24-70 25.6 14-16 16-36 0-51.2Z" />
-          <path class="sh-hatch" d="M146 62c24 4 40 12 42 21.6-2 11-18 19-42 23 10-14 12-30 0-44.6Z" />
-          <path class="sh-hatch" d="M14 84c1 14 37 24.4 86 25 50 .6 87.4-10.2 88.6-25-1 11-38.6 19.6-88.6 19-48-.6-84-9-86.6-19Z" />
-          <path class="sh-cross" d="M60 100c12 3.6 26 5.8 40 6.2 16 .4 32-1 46-4.4-14 5-30 7.4-46 7-14-.4-27-2.8-40-8.8Z" />
-          <g class="obj-line straw">
-            <path d="M22 79c8.6 5.2 20 8.6 33 10.4" />
-            <path d="M44 89.6c9 3 19.6 4.8 31 5.2" />
-            <path d="M86 95.4c8 .6 16.6.6 24.8 0" />
-            <path d="M30 68c-6.4 3.2-10.4 7-10.6 10.6" />
-            <path d="M126 94.6c9-1 18-2.6 26-5" />
-            <path d="M158 86c8-2.8 14.6-6.2 19-10" />
-          </g>
-        </g>
-        <path class="obj-line w2"
-          d="M13.5 83.5c-1-14 36.5-24.5 87-24.8 51.5-.3 88.5 10.4 87.3 24.8-1.2 14.8-38.6 25.6-88.6 25-49.2-.6-84.8-11.2-85.7-25Z" />
-        <path class="obj-line w1 soft"
-          d="M14.6 85.6c3.4 9.6 39 18 86 18.6 49.4.6 86.6-8 88-19" />
+      <g clip-path="url(#cBrim)">
+      <path class="dotfill" d="M126 58c30 3 54 12 62 25.6-8 15-32 24-62 25.6 12-16 14-36 0-51.2Z" />
+      <path class="hatchfill" d="M150 62c22 4 36 12 38 21.6-2 11-16 19-38 23 10-14 12-30 0-44.6Z" />
+      <path class="hatchfill" d="M14 84c1 14 37 24.4 86 25 50 .6 87.4-10.2 88.6-25-1 11-38.6 19.6-88.6 19-48-.6-84-9-86.6-19Z" />
+      <path class="crossfill" d="M74 101c10 2.6 22 4.2 34 4.6 14 .4 28-.8 40-3.6-12 4.4-26 6.4-40 6-12-.4-24-2.4-34-7Z" />
+      <g class="w1 fade2">
+      <path d="M22 79c8.6 5.2 20 8.6 33 10.4" />
+      <path d="M44 89.6c9 3 19.6 4.8 31 5.2" />
+      <path d="M86 95.4c8 .6 16.6.6 24.8 0" />
+      <path d="M30 68c-6.4 3.2-10.4 7-10.6 10.6" />
+      <path d="M126 94.6c9-1 18-2.6 26-5" />
+      </g>
+      </g>
 
-        <path class="obj-face"
-          d="M49.5 76.5C46 51 58.5 24.5 79 16.4c14.4-5.7 30.8-5.4 44.6 1.4C144 28 154.4 51.6 151 76.8c-13.2 8.4-31.4 12-51.4 11.8-19.7-.2-37.2-4-50.1-12.1Z" />
-        <g clip-path="url(#clipCrown)">
-          <path class="sh-dots" d="M112 15c22 8 36 32 34 62 0 6-2 10-6 12-14 4-28 4-40 2 18-24 22-52 12-76Z" />
-          <path class="sh-hatch" d="M123.6 17.8C144 28 154.4 51.6 151 76.8c-8 4.4-16.4 6.8-24 7.6 6.4-20.6 6.6-46-3.4-67.6Z" />
-          <path class="sh-cross" d="M137 22C150 34 156 56 152 78c-5 2.8-10 4.8-15 6 6-20 6-42 0-62Z" />
-          <g class="obj-line straw">
-            <path d="M66 24.5C58.5 36 54 50 53.5 63.5" />
-            <path d="M84.5 17.6C76 30 71 45.5 70 60.6" />
-            <path d="M104 16.2c-6.5 13.4-10 29-10.4 44.6" />
-            <path d="M124 19.4c-3.2 13.6-4.4 28-3.6 42" />
-            <path d="M140.5 28.6c.6 12.6 2.2 24.6 5 35.4" />
-          </g>
-        </g>
-        <path class="obj-line w2"
-          d="M49.5 76.5C46 51 58.5 24.5 79 16.4c14.4-5.7 30.8-5.4 44.6 1.4C144 28 154.4 51.6 151 76.8" />
+      <g clip-path="url(#cCrown)">
+      <path class="dotfill" d="M116 15c20 8 32 32 30 62 0 6-2 10-6 12-12 4-24 4-36 2 18-24 22-52 12-76Z" />
+      <path class="hatchfill" d="M126 17.8C146 28 156.4 51.6 153 76.8c-8 4.4-16.4 6.8-24 7.6 6.4-20.6 6.6-46-3-67.6Z" />
+      <path class="crossfill" d="M139 22C152 34 158 56 154 78c-5 2.8-10 4.8-15 6 6-20 6-42 0-62Z" />
+      <g class="w1 fade2">
+      <path d="M66 24.5C58.5 36 54 50 53.5 63.5" />
+      <path d="M84.5 17.6C76 30 71 45.5 70 60.6" />
+      <path d="M104 16.2c-6.5 13.4-10 29-10.4 44.6" />
+      <path d="M124 19.4c-3.2 13.6-4.4 28-3.6 42" />
+      </g>
+      </g>
 
-        <path class="obj-red"
-          d="M47.6 60.8c14 10 32.5 14.4 52.4 14.5 19.9.1 38.4-4.2 52.4-14.2l1 12.4c-13.4 9.6-32.4 13.6-53.3 13.5-20.9-.1-39.7-4.4-52.8-14.1Z" />
-        <g clip-path="url(#clipBand)">
-          <path class="obj-shade" d="M120 74c12-2.6 23-6.8 32-12.4l2 14c-9 6-20 9.8-32 11.6Z" />
-          <path class="obj-gloss" d="M52 64c10 5.4 22 8.8 34 10.2l.6 4C74 77 62 73.4 51 68Z" />
-        </g>
-        <path class="obj-line w2"
-          d="M47.6 60.8c14 10 32.5 14.4 52.4 14.5 19.9.1 38.4-4.2 52.4-14.2M48.6 73.2c13.1 9.7 31.9 14 52.8 14.1 20.9.1 39.9-3.9 53.3-13.5" />
+      <!-- outlines: light on the lit side, heavy where it turns away -->
+      <path class="w2" d="M13.5 83.5c-1-14 36.5-24.5 87-24.8 51.5-.3 88.5 10.4 87.3 24.8" />
+      <path class="w4" d="M188 83.5c-1.2 14.8-38.6 25.6-88.6 25-49.2-.6-84.8-11.2-85.7-25" />
+      <path class="w1 fade2" d="M14.6 85.6c3.4 9.6 39 18 86 18.6 49.4.6 86.6-8 88-19" />
 
-        <path class="obj-line w4" d="M101 108.5c49 .4 86-10.4 87.2-25" />
-        <path class="obj-line w4" d="M126 19.4C145.4 30 154.4 52.4 151 76.8" />
-        <path class="obj-line w3 soft" d="M13.6 84.6c-.2 5.4 5.4 10.4 15.6 14.4" />
+      <path class="w2" d="M49.5 76.5C46 51 58.5 24.5 79 16.4c14.4-5.7 30.8-5.4 44.6 1.4" />
+      <path class="w4" d="M123.6 17.8C144 28 154.4 51.6 151 76.8" />
 
-        <g class="obj-hi">
-          <path d="M75 26c-6 7.6-9.8 17-11.4 26.6" />
-          <path d="M40 72.8c-5.4 2.4-8.6 5.2-9 7.8" />
-        </g>
+      <path class="redink" d="M47.6 60.8c14 10 32.5 14.4 52.4 14.5 19.9.1 38.4-4.2 52.4-14.2l1 12.4c-13.4 9.6-32.4 13.6-53.3 13.5-20.9-.1-39.7-4.4-52.8-14.1Z" />
+      <path class="w2" d="M47.6 60.8c14 10 32.5 14.4 52.4 14.5 19.9.1 38.4-4.2 52.4-14.2M48.6 73.2c13.1 9.7 31.9 14 52.8 14.1 20.9.1 39.9-3.9 53.3-13.5" />
+      </g>
       </g>
     </symbol>
 
@@ -218,14 +187,6 @@
       </g>
     </symbol>
 
-    <!-- Rubber stamp. Used on the desk cards, since none of that is
-         public and there is nothing to link to. -->
-    <symbol id="stamp" viewBox="0 0 130 48">
-      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M6 11c.2-4.4 3.4-6.6 9.4-7 32-2.2 71-2.4 103-.4 6.4.4 9.6 2.6 9.8 7 .5 8.6.4 17.2-.2 25.6-.3 4.4-3.4 6.6-9.4 7-32 2.2-70 2.2-102 .2-6.4-.4-9.8-2.6-10-7-.6-8.6-.5-17.2.4-25.4Z" />
-        <path d="M12 16.5c34-2 74-2.4 108-1" />
-      </g>
-    </symbol>
 
     <!-- Record, in case the player never shows up -->
     <symbol id="record" viewBox="0 0 60 60">
@@ -237,107 +198,78 @@
     </symbol>
 
     <!-- An open volume, lying around -->
-    <symbol id="manga" viewBox="0 0 120 104">
-      <g class="obj">
-        <ellipse class="obj-cast" cx="62" cy="88" rx="46" ry="6" />
-        <path class="obj-face"
-          d="M9 26c17-8 34-10 49-4.6 15-5.6 32-3.6 51 4.6-2.4 18-3.4 35-2.4 51.5-18.6-8-34.6-10-48.6-4.6-14-5.6-30-3.6-48.4 4.6C11 61 10 44 9 26Z" />
-        <g clip-path="url(#clipBook)">
-          <path class="sh-dots" d="M60 22c16-6 33-4 50 4.4-2.4 18-3.4 35-2.4 51.5-16-7-31-9.4-45-6Z" />
-          <path class="sh-hatch" d="M92 25c6 1.6 12 4 17 6.6-2 17-3 33-2.2 48-5-2.4-10-4.4-15-5.8Z" />
-        </g>
-        <path class="obj-line w2"
-          d="M9 26c17-8 34-10 49-4.6 15-5.6 32-3.6 51 4.6-2.4 18-3.4 35-2.4 51.5-18.6-8-34.6-10-48.6-4.6-14-5.6-30-3.6-48.4 4.6C11 61 10 44 9 26Z" />
-        <path class="obj-line w2" d="M58 21.4c1.4 18 1.6 35 .6 51.4" />
-        <g class="obj-line w1 soft">
-          <path d="M20 34c9-3.4 18-4.6 27-3.6M20 44c9-3.4 18-4.6 27-3.6M20 54c8-3 16-4.2 24-3.4" />
-          <path d="M70 30.4c9-1 18 .2 27 3.6M70 40.4c9-1 18 .2 27 3.6M74 50.6c7-.8 14 .4 21 3.4" />
-        </g>
-        <path class="obj-red" d="M84 21.6c2.6.8 5.2 1.8 7.8 3l-.6 20-3.4-6.4-4.4 5.2Z" />
-        <path class="obj-line w3" d="M60 72.8c14-5.4 30-3.4 48.6 4.7" />
-        <g class="obj-hi"><path d="M22 30.5c8-2.6 16-3.6 23-2.8" /></g>
+    <symbol id="manga" viewBox="0 0 120 100">
+      <g class="la">
+      <g class="w1 fade"><path d="M22 88c18 3.4 44 4.6 68 3.6" /><path d="M40 94c16 1.6 36 1.6 52 .4" /></g>
+      <g clip-path="url(#cBook)">
+      <path class="dotfill" d="M62 22c15-5.6 32-3.6 47 4.4-2.4 18-3.4 35-2.4 51.5-15-6.6-29-9-42-6Z" />
+      <path class="hatchfill" d="M94 25c6 1.6 11 4 15 6.6-2 17-3 33-2.2 48-4.6-2.2-9-4-13.6-5.4Z" />
+      </g>
+      <path class="w2" d="M9 26c17-8 34-10 49-4.6 15-5.6 32-3.6 51 4.6" />
+      <path class="w3" d="M109 26c-2.4 18-3.4 35-2.4 51.5-18.6-8-34.6-10-48.6-4.6-14-5.6-30-3.6-48.4 4.6C11 61 10 44 9 26" />
+      <path class="w2" d="M58 21.4c1.4 18 1.6 35 .6 51.4" />
+      <g class="w1 fade2">
+      <path d="M20 34c9-3.4 18-4.6 27-3.6M20 44c9-3.4 18-4.6 27-3.6M20 54c8-3 16-4.2 24-3.4" />
+      <path d="M70 30.4c9-1 18 .2 27 3.6M70 40.4c9-1 18 .2 27 3.6M74 50.6c7-.8 14 .4 21 3.4" />
+      </g>
+      <path class="redink" d="M84 21.6c2.6.8 5.2 1.8 7.8 3l-.6 20-3.4-6.4-4.4 5.2Z" />
+      </g>
       </g>
     </symbol>
 
     <!-- Controller, well used -->
-    <symbol id="pad" viewBox="0 0 120 86">
-      <g class="obj">
-        <ellipse class="obj-cast" cx="62" cy="76" rx="44" ry="5.5" />
-        <path class="obj-face"
-          d="M26 22C38 18 52 16.5 60 16.5c8 0 22 1.5 34 5.5 8 2.6 12.5 9.6 13.5 20 1 10.4-2 20-8.5 23.6-6.2 3.6-12-.4-16-6.4-3-4.6-6-7.4-10-7.4H47c-4 0-7 2.8-10 7.4-4 6-9.8 10-16 6.4C14.5 62 11.5 52.4 12.5 42 13.5 31.6 18 24.6 26 22Z" />
-        <g clip-path="url(#clipPad)">
-          <path class="sh-dots" d="M60 44c22-2 40 2 50 12 0 8-3 14-8 16.6-7 3.4-13-1-17-7-3-4.4-6-7-10-7H47c-4 0-7 2.6-10 7Z" />
-          <path class="sh-hatch" d="M74 52c14-1 26 2 34 8-1 6-3 10-7 12.4-6 3-12-1-16-7-3-4.6-6-7.4-11-13.4Z" />
-        </g>
-        <path class="obj-line w2"
-          d="M26 22C38 18 52 16.5 60 16.5c8 0 22 1.5 34 5.5 8 2.6 12.5 9.6 13.5 20 1 10.4-2 20-8.5 23.6-6.2 3.6-12-.4-16-6.4-3-4.6-6-7.4-10-7.4H47c-4 0-7 2.8-10 7.4-4 6-9.8 10-16 6.4C14.5 62 11.5 52.4 12.5 42 13.5 31.6 18 24.6 26 22Z" />
-        <path class="obj-line w2" d="M31 40.5c4.6-1 9.2-1 13.8 0" />
-        <path class="obj-line w2" d="M38 33.5c-1 4.6-1 9.2 0 13.8" />
-        <path class="obj-red" d="M82 33.4c3 0 5.2 2.2 5.2 5.2 0 3-2.4 5-5.4 4.9-2.8-.1-4.8-2.3-4.7-5.2.1-2.8 2.2-4.9 4.9-4.9Z" />
-        <path class="obj-line w2" d="M82 33.4c3 0 5.2 2.2 5.2 5.2 0 3-2.4 5-5.4 4.9-2.8-.1-4.8-2.3-4.7-5.2.1-2.8 2.2-4.9 4.9-4.9Z" />
-        <path class="obj-line w2" d="M95.5 45.6c2.9 0 5 2.2 5 5.1 0 2.9-2.3 5-5.2 4.9-2.8-.1-4.8-2.3-4.7-5.1.1-2.8 2.2-4.9 4.9-4.9Z" />
-        <path class="obj-line w4" d="M96 66.2c-6 3-11.6-.8-15.4-6.6" />
-        <g class="obj-hi"><path d="M32 26.5c8-2.6 17-4 25-4.2" /></g>
+    <symbol id="pad" viewBox="0 0 120 104">
+      <g class="la">
+      <g class="w1 fade"><path d="M28 76c16 3 40 4 62 3" /><path d="M46 82c14 1.4 32 1.4 46 .4" /></g>
+      <g clip-path="url(#cPad)">
+      <path class="dotfill" d="M62 46c20-2 38 2 46 12 0 8-3 14-8 16.6-7 3.4-13-1-17-7-3-4.4-6-7-10-7H47c-4 0-7 2.6-10 7Z" />
+      <path class="hatchfill" d="M76 54c13-1 24 2 32 8-1 6-3 10-7 12.4-6 3-12-1-16-7-3-4.6-6-7.4-9-13.4Z" />
+      </g>
+      <path class="w2" d="M26 22C38 18 52 16.5 60 16.5c8 0 22 1.5 34 5.5 8 2.6 12.5 9.6 13.5 20" />
+      <path class="w3" d="M107.5 42c1 10.4-2 20-8.5 23.6-6.2 3.6-12-.4-16-6.4-3-4.6-6-7.4-10-7.4H47c-4 0-7 2.8-10 7.4-4 6-9.8 10-16 6.4C14.5 62 11.5 52.4 12.5 42 13.5 31.6 18 24.6 26 22" />
+      <path class="w2" d="M31 40.5c4.6-1 9.2-1 13.8 0M38 33.5c-1 4.6-1 9.2 0 13.8" />
+      <path class="redink" d="M82 33.4c3 0 5.2 2.2 5.2 5.2 0 3-2.4 5-5.4 4.9-2.8-.1-4.8-2.3-4.7-5.2.1-2.8 2.2-4.9 4.9-4.9Z" />
+      <path class="w2" d="M95.5 45.6c2.9 0 5 2.2 5 5.1 0 2.9-2.3 5-5.2 4.9-2.8-.1-4.8-2.3-4.7-5.1.1-2.8 2.2-4.9 4.9-4.9Z" />
+      </g>
       </g>
     </symbol>
 
     <!-- Terminal window, with something half-typed in it -->
-    <symbol id="term" viewBox="0 0 120 100">
-      <g class="obj">
-        <ellipse class="obj-cast" cx="62" cy="92" rx="46" ry="5.5" />
-        <path class="obj-face"
-          d="M8 16c34-3 70-3 104 0 3 .3 4.4 2 4.4 5 .6 20 .6 40 0 58-.2 3-1.4 4.4-4.4 4.6-34 3-68 3-100 0-3-.3-4.2-1.6-4.4-4.6-.6-19-.6-38 0-58 .2-3 1.4-4.6 4.4-5Z" />
-        <!-- the screen itself is dark, which is where the depth comes from -->
-        <path class="obj-screen"
-          d="M9.4 31.5c33-2.4 68-2.4 101 0 .5 15.5.5 31 0 46.5-33 2.6-68 2.6-101 0-.6-15.5-.6-31 0-46.5Z" />
-        <g clip-path="url(#clipTerm)">
-          <path class="sh-hatch" d="M104 17c5 .4 7.4 2 7.6 5 .8 20 .8 40 0 58-.2 3-2.6 4.6-7.6 5Z" />
-        </g>
-        <path class="obj-line w2"
-          d="M8 16c34-3 70-3 104 0 3 .3 4.4 2 4.4 5 .6 20 .6 40 0 58-.2 3-1.4 4.4-4.4 4.6-34 3-68 3-100 0-3-.3-4.2-1.6-4.4-4.6-.6-19-.6-38 0-58 .2-3 1.4-4.6 4.4-5Z" />
-        <path class="obj-line w2" d="M8.4 30.5c34-2.6 70-2.6 103.6 0" />
-        <g class="obj-line w2">
-          <path d="M18.5 21.4c1.7 0 3 1.3 3 3 0 1.7-1.4 3-3.1 2.9-1.6-.1-2.8-1.4-2.8-3 0-1.6 1.3-2.9 2.9-2.9Z" />
-          <path d="M28.5 21.6c1.7 0 3 1.3 3 3 0 1.7-1.4 3-3.1 2.9-1.6-.1-2.8-1.4-2.8-3 0-1.6 1.3-2.9 2.9-2.9Z" />
-          <path d="M38.5 21.4c1.7 0 3 1.3 3 3 0 1.7-1.4 3-3.1 2.9-1.6-.1-2.8-1.4-2.8-3 0-1.6 1.3-2.9 2.9-2.9Z" />
-        </g>
-        <path class="obj-red" d="M19 45.6l9.4 6.6-9.6 6.6-1.8-2.6 6-4-5.8-4.2Z" />
-        <g class="obj-glow"><path d="M34 53c12-2 24-2 34 .2M18.5 68c20-2 40-2 44 .2" /></g>
-        <path class="obj-line w4" d="M12 83.4c32 2.6 66 2.6 100 0" />
+    <symbol id="term" viewBox="0 0 120 104">
+      <g class="la">
+      <g class="w1 fade"><path d="M24 92c18 3 44 4 68 3" /><path d="M42 98c16 1.4 34 1.4 48 .4" /></g>
+      <path class="dotfill" d="M9.4 31.5c33-2.4 68-2.4 101 0 .5 15.5.5 31 0 46.5-33 2.6-68 2.6-101 0-.6-15.5-.6-31 0-46.5Z" />
+      <g clip-path="url(#cTerm)"><path class="hatchfill" d="M104 17c5 .4 7.4 2 7.6 5 .8 20 .8 40 0 58-.2 3-2.6 4.6-7.6 5Z" /></g>
+      <path class="w2" d="M8 16c34-3 70-3 104 0 3 .3 4.4 2 4.4 5 .6 20 .6 40 0 58" />
+      <path class="w3" d="M116.4 79c-.2 3-1.4 4.4-4.4 4.6-34 3-68 3-100 0-3-.3-4.2-1.6-4.4-4.6-.6-19-.6-38 0-58 .2-3 1.4-4.6 4.4-5" />
+      <path class="w2" d="M8.4 30.5c34-2.6 70-2.6 103.6 0" />
+      <g class="w2">
+      <path d="M18.5 21.4c1.7 0 3 1.3 3 3 0 1.7-1.4 3-3.1 2.9-1.6-.1-2.8-1.4-2.8-3 0-1.6 1.3-2.9 2.9-2.9Z" />
+      <path d="M28.5 21.6c1.7 0 3 1.3 3 3 0 1.7-1.4 3-3.1 2.9-1.6-.1-2.8-1.4-2.8-3 0-1.6 1.3-2.9 2.9-2.9Z" />
+      <path d="M38.5 21.4c1.7 0 3 1.3 3 3 0 1.7-1.4 3-3.1 2.9-1.6-.1-2.8-1.4-2.8-3 0-1.6 1.3-2.9 2.9-2.9Z" />
+      </g>
+      <path class="redink" d="M19 45.6l9.4 6.6-9.6 6.6-1.8-2.6 6-4-5.8-4.2Z" />
+      <g class="w2"><path d="M34 53c12-2 24-2 34 .2M18.5 68c20-2 40-2 44 .2" /></g>
+      </g>
       </g>
     </symbol>
 
     <!-- Cassette for the music panel -->
-    <symbol id="cassette" viewBox="0 0 200 140">
-      <g class="obj">
-        <ellipse class="obj-cast" cx="104" cy="130" rx="80" ry="7" />
-        <path class="obj-face"
-          d="M8.5 12c40-3 143-3.4 183 0 4 .4 6 2.4 6 6 1 32 1 66 0 100-.4 4-2.4 6-6.4 6.4-40 3-142 3-182.6 0-4-.4-6-2.4-6.4-6.4-1-34-.8-68 0-100 .2-3.6 2.2-5.6 6.4-6Z" />
-        <g clip-path="url(#clipTape)">
-          <path class="sh-dots" d="M150 10c22 .4 38 1.2 42 8 1 32 1 66 0 100-.4 5-18 7.4-42 8.4 10-38 10-78 0-116.4Z" />
-          <path class="sh-hatch" d="M176 11c12 .6 20 2 21.4 7 1 32 1 66 0 100-1 5-9 6.6-21.4 7.4 8-38 8-76 0-114.4Z" />
-        </g>
-        <path class="obj-screen"
-          d="M28 34c46-2.6 98-2.6 145 0 3 .2 4.6 1.6 4.6 4 .6 12 .6 24 0 35.4-.2 2.6-1.8 4-4.6 4.2-47 2.6-99 2.6-145 0-3-.2-4.4-1.6-4.6-4.2-.6-11.4-.6-23.4 0-35.4.2-2.4 1.8-3.8 4.6-4Z" />
-        <path class="obj-line w2"
-          d="M8.5 12c40-3 143-3.4 183 0 4 .4 6 2.4 6 6 1 32 1 66 0 100-.4 4-2.4 6-6.4 6.4-40 3-142 3-182.6 0-4-.4-6-2.4-6.4-6.4-1-34-.8-68 0-100 .2-3.6 2.2-5.6 6.4-6Z" />
-        <path class="obj-line w2"
-          d="M28 34c46-2.6 98-2.6 145 0 3 .2 4.6 1.6 4.6 4 .6 12 .6 24 0 35.4-.2 2.6-1.8 4-4.6 4.2-47 2.6-99 2.6-145 0-3-.2-4.4-1.6-4.6-4.2-.6-11.4-.6-23.4 0-35.4.2-2.4 1.8-3.8 4.6-4Z" />
-        <g class="obj-glow">
-          <circle cx="70" cy="56" r="15" />
-          <circle cx="131" cy="56" r="15" />
-          <path d="M85 56c10-3 20-3 31 0" />
-        </g>
-        <g class="obj-line w2">
-          <circle cx="70" cy="56" r="5" />
-          <circle cx="131" cy="56" r="5" />
-        </g>
-        <g class="obj-line w1 soft">
-          <path d="M48 100c34-2 70-2 105 0" />
-          <path d="M60 111c28-1.6 58-1.6 82 0" />
-        </g>
-        <path class="obj-line w4" d="M14 123.6c40 2.6 134 2.6 176 0" />
-        <g class="obj-hi"><path d="M20 20c30-2 66-2.6 96-2" /></g>
+    <symbol id="cassette" viewBox="0 0 200 146">
+      <g class="la">
+      <g class="w1 fade"><path d="M30 132c40 4 110 4.6 146 2" /><path d="M56 139c34 2 76 2 104 .6" /></g>
+      <path class="dotfill" d="M28 34c46-2.6 98-2.6 145 0 3 .2 4.6 1.6 4.6 4 .6 12 .6 24 0 35.4-.2 2.6-1.8 4-4.6 4.2-47 2.6-99 2.6-145 0-3-.2-4.4-1.6-4.6-4.2-.6-11.4-.6-23.4 0-35.4.2-2.4 1.8-3.8 4.6-4Z" />
+      <path class="hatchfill" d="M160 12c18 .6 30 1.8 32 6 1 32 1 66 0 100-.4 5-14 6.6-32 7.4 8-38 8-76 0-113.4Z" />
+      <path class="w2" d="M8.5 12c40-3 143-3.4 183 0 4 .4 6 2.4 6 6 1 32 1 66 0 100" />
+      <path class="w4" d="M197.5 118c-.4 4-2.4 6-6.4 6.4-40 3-142 3-182.6 0-4-.4-6-2.4-6.4-6.4-1-34-.8-68 0-100 .2-3.6 2.2-5.6 6.4-6" />
+      <path class="w2" d="M28 34c46-2.6 98-2.6 145 0 3 .2 4.6 1.6 4.6 4 .6 12 .6 24 0 35.4-.2 2.6-1.8 4-4.6 4.2-47 2.6-99 2.6-145 0-3-.2-4.4-1.6-4.6-4.2-.6-11.4-.6-23.4 0-35.4.2-2.4 1.8-3.8 4.6-4Z" />
+      <g class="w2">
+      <circle cx="70" cy="56" r="15" /><circle cx="70" cy="56" r="5" />
+      <circle cx="131" cy="56" r="15" /><circle cx="131" cy="56" r="5" />
+      <path d="M85 56c10-3 20-3 31 0" />
+      </g>
+      <g class="w1 fade2"><path d="M48 100c34-2 70-2 105 0" /><path d="M60 111c28-1.6 58-1.6 82 0" /></g>
+      </g>
       </g>
     </symbol>
 
@@ -406,7 +338,7 @@
             d="M150 8c62 0 118 44 130 100 12 58-24 122-84 146-58 24-128 4-158-48C8 154 22 82 74 40 96 20 122 8 150 8Z" />
         </svg>
         <button class="hat-hit" type="button" aria-label="Poke the hat">
-          <svg class="hat" viewBox="0 0 200 152" aria-hidden="true"><use href="#hat" /></svg>
+          <svg class="hat" viewBox="0 0 200 132" aria-hidden="true"><use href="#hat" /></svg>
           <span class="pop pop-1" aria-hidden="true"><svg viewBox="0 0 40 40"><use href="#sparkle" /></svg></span>
           <span class="pop pop-2" aria-hidden="true"><svg viewBox="0 0 40 40"><use href="#sparkle" /></svg></span>
           <span class="pop pop-3" aria-hidden="true"><svg viewBox="0 0 40 40"><use href="#sparkle" /></svg></span>
@@ -488,14 +420,6 @@
       </div>
     </section>
 
-    <!-- ══════════════ Projects ══════════════ -->
-    <section class="desk reveal" id="desk" aria-labelledby="desk-h" hidden>
-      <h2 class="label" id="desk-h">on my desk</h2>
-      <p class="lede">Some of it works. Most of it is private, so there is
-        nothing to click — you get the gist instead.</p>
-      <ul class="cards" id="desk-cards"></ul>
-    </section>
-
     <!-- ══════════════ About + shelf, side by side ══════════════ -->
     <div class="band reveal">
       <section class="about" aria-labelledby="about-h">
@@ -522,15 +446,15 @@
         <h2 class="label" id="into-h">i'm into</h2>
         <ul class="shelf">
           <li>
-            <svg viewBox="0 0 120 104" aria-hidden="true"><use href="#manga" /></svg>
+            <svg viewBox="0 0 120 100" aria-hidden="true"><use href="#manga" /></svg>
             <span>anime &amp; manga, a lot of it</span>
           </li>
           <li>
-            <svg viewBox="0 0 120 86" aria-hidden="true"><use href="#pad" /></svg>
+            <svg viewBox="0 0 120 104" aria-hidden="true"><use href="#pad" /></svg>
             <span>games, way too many</span>
           </li>
           <li>
-            <svg viewBox="0 0 120 100" aria-hidden="true"><use href="#term" /></svg>
+            <svg viewBox="0 0 120 104" aria-hidden="true"><use href="#term" /></svg>
             <span>whatever I'm building this week</span>
           </li>
         </ul>
@@ -559,7 +483,7 @@
           </div>
         </div>
 
-        <svg class="cassette" viewBox="0 0 200 140" aria-hidden="true"><use href="#cassette" /></svg>
+        <svg class="cassette" viewBox="0 0 200 146" aria-hidden="true"><use href="#cassette" /></svg>
       </div>
     </section>
 
@@ -572,7 +496,6 @@
     </footer>
   </main>
 
-  <script src="projects.js" defer></script>
   <script src="script.js" defer></script>
 </body>
 

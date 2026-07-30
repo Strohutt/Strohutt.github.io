@@ -2,8 +2,7 @@
    strohut — the small stuff
    1. Light switch. Night is the default.
    2. Sections inking in as you scroll, and a pokeable hat.
-   3. The desk cards, read straight out of projects.js.
-   4. Live Discord presence over the Lanyard socket.
+   3. Live Discord presence over the Lanyard socket.
    ════════════════════════════════════════════════════════════════ */
 
 const DISCORD_ID = '402858450926829568';
@@ -128,62 +127,6 @@ hatHit.addEventListener('animationend', event => {
     hatHit.classList.remove('is-poked');
   }
 });
-
-/* ────────────────────────── On my desk ─────────────────────────── */
-
-// projects.js is the only place to edit. No list, no section.
-const desk = document.getElementById('desk');
-const deskCards = document.getElementById('desk-cards');
-
-if (Array.isArray(window.PROJECTS) && window.PROJECTS.length) {
-  deskCards.replaceChildren(...window.PROJECTS.map(projectCard));
-  desk.hidden = false;
-}
-
-function projectCard(project) {
-  const li = document.createElement('li');
-  li.className = 'card';
-
-  // Three drawn sheets, offset, so the card is a stack and not a box
-  const sheet = cls =>
-    `<svg class="frame ${cls}" viewBox="0 0 300 200" preserveAspectRatio="none" aria-hidden="true">` +
-    '<use href="#frame" /></svg>';
-
-  li.insertAdjacentHTML('afterbegin', sheet('sheet-b2') + sheet('sheet-b1') + sheet('sheet-top'));
-
-  const name = document.createElement('p');
-  name.className = 'card-name';
-  name.textContent = project.name;
-  li.append(name);
-
-  if (project.stack) {
-    const stack = document.createElement('span');
-    stack.className = 'card-stack';
-    stack.textContent = project.stack;
-    li.append(stack);
-  }
-
-  // Missing on purpose when nothing has been written about it yet
-  if (project.note) {
-    const note = document.createElement('p');
-    note.className = 'card-note';
-    note.textContent = project.note;
-    li.append(note);
-  }
-
-  const stamp = document.createElement('span');
-  stamp.className = 'stamp';
-  stamp.insertAdjacentHTML(
-    'afterbegin',
-    '<svg viewBox="0 0 130 48" aria-hidden="true"><use href="#stamp" /></svg>'
-  );
-  const word = document.createElement('em');
-  word.textContent = 'private';
-  stamp.append(word);
-  li.append(stamp);
-
-  return li;
-}
 
 /* ───────────────────────── Discord presence ────────────────────── */
 
