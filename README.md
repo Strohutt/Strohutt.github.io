@@ -136,6 +136,14 @@ markup only holds a bare track id, so the title comes from Spotify's
 oembed endpoint — no key, no auth. If that is blocked the panel keeps the
 wording it already had.
 
+## Cache
+
+`index.html` asks for `styles.css?v=N` and `script.js?v=N`. GitHub Pages
+does not fingerprint filenames and browsers hold onto both files, so
+**bump N whenever either changes** — otherwise a returning visitor gets
+new markup against an old stylesheet, which looks far more broken than a
+page that simply did not update.
+
 ## Running it locally
 
 ```sh
