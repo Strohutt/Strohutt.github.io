@@ -10,7 +10,7 @@ favicon, open them and type.
 | ------------- | ----------------------------------------------------- |
 | `index.html`  | The page, plus every drawn thing as inline SVG         |
 | `styles.css`  | The panel system, the palette, the black flash         |
-| `script.js`   | Panels arriving, the black flash, the Discord presence |
+| `script.js`   | Reveals, the black flash, the hit targets, the presence |
 | `favicon.svg` | The wheel                                              |
 
 ## The look
@@ -79,15 +79,16 @@ a wire. `cloudBar()` widens any pair that comes up short.
 pair of circles and the opposite sweep direction.** Reusing the top-edge
 maths gives a zigzag with spikes hanging off it.
 
-## Japanese
+## Things you can hit
 
-Small vertical labels: 領域展開 domain expansion, 現在 now, 音楽 music.
-黒閃 on the counter is black flash.
+Every drawn thing answers to a click, and answers the way that thing
+would: the wheel adapts a spoke, the cloud gets shoved along, the flag
+swings on its pole, the stroke under the name is pulled again. They are
+real `<button>` elements so a keyboard reaches them, with every scrap of
+button styling taken off — the drawing is the control.
 
-They are stacked as individual `<span>` elements rather than with
-`writing-mode: vertical-rl`, because vertical layout needs vertical
-metrics that a fallback font may not have — and when it doesn't, every
-glyph lands on top of the last one.
+Clicking anywhere else may land a black flash. 黒閃 on the counter is what
+that is.
 
 ## Discord presence
 
