@@ -2,7 +2,7 @@
 const { spawn } = require('node:child_process');
 const path = require('node:path');
 
-const SUITES = ['page', 'flash', 'upstream', 'limits'];
+const SUITES = ['source', 'page', 'flash', 'upstream', 'limits'];
 const PORT = process.env.PORT || 8899;
 
 const serve = spawn('python3', ['-m', 'http.server', String(PORT), '--directory', path.join(__dirname, '..')],

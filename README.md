@@ -175,10 +175,11 @@ npm install
 npm test
 ```
 
-Four suites, run against a local server:
+Five suites:
 
 | | |
 | --- | --- |
+| `source` | No browser. Asset versions agree across both pages, every `use` has a symbol and no symbol is unused, nothing styles a cloned symbol through a descendant selector, every `getElementById` has an element, `:has()` and `overflow: clip` are not load-bearing |
 | `page` | Nothing hidden without javascript, no sideways scroll from 1600 to 320, every hit target reacts, keyboard reaches all of them, no tap target under 44px |
 | `flash` | The timing window lands and misses where it should, rings never pile up, holding forever resolves, touch does not strand one, reduced motion stays still, the best score survives a reload |
 | `upstream` | Every upstream dead, github rate limited, github answering junk, twenty activities, a 200-character track title, a malformed presence payload, localStorage refusing to open |
