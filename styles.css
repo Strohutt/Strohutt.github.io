@@ -6,10 +6,19 @@
    drawings are cropped by the panel edges the way a panel crops a
    drawing. One thing is allowed to break a gutter, and it does it once.
 
-   Ink, paper, and a single red. Gold exists only inside the wheel and
-   the straw hat, because those two objects are gold and repainting them
-   would lose them. There is no fourth colour and no gradient anywhere —
-   soft glow on black is the look every dark template already has.
+   One drawing rule, applied to everything: line art, paper-white stroke,
+   ink fill so that shapes occlude one another. No gloss, no specular
+   highlight, no gradient, no solid colour fields. Red is not decoration —
+   it marks exactly two things, the loop of binding and the black flash.
+   The flag is the one solid, because a flag is a silhouette.
+
+   Objects drawn in four different languages is what made an earlier
+   version read as clutter, not the number of them.
+
+   Depth is line weight, the way it is on a drawn page: the loop and the
+   flag are foreground and carry the heaviest line, the cloud sits in the
+   middle, the wheel and the speed lines are background and are drawn
+   thin. Every line at the same weight is what makes a page read flat.
    ════════════════════════════════════════════════════════════════ */
 
 :root {
@@ -24,8 +33,6 @@
   --paper-3: #6f6c66;
 
   --blood: #e01b2e;
-  --gold: #d8b45e;
-  --gold-dark: #6a5320;
 
   --rule: 2px;
   --gut: clamp(.75rem, 1.8vw, 1.5rem);
@@ -183,7 +190,7 @@ a {
   aspect-ratio: 1;
   translate: 0 -50%;
   pointer-events: none;
-  opacity: .8;
+  opacity: .38;
 }
 
 .wheel {
@@ -204,21 +211,22 @@ a {
   to { transform: rotate(calc(var(--adapt) * 45deg + 360deg)); }
 }
 
+/* ink fill, not none — the spokes have to be occluded by the rim */
 .mg-body {
-  fill: var(--gold);
-  stroke: var(--gold-dark);
-  stroke-width: 3.4;
+  fill: var(--ink-2);
+  stroke: var(--paper);
+  stroke-width: 2;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
 
+/* the gloss highlight is the thing that made this read as a game asset */
 .mg-lit {
-  fill: #f0dda6;
-  opacity: .45;
+  display: none;
 }
 
 /* each adaptation burns a little hotter */
-.hero.is-adapted .mg-body { fill: #e8c877; stroke: #8a6c2a; }
+.hero.is-adapted .mg-body { stroke: var(--blood); }
 
 .hero-text {
   position: relative;
@@ -238,26 +246,24 @@ a {
 }
 
 .lb-body {
-  fill: var(--blood);
-  stroke: #4a0a11;
-  stroke-width: 3.4;
+  fill: var(--ink-2);
+  stroke: var(--blood);
+  stroke-width: 5;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
 
+/* the far side of the hoop, sunk behind */
 .lb-far {
-  fill: #6d0e1a;
-  stroke: #3a060d;
+  fill: var(--ink-2);
+  stroke: var(--blood);
   stroke-width: 3;
+  stroke-opacity: .3;
   stroke-linejoin: round;
 }
 
 .lb-lit {
-  fill: none;
-  stroke: #ff8b96;
-  stroke-width: 3.2;
-  stroke-opacity: .8;
-  stroke-linecap: round;
+  display: none;
 }
 
 .name {
@@ -344,7 +350,7 @@ a {
 .cb-body {
   fill: var(--ink);
   stroke: var(--paper);
-  stroke-width: 2.6;
+  stroke-width: 3;
   stroke-linejoin: round;
 }
 
@@ -399,7 +405,7 @@ a {
 }
 
 .dot.is-online { background: var(--blood); }
-.dot.is-idle { background: var(--gold); }
+.dot.is-idle { background: var(--paper-2); }
 .dot.is-dnd { background: var(--blood); opacity: .55; }
 .dot.is-offline { background: var(--paper-3); }
 
@@ -569,9 +575,10 @@ a {
   stroke-linejoin: round;
 }
 
+/* the flag is the one solid — a jolly roger is a silhouette */
 .jr-bone { fill: var(--paper); }
 .jr-hole { fill: var(--ink); stroke: none; }
-.jr-straw { fill: var(--gold); }
+.jr-straw { fill: var(--paper); }
 .jr-band { fill: var(--blood); }
 
 .jr-teeth {

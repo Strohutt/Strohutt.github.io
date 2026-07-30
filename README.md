@@ -20,12 +20,22 @@ real gutters between them, each one cut on the skew, and the drawings are
 cropped by the panel edges the way a panel crops a drawing. Exactly one
 thing is allowed to break a gutter, and it does it once.
 
-Ink, paper, and a single red — no fourth colour and no gradient anywhere.
-Soft glow on black is the look every dark template already has. Shading is
-a screentone dot grid, which is what shades a manga panel.
+One drawing rule, applied to everything: line art, paper-white stroke, ink
+fill so shapes occlude one another. No gloss, no specular highlight, no
+gradient, no solid colour fields. Red is not decoration — it marks exactly
+two things, the loop of binding and the black flash. The flag is the one
+solid, because a flag is a silhouette.
 
-Gold exists only inside the wheel and the straw hat, because those two
-objects are gold and repainting them would lose them.
+Objects drawn in four different languages is what made an earlier version
+read as clutter, not the number of them.
+
+Depth is line weight, the way it is on a drawn page: the loop and the flag
+are foreground and carry the heaviest line, the cloud sits in the middle,
+the wheel and the speed lines are background and are drawn thin. Every
+line at the same weight is what makes a page read flat.
+
+Shading is a screentone dot grid, which is what shades a manga panel. Soft
+glow on black is what shades a dark template.
 
 ## The drawn things
 
@@ -33,7 +43,7 @@ Traced off panels rather than invented.
 
 | | |
 | --- | --- |
-| **Mahoraga's wheel** | Cropped by the right edge of the header. Hub sphere, eight spokes running through the rim, eight spheres outside it. It clicks round a step at a time rather than gliding — adaptation lands, it does not ease — and lurches a whole spoke every time a black flash hits. |
+| **Mahoraga's wheel** | Background, drawn thin, cropped by the right edge of the header. Hub sphere, eight spokes running through the rim, eight spheres outside it. It clicks round a step at a time rather than gliding — adaptation lands, it does not ease — and lurches a whole spoke every time a black flash hits. |
 | **The loop of binding** | Round the name. A metal ring that floats about the forehead, red once Mori reaches nirvana. It is a hoop, not a headband, so the name sits inside it: near edge over the top, far edge sunk behind the letters. |
 | **The cloud scarf** | Crossing the gutter under the header. The band that hangs round Luffy in gear 5 — white where every other zoan awakening billows black. |
 | **黒閃** | Click anywhere. Cursed energy landing inside a millionth of a second of the hit; it is named for the black, so the bolts are black and the red is only the edge. The odds climb while you are on a streak and reset the moment you miss. |
