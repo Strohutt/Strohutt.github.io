@@ -1,10 +1,13 @@
 /* ════════════════════════════════════════════════════════════════
    strohut — the small stuff
    1. Light switch. Night is the default.
-   2. Live Discord presence over the Lanyard socket.
+   2. Sections inking in as you scroll, and a pokeable hat.
+   3. Live Discord presence over the Lanyard socket.
    ════════════════════════════════════════════════════════════════ */
 
 const DISCORD_ID = '402858450926829568';
+
+const stillPlease = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 /* ─────────────────────────── Light switch ──────────────────────── */
 
@@ -45,6 +48,222 @@ function setTheme(theme) {
   document
     .querySelector('meta[name="theme-color"]')
     .setAttribute('content', theme === 'night' ? '#15171d' : '#f2ecdf');
+  document.dispatchEvent(new CustomEvent('inkchange'));
+}
+
+/* ──────────────────── Inking in, and the hat ───────────────────── */
+
+// Sections fade up once, then the observer lets go of them
+const sections = document.querySelectorAll('.reveal');
+
+if (stillPlease.matches || !('IntersectionObserver' in window)) {
+  sections.forEach(s => s.classList.add('is-in'));
+} else {
+  const watcher = new IntersectionObserver(
+    (entries, self) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-in');
+        self.unobserve(entry.target);
+      });
+    },
+    { rootMargin: '0px 0px -12% 0px', threshold: 0.12 }
+  );
+  sections.forEach(s => watcher.observe(s));
+}
+
+/* Depth by parallax: the cover is stacked layers, and they move by
+   different amounts. Pointer gives the tilt, scroll gives the drift.
+   One rAF per frame, and two custom properties the CSS reads. */
+const hero = document.querySelector('.hero');
+let pointerX = 0;
+let pointerY = 0;
+let drift = 0;
+let queued = false;
+
+function paintDepth() {
+  queued = false;
+  hero.style.setProperty('--px', pointerX.toFixed(3));
+  hero.style.setProperty('--py', pointerY.toFixed(3));
+  hero.style.setProperty('--drift', drift.toFixed(3));
+}
+
+function queueDepth() {
+  if (queued) return;
+  queued = true;
+  requestAnimationFrame(paintDepth);
+}
+
+if (!stillPlease.matches) {
+  // Fine pointers only. On a touchscreen there is nothing to track.
+  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    window.addEventListener('pointermove', event => {
+      pointerX = (event.clientX / window.innerWidth - 0.5) * 2;
+      pointerY = (event.clientY / window.innerHeight - 0.5) * 2;
+      queueDepth();
+    }, { passive: true });
+  }
+
+  window.addEventListener('scroll', () => {
+    // only while the cover is still on screen
+    const past = Math.min(1, window.scrollY / Math.max(1, window.innerHeight));
+    drift = past;
+    queueDepth();
+  }, { passive: true });
+}
+
+// Poking the hat makes it wobble and throw sparkles
+const hatHit = document.querySelector('.hat-hit');
+
+hatHit.addEventListener('click', () => {
+  if (stillPlease.matches) return;
+  hatHit.classList.remove('is-poked');
+  // reflow, otherwise a second click inside the animation does nothing
+  void hatHit.offsetWidth;
+  hatHit.classList.add('is-poked');
+});
+
+hatHit.addEventListener('animationend', event => {
+  // the third sparkle lands last, well after the hat itself settles
+  if (event.target.classList.contains('pop-3')) {
+    hatHit.classList.remove('is-poked');
+  }
+});
+
+/* ───────────────────────────── Doodle box ──────────────────────── */
+
+const pad = document.getElementById('doodle-pad');
+
+if (pad) {
+  const ctx = pad.getContext('2d');
+  const wrap = pad.parentElement;
+  const PENS = { ink: '--ink', red: '--red', straw: '--straw' };
+
+  let pen = 'ink';
+  let strokes = [];
+  let current = null;
+
+  try {
+    const saved = JSON.parse(localStorage.getItem('strohut-doodle'));
+    if (saved && Array.isArray(saved.strokes)) strokes = saved.strokes;
+  } catch {
+    /* fresh sheet then */
+  }
+
+  function inkOf(name) {
+    return getComputedStyle(root).getPropertyValue(PENS[name] || '--ink').trim();
+  }
+
+  function drawStroke(s) {
+    ctx.strokeStyle = inkOf(s.c);
+    ctx.lineWidth = 2.6 * (window.devicePixelRatio || 1);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    s.pts.forEach(([x, y], i) => {
+      if (i === 0) ctx.moveTo(x * pad.width, y * pad.height);
+      else ctx.lineTo(x * pad.width, y * pad.height);
+    });
+    ctx.stroke();
+  }
+
+  function redraw() {
+    ctx.clearRect(0, 0, pad.width, pad.height);
+    strokes.forEach(drawStroke);
+    if (current) drawStroke(current);
+  }
+
+  function fit() {
+    const dpr = window.devicePixelRatio || 1;
+    const box = wrap.getBoundingClientRect();
+    pad.width = Math.round(box.width * dpr);
+    pad.height = Math.round(box.height * dpr);
+    redraw();
+  }
+
+  function save() {
+    // oldest strokes fall off the sheet before storage fills up
+    let total = strokes.reduce((n, s) => n + s.pts.length, 0);
+    while (total > 20000 && strokes.length > 1) {
+      total -= strokes.shift().pts.length;
+    }
+    try {
+      localStorage.setItem('strohut-doodle', JSON.stringify({ strokes }));
+    } catch {
+      /* it just won't survive a reload */
+    }
+  }
+
+  function at(event) {
+    const box = pad.getBoundingClientRect();
+    return [
+      Math.min(1, Math.max(0, (event.clientX - box.left) / box.width)),
+      Math.min(1, Math.max(0, (event.clientY - box.top) / box.height))
+    ];
+  }
+
+  pad.addEventListener('pointerdown', event => {
+    event.preventDefault();
+    pad.setPointerCapture(event.pointerId);
+    const start = at(event);
+    // the second point makes a lone tap show up as a dot
+    current = { c: pen, pts: [start, [start[0] + 0.0005, start[1]]] };
+    redraw();
+  });
+
+  pad.addEventListener('pointermove', event => {
+    if (!current) return;
+    const prev = current.pts[current.pts.length - 1];
+    const next = at(event);
+    current.pts.push(next);
+    ctx.strokeStyle = inkOf(current.c);
+    ctx.lineWidth = 2.6 * (window.devicePixelRatio || 1);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(prev[0] * pad.width, prev[1] * pad.height);
+    ctx.lineTo(next[0] * pad.width, next[1] * pad.height);
+    ctx.stroke();
+  });
+
+  function penUp() {
+    if (!current) return;
+    strokes.push(current);
+    current = null;
+    save();
+  }
+
+  pad.addEventListener('pointerup', penUp);
+  pad.addEventListener('pointercancel', penUp);
+
+  document.querySelectorAll('.pen').forEach(button => {
+    button.addEventListener('click', () => {
+      pen = button.dataset.pen;
+      document.querySelectorAll('.pen').forEach(b =>
+        b.setAttribute('aria-pressed', String(b === button)));
+    });
+  });
+
+  document.querySelector('.wipe').addEventListener('click', () => {
+    strokes = [];
+    current = null;
+    save();
+    redraw();
+  });
+
+  // theme flips re-ink every stroke in the new palette
+  document.addEventListener('inkchange', redraw);
+
+  let resizeQueued = false;
+  window.addEventListener('resize', () => {
+    if (resizeQueued) return;
+    resizeQueued = true;
+    requestAnimationFrame(() => {
+      resizeQueued = false;
+      fit();
+    });
+  });
+
+  fit();
 }
 
 /* ───────────────────────── Discord presence ────────────────────── */
@@ -64,6 +283,16 @@ const el = {
 
 const frame = el.embed.querySelector('iframe');
 const fallbackTrack = frame ? frame.src : '';
+const fallbackLink = el.link ? el.link.href : '';
+
+// The drawn face sits underneath; the photo only covers it once it
+// has actually loaded, so a blocked CDN never leaves a broken image
+el.avatar.addEventListener('load', () => {
+  el.avatar.hidden = false;
+});
+el.avatar.addEventListener('error', () => {
+  el.avatar.hidden = true;
+});
 
 const STATUS_TEXT = {
   online: 'online',
@@ -75,6 +304,18 @@ const STATUS_TEXT = {
 // Kept around so the elapsed time keeps ticking instead of freezing
 let liveTimers = [];
 let lastPresence = null;
+
+// First paint from the REST API, so the panel fills the moment the page
+// opens even if the socket takes a while. The socket then keeps it live,
+// and anything it has already delivered wins over a slow REST reply.
+fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`)
+  .then(response => response.json())
+  .then(body => {
+    if (body.success && !lastPresence) render(body.data);
+  })
+  .catch(() => {
+    /* the socket gets its turn either way */
+  });
 
 connect();
 
@@ -248,8 +489,10 @@ function showTrack(track) {
   el.kicker.textContent = track ? 'playing right now' : 'stuck in my head';
   if (frame.src !== src) frame.src = src;
 
-  if (el.link && track) {
-    el.link.href = `https://open.spotify.com/track/${track.track_id}`;
+  if (el.link) {
+    el.link.href = track
+      ? `https://open.spotify.com/track/${track.track_id}`
+      : fallbackLink;
   }
 }
 

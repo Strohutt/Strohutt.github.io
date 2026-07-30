@@ -1,10 +1,9 @@
 /* ════════════════════════════════════════════════════════════════
    strohut — ink on paper
-   Anything that looks drawn is drawn: SVG paths placed by hand.
-   No icon library, no page builder.
+   Anything that looks drawn is drawn: SVG paths, no icon library and
+   no page builder. Night is the default; day is the alternate.
    ════════════════════════════════════════════════════════════════ */
 
-/* ── Colours. Night is the default, day is the alternate. ─────── */
 :root {
   color-scheme: dark;
 
@@ -21,6 +20,7 @@
   --grain-blend: screen;
   --grain-opacity: .17;
   --tone-opacity: .3;
+  --focus-opacity: .13;
   --photo-shade: rgba(0, 0, 0, .55);
 }
 
@@ -40,6 +40,7 @@
   --grain-blend: multiply;
   --grain-opacity: .42;
   --tone-opacity: .5;
+  --focus-opacity: .12;
   --photo-shade: rgba(36, 31, 25, .16);
 }
 
@@ -48,6 +49,8 @@
   --rule-h: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='9' viewBox='0 0 480 9'%3E%3Cpath fill='none' stroke='%23000' stroke-width='2.3' stroke-linecap='round' d='M0 4.5c30-1.7 60 1.5 90 .3 30-1.3 60 1.7 90 .5 30-1.3 60 1.9 90 .7 30-1.3 60 1.5 90 .3 30-1.3 60 1.3 120-1.3'/%3E%3C/svg%3E");
   --rule-thin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='7' viewBox='0 0 480 7'%3E%3Cpath fill='none' stroke='%23000' stroke-width='1.25' stroke-linecap='round' d='M0 3.5c40-1.2 80 1.1 120 .2 40-.9 80 1.2 120 .3 40-.9 80 1.3 120 .4 40-.9 80 1 120-.9'/%3E%3C/svg%3E");
   --marker: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='60' viewBox='0 0 300 60' preserveAspectRatio='none'%3E%3Cpath fill='%23000' d='M5 14c48-6 100-8 152-7 48 1 96 3 138 8-4 12-6 24-5 36-46 5-96 7-144 6-50-1-100-4-142-9 3-11 3-22 1-34Z'/%3E%3C/svg%3E");
+  /* fat brush stroke, thick in the middle, tapering to nothing */
+  --brush: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='22' viewBox='0 0 300 22' preserveAspectRatio='none'%3E%3Cpath fill='%23000' d='M2 11.6C36 5 108 2.2 180 3.1c42 .5 84 2.4 118 5.6-34 4.4-76 6.6-118 7-72 .8-142-2-176 3.6-3-2.4-3-5.4-2-7.7Z'/%3E%3C/svg%3E");
 }
 
 /* ── Foundations ────────────────────────────────────────────── */
@@ -79,8 +82,7 @@ body::before {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    radial-gradient(120% 90% at 50% 40%, transparent 55%, var(--paper-2) 100%);
+  background: radial-gradient(120% 90% at 50% 40%, transparent 55%, var(--paper-2) 100%);
   opacity: .8;
 }
 
@@ -106,7 +108,51 @@ body::before {
 svg {
   stroke: var(--ink);
   stroke-width: 2.4;
+}
+
+/* Only the stretched frames want a stroke that ignores the stretch.
+   vector-effect does not inherit, so it has to sit on the path. */
+#frame path,
+#tape path {
   vector-effect: non-scaling-stroke;
+}
+
+/* ── Line-art objects ───────────────────────────────────────────
+   Depth lives inside the line work: nib weight (w1..w4), hatching in
+   the mode's ink, and a drawn ground of loose strokes. No fills, so
+   the drawings sit IN the page instead of on top of it. */
+.la {
+  fill: none;
+  stroke: var(--ink);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.la .w1 { stroke-width: 1.1; }
+.la .w2 { stroke-width: 2.3; }
+.la .w3 { stroke-width: 3.6; }
+.la .w4 { stroke-width: 5; }
+.la .fade { opacity: .42; }
+.la .fade2 { opacity: .6; }
+
+.la .redink {
+  fill: var(--red);
+  stroke: none;
+}
+
+.la .hatchfill { fill: url(#hatch); stroke: none; }
+.la .crossfill { fill: url(#cross); stroke: none; }
+.la .dotfill { fill: url(#dots); stroke: none; }
+
+#hatch path,
+#cross path {
+  stroke: var(--ink);
+  fill: none;
+}
+
+#dots circle {
+  fill: var(--ink);
+  stroke: none;
 }
 
 .fill-paper {
@@ -117,32 +163,23 @@ svg {
   fill: var(--red);
 }
 
-#tone circle {
+#tone circle,
+#tone-fine circle {
   fill: var(--ink);
   stroke: none;
-}
-
-#hat .hatch path {
-  stroke-width: 1.5;
-  opacity: .55;
-}
-
-#hat .band-line {
-  stroke-width: 2.2;
 }
 
 /* ── Type ───────────────────────────────────────────────────── */
 h1,
 h2,
-h3,
 .label,
-.lead,
+.shout,
 .signature,
 .deck-kicker,
 .dc-name {
   font-family: "Klee One", "Zen Kaku Gothic New", serif;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.15;
   margin: 0;
 }
 
@@ -180,9 +217,22 @@ a {
 }
 
 .lamp svg {
+  position: relative;
   width: 1.7rem;
   height: 1.7rem;
   fill: none;
+  stroke-width: 2;
+}
+
+/* paper chip underneath, so the button stays a button wherever the
+   photo happens to be scrolling past behind it */
+.lamp .lamp-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: var(--paper);
+  stroke: var(--ink-2);
   stroke-width: 2;
 }
 
@@ -199,48 +249,142 @@ a {
 .page {
   position: relative;
   z-index: 1;
-  width: min(100% - 2.6rem, 56rem);
+  width: min(100% - 2.6rem, 62rem);
   margin-inline: auto;
-  padding-block: clamp(2.2rem, 5vw, 3.8rem) 3rem;
+  padding-block: clamp(2.2rem, 5vw, 4rem) 3rem;
   display: flex;
   flex-direction: column;
-  gap: clamp(3rem, 6vw, 4.6rem);
+  gap: clamp(3.4rem, 7vw, 6rem);
 }
 
 /* ══ Cover ══════════════════════════════════════════════════ */
+/* The cover is stacked layers. --px/--py come from the pointer and
+   --drift from the scroll position; each layer multiplies them by a
+   different amount, so the stack separates as you move. */
 .hero {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   column-gap: clamp(1.2rem, 3vw, 2.4rem);
   align-items: start;
+  --px: 0;
+  --py: 0;
+  --drift: 0;
 }
 
-.hero-art {
+.hero-stage {
   position: relative;
   grid-column: 1;
-  width: clamp(8.5rem, 15vw, 11rem);
+  width: clamp(9.5rem, 17vw, 13rem);
   /* the hat sits on top of the wordmark */
-  margin: 0 0 -2.9rem .5rem;
+  margin: clamp(1rem, 4vw, 2.6rem) 0 -3.2rem .5rem;
+}
+
+/* Focus lines burst past the hat and out of the column. The radial
+   mask fades them off at the rim, so there is no hard cut at the top
+   of the page and the line under the wordmark stays readable. */
+.focus {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  width: clamp(21rem, 38vw, 33rem);
+  height: auto;
+  transform:
+    translate(-50%, -50%)
+    translate3d(calc(var(--px) * -9px), calc(var(--py) * -7px + var(--drift) * 34px), 0)
+    scale(calc(1 + var(--drift) * .07));
+  fill: var(--ink);
+  stroke: none;
+  opacity: var(--focus-opacity);
+  pointer-events: none;
+  will-change: transform;
+  mask: radial-gradient(closest-side, #000 48%, rgba(0, 0, 0, .45) 74%, transparent 96%);
+  -webkit-mask: radial-gradient(closest-side, #000 48%, rgba(0, 0, 0, .45) 74%, transparent 96%);
+}
+
+.tone-blob {
+  position: absolute;
+  left: 6%;
+  top: -30%;
+  width: 132%;
+  height: auto;
+  opacity: var(--tone-opacity);
+  stroke: none;
+  pointer-events: none;
+  transform: translate3d(calc(var(--px) * -15px), calc(var(--py) * -11px + var(--drift) * 52px), 0);
+  will-change: transform;
+}
+
+/* The hat is pokeable. It wobbles and throws sparkles. */
+.hat-hit {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transform: translate3d(calc(var(--px) * -25px), calc(var(--py) * -17px + var(--drift) * 78px), 0);
+  will-change: transform;
 }
 
 .hat {
-  position: relative;
-  z-index: 1;
   display: block;
   width: 100%;
   height: auto;
   fill: none;
   transform: rotate(-4deg);
+  transform-origin: 50% 80%;
+  transition: transform .35s cubic-bezier(.34, 1.56, .64, 1);
 }
 
-.tone-blob {
+.hat-hit:hover .hat {
+  transform: rotate(-9deg) translateY(-4px);
+}
+
+.hat-hit.is-poked .hat {
+  animation: hat-wobble .7s ease-out;
+}
+
+@keyframes hat-wobble {
+  0% { transform: rotate(-4deg); }
+  22% { transform: rotate(-16deg) translateY(-8px) scale(1.05); }
+  48% { transform: rotate(4deg) translateY(-2px); }
+  72% { transform: rotate(-8deg); }
+  100% { transform: rotate(-4deg); }
+}
+
+.pop {
   position: absolute;
-  left: 8%;
-  top: -34%;
-  width: 128%;
+  width: 26%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pop svg {
+  width: 100%;
   height: auto;
-  opacity: var(--tone-opacity);
-  stroke: none;
+  fill: var(--straw);
+  stroke: var(--ink);
+  stroke-width: 1.6;
+}
+
+.pop-1 { left: -12%; top: 4%; }
+.pop-2 { right: -14%; top: 20%; width: 19%; }
+.pop-3 { right: 8%; top: -18%; width: 15%; }
+
+.hat-hit.is-poked .pop {
+  animation: pop-out .75s ease-out;
+}
+
+.hat-hit.is-poked .pop-2 { animation-delay: .07s; }
+.hat-hit.is-poked .pop-3 { animation-delay: .14s; }
+
+@keyframes pop-out {
+  0% { opacity: 0; transform: scale(.2) rotate(-30deg); }
+  35% { opacity: 1; transform: scale(1.15) rotate(8deg); }
+  100% { opacity: 0; transform: scale(.85) rotate(24deg) translateY(-14px); }
 }
 
 .hero-text {
@@ -249,12 +393,14 @@ a {
 }
 
 .wordmark {
-  margin: 0 0 .35rem;
+  margin: 0 0 .4rem;
+  transform: translate3d(calc(var(--px) * -14px), calc(var(--py) * -9px + var(--drift) * 44px), 0);
+  will-change: transform;
 }
 
 .wordmark svg {
   display: block;
-  width: min(100%, 24rem);
+  width: min(100%, 30rem);
   height: auto;
   fill: none;
   stroke-width: 8.5;
@@ -263,8 +409,8 @@ a {
 
 .realname {
   margin: 0;
-  font-size: .82rem;
-  letter-spacing: .18em;
+  font-size: .84rem;
+  letter-spacing: .2em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
@@ -275,17 +421,17 @@ a {
 }
 
 .tagline {
-  margin: .9rem 0 0;
+  margin: 1rem 0 0;
   max-width: 26ch;
   font-family: "Klee One", serif;
-  font-size: clamp(1.15rem, 1rem + .8vw, 1.5rem);
-  line-height: 1.45;
+  font-size: clamp(1.2rem, 1rem + .9vw, 1.65rem);
+  line-height: 1.4;
   color: var(--ink-2);
 }
 
 /* ── Links ──────────────────────────────────────────────────── */
 .links {
-  margin-top: 1.9rem;
+  margin-top: 2rem;
   display: flex;
   flex-wrap: wrap;
   gap: .35rem 1.6rem;
@@ -299,7 +445,7 @@ a {
   padding: .28rem .45rem .5rem;
   font-family: "Klee One", serif;
   font-weight: 600;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   text-decoration: none;
   color: var(--ink);
 }
@@ -313,11 +459,9 @@ a {
   bottom: 0;
   height: 9px;
   background: var(--ink);
-  mask-image: var(--rule-h);
-  mask-repeat: repeat-x;
+  mask: var(--rule-h) repeat-x;
   mask-size: 480px 9px;
-  -webkit-mask-image: var(--rule-h);
-  -webkit-mask-repeat: repeat-x;
+  -webkit-mask: var(--rule-h) repeat-x;
   -webkit-mask-size: 480px 9px;
   transition: background-color .2s ease;
 }
@@ -333,12 +477,10 @@ a {
   z-index: -1;
   background: var(--straw);
   opacity: 0;
-  mask-image: var(--marker);
+  mask: var(--marker) no-repeat;
   mask-size: 100% 100%;
-  mask-repeat: no-repeat;
-  -webkit-mask-image: var(--marker);
+  -webkit-mask: var(--marker) no-repeat;
   -webkit-mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
   transition: opacity .18s ease;
 }
 
@@ -352,10 +494,16 @@ a {
   background: var(--red);
 }
 
+/* on the swipe the letters go dark — cream on straw is unreadable */
+.tag:hover,
+.tag:focus-visible {
+  color: #241f19;
+}
+
 .tag svg {
   flex: none;
-  width: 1.35rem;
-  height: 1.35rem;
+  width: 1.4rem;
+  height: 1.4rem;
   fill: none;
   stroke-width: 2.1;
 }
@@ -365,10 +513,13 @@ a {
 }
 
 /* ── Taped photo and the note under it ──────────────────────── */
+/* nearest layer, so it swings the most */
 .hero-side {
   grid-column: 2;
   grid-row: 1 / span 2;
-  width: clamp(11rem, 24vw, 16rem);
+  width: clamp(11rem, 24vw, 16.5rem);
+  transform: translate3d(calc(var(--px) * -32px), calc(var(--py) * -20px + var(--drift) * 22px), 0);
+  will-change: transform;
 }
 
 .polaroid {
@@ -421,20 +572,6 @@ a {
   transform: rotate(-6deg);
 }
 
-/* the note under the photo */
-.note {
-  position: relative;
-  margin: 2.6rem 0 0;
-  padding: 1rem .95rem .9rem;
-  background: var(--paper-2);
-  box-shadow: 0 .5rem 1.2rem -.6rem var(--photo-shade);
-  font-family: "Klee One", serif;
-  font-size: .95rem;
-  line-height: 1.5;
-  color: var(--ink-2);
-  transform: rotate(-1.8deg);
-}
-
 .polaroid figcaption {
   position: relative;
   padding: .5rem .2rem .7rem;
@@ -456,38 +593,51 @@ a {
   transform: scaleX(-1) rotate(14deg);
 }
 
+/* the note under the photo */
+.note {
+  position: relative;
+  margin: 2.6rem 0 0;
+  padding: 1rem .95rem .9rem;
+  background: var(--paper-2);
+  box-shadow: 0 .5rem 1.2rem -.6rem var(--photo-shade);
+  font-family: "Klee One", serif;
+  font-size: .95rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+  transform: rotate(-1.8deg);
+}
+
 /* ══ Section headings ═══════════════════════════════════════ */
 .label {
   position: relative;
   display: inline-flex;
   align-items: flex-start;
-  gap: .3rem;
-  margin-bottom: 1.4rem;
-  font-size: clamp(1.6rem, 1.3rem + 1.4vw, 2.3rem);
+  gap: .35rem;
+  margin-bottom: 1.6rem;
+  font-size: clamp(1.9rem, 1.4rem + 2vw, 3.1rem);
   transform: rotate(-1deg);
 }
 
+/* a brush stroke, not a ruled line */
 .label::after {
   content: "";
   position: absolute;
-  left: -.15rem;
-  right: 1.4rem;
-  bottom: -.35rem;
-  height: 9px;
+  left: -.2rem;
+  right: 1.3rem;
+  bottom: -.5rem;
+  height: 13px;
   background: var(--red);
-  mask-image: var(--rule-h);
-  mask-repeat: repeat-x;
-  mask-size: 480px 9px;
-  -webkit-mask-image: var(--rule-h);
-  -webkit-mask-repeat: repeat-x;
-  -webkit-mask-size: 480px 9px;
+  mask: var(--brush) no-repeat;
+  mask-size: 100% 100%;
+  -webkit-mask: var(--brush) no-repeat;
+  -webkit-mask-size: 100% 100%;
 }
 
 .label-flick {
   flex: none;
-  width: 1rem;
-  height: 1rem;
-  margin-top: .15rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: .2rem;
   fill: var(--straw);
   stroke: var(--ink);
   stroke-width: 1.6;
@@ -500,15 +650,27 @@ a {
 
 .panel {
   position: relative;
-  max-width: 38rem;
+  max-width: 40rem;
   padding: clamp(1.4rem, 3.5vw, 2rem);
+}
+
+.frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  /* one step back from full ink, otherwise the border shouts */
+  stroke: var(--ink-2);
+  stroke-width: 2.4;
+  pointer-events: none;
 }
 
 /* ballpoint margin note, pointing at the panel */
 .aside-note {
   position: absolute;
   right: 0;
-  top: 3.2rem;
+  top: 4rem;
   width: 10.5rem;
   margin: 0;
   font-family: "Klee One", serif;
@@ -526,20 +688,8 @@ a {
   fill: none;
   stroke: var(--biro);
   stroke-width: 2;
-  /* gespiegelt, damit die Spitze nach unten links auf das Panel zeigt */
+  /* mirrored so the tip points down-left at the panel */
   transform: scaleX(-1) rotate(-7deg);
-}
-
-.frame {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  fill: none;
-  /* one step back from full ink, otherwise the border shouts */
-  stroke: var(--ink-2);
-  stroke-width: 2.4;
-  pointer-events: none;
 }
 
 .presence {
@@ -554,14 +704,27 @@ a {
   width: clamp(3.6rem, 9vw, 4.6rem);
 }
 
-.head-img {
+.head-face {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 1;
+  fill: none;
+  stroke-width: 2;
+}
+
+.head-img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   border-radius: 50%;
   filter: saturate(.88);
+}
+
+.head-img[hidden] {
+  display: none;
 }
 
 .head-dot {
@@ -575,30 +738,30 @@ a {
   transition: fill .3s ease;
 }
 
-.head-dot.is-online {
-  fill: #58a15c;
-}
-
-.head-dot.is-idle {
-  fill: var(--straw);
-}
-
-.head-dot.is-dnd {
-  fill: var(--red);
-}
+.head-dot.is-online { fill: #58a15c; }
+.head-dot.is-idle { fill: var(--straw); }
+.head-dot.is-dnd { fill: var(--red); }
 
 .presence-text {
   min-width: 0;
 }
 
 .dc-name {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
 }
 
 .dc-state {
   margin: .1rem 0 0;
   font-size: .95rem;
   color: var(--ink-3);
+}
+
+/* discord strings arrive uninvited — never let one cross the frame */
+.dc-name,
+.dc-state,
+.doing-name,
+.doing-line {
+  overflow-wrap: anywhere;
 }
 
 .doing {
@@ -631,11 +794,9 @@ a {
   top: 0;
   height: 7px;
   background: var(--ink-3);
-  mask-image: var(--rule-thin);
-  mask-repeat: repeat-x;
+  mask: var(--rule-thin) repeat-x;
   mask-size: 480px 7px;
-  -webkit-mask-image: var(--rule-thin);
-  -webkit-mask-repeat: repeat-x;
+  -webkit-mask: var(--rule-thin) repeat-x;
   -webkit-mask-size: 480px 7px;
   opacity: .7;
 }
@@ -708,6 +869,100 @@ a {
   opacity: .55;
 }
 
+/* ══ Doodle box ═════════════════════════════════════════════
+   A patch of the page visitors draw on. Strokes keep their pen name,
+   so a theme flip redraws them in the new palette. */
+.doodle-note {
+  margin: -.6rem 0 1.6rem;
+  max-width: 44ch;
+  font-family: "Klee One", serif;
+  font-size: 1.05rem;
+  color: var(--ink-2);
+}
+
+.doodle-wrap {
+  position: relative;
+  height: clamp(14rem, 34vw, 19rem);
+}
+
+.doodle-wrap canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.pens {
+  margin-top: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+}
+
+.pen {
+  width: 2.3rem;
+  height: 2.3rem;
+  padding: .3rem;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transition: transform .25s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+.pen svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  stroke: var(--ink-3);
+  stroke-width: 2;
+}
+
+.pen[data-pen="ink"] svg { fill: var(--ink); }
+.pen[data-pen="red"] svg { fill: var(--red); }
+.pen[data-pen="straw"] svg { fill: var(--straw); }
+
+.pen[aria-pressed="true"] {
+  transform: rotate(-10deg) scale(1.2);
+}
+
+.pen[aria-pressed="true"] svg {
+  stroke: var(--ink);
+}
+
+/* same drawn underline the links wear */
+.wipe {
+  position: relative;
+  margin-left: auto;
+  padding: .2rem .4rem .5rem;
+  border: 0;
+  background: none;
+  font-family: "Klee One", serif;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.wipe::after {
+  content: "";
+  position: absolute;
+  left: .1rem;
+  right: .1rem;
+  bottom: 0;
+  height: 9px;
+  background: var(--ink-3);
+  mask: var(--rule-h) repeat-x;
+  mask-size: 480px 9px;
+  -webkit-mask: var(--rule-h) repeat-x;
+  -webkit-mask-size: 480px 9px;
+}
+
+.wipe:hover {
+  color: var(--red);
+}
+
 /* ══ About and the shelf next to it ═════════════════════════ */
 .band {
   display: grid;
@@ -736,17 +991,73 @@ a {
   width: 9px;
   background: var(--red);
   opacity: .6;
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='480' viewBox='0 0 9 480'%3E%3Cpath fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' d='M4.5 0c-1.7 30 1.5 60 .3 90-1.3 30 1.7 60 .5 90-1.3 30 1.9 60 .7 90-1.3 30 1.5 60 .3 90-1.3 30 1.3 60-1.3 120'/%3E%3C/svg%3E");
-  mask-repeat: repeat-y;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='480' viewBox='0 0 9 480'%3E%3Cpath fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' d='M4.5 0c-1.7 30 1.5 60 .3 90-1.3 30 1.7 60 .5 90-1.3 30 1.9 60 .7 90-1.3 30 1.5 60 .3 90-1.3 30 1.3 60-1.3 120'/%3E%3C/svg%3E") repeat-y;
   mask-size: 9px 480px;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='480' viewBox='0 0 9 480'%3E%3Cpath fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' d='M4.5 0c-1.7 30 1.5 60 .3 90-1.3 30 1.7 60 .5 90-1.3 30 1.9 60 .7 90-1.3 30 1.5 60 .3 90-1.3 30 1.3 60-1.3 120'/%3E%3C/svg%3E");
-  -webkit-mask-repeat: repeat-y;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='480' viewBox='0 0 9 480'%3E%3Cpath fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' d='M4.5 0c-1.7 30 1.5 60 .3 90-1.3 30 1.7 60 .5 90-1.3 30 1.9 60 .7 90-1.3 30 1.5 60 .3 90-1.3 30 1.3 60-1.3 120'/%3E%3C/svg%3E") repeat-y;
   -webkit-mask-size: 9px 480px;
 }
 
 .sheet p {
   margin: 0 0 1rem;
   max-width: 46ch;
+}
+
+/* the shout, with an impact burst behind it. The letters stay dark in
+   both modes, because what is behind them is always red. */
+.shout {
+  position: relative;
+  display: inline-block;
+  margin: 1.9rem 0 1.7rem;
+  padding: .15rem 1.9rem;
+  font-size: clamp(1.5rem, 1.15rem + 1.4vw, 2.15rem);
+  color: #241f19;
+  transform: rotate(-3deg);
+}
+
+.shout-burst {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  /* stretched to the text box, so the letters land on solid red
+     rather than out on the spikes */
+  width: 136%;
+  height: 164%;
+  transform: translate(-50%, -50%);
+  fill: var(--red);
+  stroke: none;
+  z-index: -1;
+}
+
+.shout span {
+  position: relative;
+  letter-spacing: .02em;
+}
+
+.sheet b {
+  position: relative;
+  white-space: nowrap;
+}
+
+.sheet b::after {
+  content: "";
+  position: absolute;
+  left: -.05em;
+  right: -.05em;
+  bottom: -.16em;
+  height: 7px;
+  background: var(--straw);
+  mask: var(--rule-thin) repeat-x;
+  mask-size: 480px 7px;
+  -webkit-mask: var(--rule-thin) repeat-x;
+  -webkit-mask-size: 480px 7px;
+}
+
+.signature {
+  margin-top: 1.6rem;
+  font-size: 1.25rem;
+  color: var(--ink-2);
+  transform: rotate(-2deg);
+  transform-origin: left center;
 }
 
 /* ── The shelf: three drawn things, resting on a drawn line ──── */
@@ -781,11 +1092,9 @@ a {
   height: 9px;
   background: var(--ink-3);
   opacity: .55;
-  mask-image: var(--rule-h);
-  mask-repeat: repeat-x;
+  mask: var(--rule-h) repeat-x;
   mask-size: 480px 9px;
-  -webkit-mask-image: var(--rule-h);
-  -webkit-mask-repeat: repeat-x;
+  -webkit-mask: var(--rule-h) repeat-x;
   -webkit-mask-size: 480px 9px;
 }
 
@@ -795,63 +1104,23 @@ a {
 
 .shelf svg {
   flex: none;
-  width: 4.6rem;
+  width: 4.8rem;
   height: auto;
   fill: none;
+  transition: transform .3s cubic-bezier(.34, 1.56, .64, 1);
 }
 
-.shelf li:nth-child(1) svg {
-  transform: rotate(-7deg);
-}
+.shelf li:nth-child(1) svg { transform: rotate(-7deg); }
+.shelf li:nth-child(2) svg { transform: rotate(4deg); }
+.shelf li:nth-child(3) svg { transform: rotate(-3deg); }
 
-.shelf li:nth-child(2) svg {
-  transform: rotate(4deg);
-}
-
-.shelf li:nth-child(3) svg {
-  transform: rotate(-3deg);
-}
+.shelf li:hover svg { transform: rotate(0) scale(1.12); }
 
 .shelf span {
   font-family: "Klee One", serif;
-  font-size: 1rem;
+  font-size: 1.02rem;
   line-height: 1.35;
   color: var(--ink-2);
-}
-
-.lead {
-  font-size: clamp(1.3rem, 1.1rem + 1vw, 1.8rem);
-  color: var(--red);
-  letter-spacing: .02em;
-}
-
-.sheet b {
-  position: relative;
-  white-space: nowrap;
-}
-
-.sheet b::after {
-  content: "";
-  position: absolute;
-  left: -.05em;
-  right: -.05em;
-  bottom: -.16em;
-  height: 7px;
-  background: var(--straw);
-  mask-image: var(--rule-thin);
-  mask-repeat: repeat-x;
-  mask-size: 480px 7px;
-  -webkit-mask-image: var(--rule-thin);
-  -webkit-mask-repeat: repeat-x;
-  -webkit-mask-size: 480px 7px;
-}
-
-.signature {
-  margin-top: 1.6rem;
-  font-size: 1.2rem;
-  color: var(--ink-2);
-  transform: rotate(-2deg);
-  transform-origin: left center;
 }
 
 /* ══ Music ══════════════════════════════════════════════════ */
@@ -892,7 +1161,6 @@ a {
   transform: rotate(9deg);
 }
 
-
 .deck-body {
   position: relative;
   z-index: 1;
@@ -900,7 +1168,7 @@ a {
 
 .deck-kicker {
   margin-bottom: .7rem;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   color: var(--ink-2);
 }
 
@@ -941,21 +1209,22 @@ a {
 
 /* ══ Foot ═══════════════════════════════════════════════════ */
 .foot {
-  margin-top: -1.5rem;
+  position: relative;
+  margin-top: -1rem;
   text-align: center;
   font-size: .9rem;
   color: var(--ink-3);
 }
 
-.wave {
+.foot-splat {
   display: block;
-  width: min(100%, 22rem);
-  height: 1.4rem;
-  margin: 0 auto 1.2rem;
-  stroke: var(--ink-3);
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  opacity: .8;
+  width: 10rem;
+  height: auto;
+  margin: 0 auto .6rem;
+  fill: var(--ink-3);
+  stroke: none;
+  opacity: .55;
+  transform: rotate(-6deg);
 }
 
 .foot a {
@@ -968,12 +1237,42 @@ a {
   color: var(--red);
 }
 
+/* ══ Inking in on scroll ════════════════════════════════════ */
+/* armed only when scripts run, so a no-js visitor sees everything */
+[data-js] .reveal {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+  transition: opacity .7s ease, transform .7s cubic-bezier(.22, .8, .3, 1);
+}
+
+/* the panel border wipes on, like it is being drawn */
+[data-js] .reveal .frame {
+  clip-path: inset(0 100% 0 0);
+}
+
+.reveal.is-in .frame {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 1s cubic-bezier(.4, .1, .2, 1) .15s;
+}
+
 /* ══ Small screens ══════════════════════════════════════════ */
-@media (max-width: 52rem) {
+@media (max-width: 58rem) {
   /* no room for two columns, so the shelf drops under the text */
   .band {
     grid-template-columns: minmax(0, 1fr);
     row-gap: clamp(2.5rem, 6vw, 3.5rem);
+  }
+}
+
+/* below this there is no margin for the margin note to live in */
+@media (max-width: 54rem) {
+  .aside-note {
+    display: none;
   }
 }
 
@@ -1000,9 +1299,9 @@ a {
     margin-left: 1.2rem;
   }
 
-  .hero-art {
-    width: 8rem;
-    margin-bottom: -2.2rem;
+  .hero-stage {
+    width: 8.5rem;
+    margin-bottom: -2.4rem;
   }
 
   /* leave the wordmark a little air on either side */
@@ -1010,8 +1309,6 @@ a {
     width: 94%;
   }
 
-  /* margin notes need a margin, and there isn't one here */
-  .aside-note,
   .scribble-arrow {
     display: none;
   }
@@ -1043,6 +1340,15 @@ a {
   *::after {
     transition-duration: .01ms !important;
     animation-duration: .01ms !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  .reveal .frame {
+    clip-path: none;
   }
 }
 
