@@ -115,16 +115,24 @@ body {
 }
 
 .puff {
-  --ink: .58;
-  --wash: .07;
+  --ink: .6;
 }
 
 .cl-body {
-  fill: rgb(242 238 230 / var(--wash, 0));
+  fill: none;
   stroke: var(--bone);
-  stroke-width: 3;
+  stroke-width: 3.2;
   stroke-opacity: var(--ink, 0);
   stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.cl-curl {
+  fill: none;
+  stroke: var(--bone);
+  stroke-width: 2.4;
+  stroke-opacity: calc(var(--ink, 0) * .65);
+  stroke-linecap: round;
 }
 
 /* negative delays, or all six start stacked off the left edge together */
@@ -453,8 +461,7 @@ footer {
 .wheel-turn {
   transform-origin: 200px 200px;
   transform: rotate(calc(var(--adapt) * 45deg));
-  animation: turn 120s linear infinite;
-  transition: transform .55s cubic-bezier(.16, 1.2, .3, 1);
+  animation: turn 288s steps(24, end) infinite;
 }
 
 @keyframes turn {
@@ -529,14 +536,14 @@ footer {
 }
 
 /* no two are the same length or struck at the same angle */
-.rule:nth-of-type(1) { width: min(100% - 1.4rem, 62rem); transform: rotate(-1.6deg); }
+.rule:nth-of-type(1) { width: min(100% - 1.4rem, 62rem); transform: rotate(-1.4deg); }
 .rule:nth-of-type(2) { width: min(100% - 6rem, 44rem); transform: scaleX(-1) rotate(-.7deg); }
 .rule:nth-of-type(3) { width: min(100% - 2.6rem, 55rem); transform: rotate(-1.1deg); }
 .rule:nth-of-type(4) { width: min(100% - 9rem, 37rem); transform: scaleX(-1) rotate(-2.2deg); }
 
 [data-js] .rule use {
-  transform: scaleX(.06);
-  transform-origin: 450px 35px;
+  transform: scaleX(.05);
+  transform-origin: 30px 35px;
   transition: transform 1.15s cubic-bezier(.2, .9, .18, 1);
 }
 
@@ -544,7 +551,13 @@ footer {
 
 .ny-body { fill: #423d4d; stroke: #14111c; stroke-width: 3.2; stroke-linejoin: round; }
 .ny-face { fill: #5b5568; stroke: #14111c; stroke-width: 3; }
+
+/* the air torn open behind it */
+.ny-air { fill: none; stroke: var(--bone); stroke-linecap: round; }
 .ny-grain { fill: none; stroke: #17141f; stroke-width: 1.8; stroke-opacity: .9; stroke-linecap: round; }
+
+/* a gold band at each end — that is what marks the awakened staff */
+.ny-gold { fill: var(--gold); stroke: var(--gold-dark); stroke-width: 3; stroke-linejoin: round; }
 
 /* the light that says stone, not tube */
 .ny-lit { fill: none; stroke: #cbb6ee; stroke-width: 2.6; stroke-opacity: .5; stroke-linecap: round; }
@@ -1020,8 +1033,18 @@ footer a:hover {
    and the red only rims it. The bolts are filled tapers rather than
    strokes — a stroke of even width reads as a diagram. */
 .bf-bolt {
-  fill: var(--red);
-  filter: drop-shadow(0 0 12px rgba(255, 37, 71, .8));
+  fill: #08060c;
+  stroke: var(--red);
+  stroke-width: 3.2;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 12px rgba(255, 37, 71, .75));
+}
+
+.bf-spark {
+  fill: #08060c;
+  stroke: var(--red);
+  stroke-width: 2;
+  stroke-linejoin: round;
 }
 
 .bf-void {
