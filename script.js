@@ -143,9 +143,19 @@ if (pad) {
   let strokes = [];
   let current = null;
 
+  // Anything could be under that key: an older version of this page,
+  // another tab, an extension. Check every stroke before trusting it,
+  // because a bad one would throw and kill the rest of this file.
+  const looksDrawable = s =>
+    s && typeof s.c === 'string' && Array.isArray(s.pts) && s.pts.length &&
+    s.pts.every(pt => Array.isArray(pt) && pt.length === 2 &&
+      Number.isFinite(pt[0]) && Number.isFinite(pt[1]));
+
   try {
     const saved = JSON.parse(localStorage.getItem('strohut-doodle'));
-    if (saved && Array.isArray(saved.strokes)) strokes = saved.strokes;
+    if (saved && Array.isArray(saved.strokes)) {
+      strokes = saved.strokes.filter(looksDrawable);
+    }
   } catch {
     /* fresh sheet then */
   }
@@ -202,8 +212,13 @@ if (pad) {
     ];
   }
 
+  let drawingWith = null;
+
   pad.addEventListener('pointerdown', event => {
+    // one finger at a time, or a second touch would hijack the stroke
+    if (drawingWith !== null) return;
     event.preventDefault();
+    drawingWith = event.pointerId;
     pad.setPointerCapture(event.pointerId);
     const start = at(event);
     // the second point makes a lone tap show up as a dot
@@ -212,7 +227,7 @@ if (pad) {
   });
 
   pad.addEventListener('pointermove', event => {
-    if (!current) return;
+    if (!current || event.pointerId !== drawingWith) return;
     const prev = current.pts[current.pts.length - 1];
     const next = at(event);
     current.pts.push(next);
@@ -225,7 +240,9 @@ if (pad) {
     ctx.stroke();
   });
 
-  function penUp() {
+  function penUp(event) {
+    if (event && event.pointerId !== drawingWith) return;
+    drawingWith = null;
     if (!current) return;
     strokes.push(current);
     current = null;
@@ -374,7 +391,14 @@ function render(data) {
 
   if (user.avatar) {
     const ext = user.avatar.startsWith('a_') ? 'gif' : 'png';
-    el.avatar.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=128`;
+    const url = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=128`;
+    // re-assigning the same src restarts an animated avatar from frame
+    // one, and presence updates arrive on every song change
+    if (el.avatar.src !== url) el.avatar.src = url;
+  } else {
+    // no avatar on the account, so the drawn face stays
+    el.avatar.hidden = true;
+    el.avatar.removeAttribute('src');
   }
 
   // Careful: className is read-only on SVG elements
