@@ -1,0 +1,11 @@
+{
+  "name": "strohutt.github.io",
+  "private": true,
+  "description": "The site is plain html, css and js. This file exists only for the checks.",
+  "scripts": {
+    "test": "node tests/run.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}
