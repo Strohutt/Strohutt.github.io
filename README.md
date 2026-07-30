@@ -14,6 +14,7 @@ favicon, open them and type.
 | `flash.js`    | 黒閃, shared by both pages                              |
 | `script.js`   | Reveals, the hit targets, the clock, pushes, presence  |
 | `og.png`      | The share card, built from the front page's own parts  |
+| `fonts.css`, `fonts/` | The two faces, self-hosted, latin + two kanji |
 | `favicon.svg` | The wheel, drawn the same way as the one on the page   |
 | `site.webmanifest`, `apple-touch-icon.png` | For a home screen |
 
@@ -148,6 +149,16 @@ site. It is the same page with less on it — same wheel, same cloud, same
 flag — and it is still worth hitting, so `flash.js` is shared rather than
 copied. Everything in there guards on its element existing, because the
 404 does not carry all of the front page's markup.
+
+## Fonts
+
+Self-hosted. Both families are Japanese and run to thousands of glyphs;
+this page reaches basic latin plus exactly two kanji, 黒 and 閃, so only
+those subsets are here — 160K on disk, and `unicode-range` means a first
+paint pulls about 50K of it. The kanji only arrive if the counter does.
+
+That drops two render-blocking requests to a third party, and the type no
+longer depends on Google being reachable.
 
 ## Cache
 
