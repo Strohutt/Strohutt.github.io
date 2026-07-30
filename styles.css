@@ -1315,6 +1315,20 @@ body.is-domain .mg-body {
   color: var(--paper-3);
 }
 
+/* which side of the window you were on. a miss you cannot read is a miss
+   you cannot learn from. */
+.tally-hint {
+  margin-top: .25rem;
+  font-size: .66rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--paper-2);
+}
+
+.tally-hint[hidden] {
+  display: none;
+}
+
 .tally.is-hot .tally-now b {
   color: var(--blood-lit);
 }
