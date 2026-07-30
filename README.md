@@ -45,6 +45,36 @@ Empty the list and the whole section disappears.
 There are no links on the cards on purpose: none of that is public, so
 each one gets a drawn `private` stamp instead.
 
+## Why the objects look solid
+
+The hat, the cassette, the manga volume, the controller and the terminal
+are not outlines — they are lit objects. Each one is a cream face with
+dark ink over it, shaded away from a light in the upper left: halftone
+dots for the turn, `hatch` over that, `cross` at the darkest edge, then a
+heavier nib along the shadow contour and a flick of highlight where it
+catches. There is a cast shadow under each of them.
+
+That is why their colours are fixed instead of following the mode. The
+face is always light, so the ink and the hatching have to stay dark or
+the shading would read inside out. The `--obj-*` variables at the top of
+`styles.css` hold them.
+
+`vector-effect` does not inherit in SVG, so `non-scaling-stroke` sits on
+the individual paths that need it (the stretched frames), not on the
+parent `<svg>`.
+
+## Depth
+
+The cover is stacked layers, and they move by different amounts: the
+pointer tilts them and scrolling drifts them apart. `script.js` writes
+`--px`, `--py` and `--drift` onto `.hero` once per frame and each layer
+multiplies them differently — the focus lines shift about a third as far
+as the hat. Pointer tracking is fine-pointer only; there is nothing to
+follow on a touchscreen.
+
+The project cards are three drawn sheets offset behind each other, so a
+card has thickness. Hovering lifts the top one off the stack.
+
 ## Scroll and poke
 
 Sections fade up once as they come into view, and the panel border wipes

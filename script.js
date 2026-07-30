@@ -72,6 +72,46 @@ if (stillPlease.matches || !('IntersectionObserver' in window)) {
   sections.forEach(s => watcher.observe(s));
 }
 
+/* Depth by parallax: the cover is stacked layers, and they move by
+   different amounts. Pointer gives the tilt, scroll gives the drift.
+   One rAF per frame, and two custom properties the CSS reads. */
+const hero = document.querySelector('.hero');
+let pointerX = 0;
+let pointerY = 0;
+let drift = 0;
+let queued = false;
+
+function paintDepth() {
+  queued = false;
+  hero.style.setProperty('--px', pointerX.toFixed(3));
+  hero.style.setProperty('--py', pointerY.toFixed(3));
+  hero.style.setProperty('--drift', drift.toFixed(3));
+}
+
+function queueDepth() {
+  if (queued) return;
+  queued = true;
+  requestAnimationFrame(paintDepth);
+}
+
+if (!stillPlease.matches) {
+  // Fine pointers only. On a touchscreen there is nothing to track.
+  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    window.addEventListener('pointermove', event => {
+      pointerX = (event.clientX / window.innerWidth - 0.5) * 2;
+      pointerY = (event.clientY / window.innerHeight - 0.5) * 2;
+      queueDepth();
+    }, { passive: true });
+  }
+
+  window.addEventListener('scroll', () => {
+    // only while the cover is still on screen
+    const past = Math.min(1, window.scrollY / Math.max(1, window.innerHeight));
+    drift = past;
+    queueDepth();
+  }, { passive: true });
+}
+
 // Poking the hat makes it wobble and throw sparkles
 const hatHit = document.querySelector('.hat-hit');
 
@@ -104,11 +144,12 @@ function projectCard(project) {
   const li = document.createElement('li');
   li.className = 'card';
 
-  li.insertAdjacentHTML(
-    'afterbegin',
-    '<svg class="frame" viewBox="0 0 300 200" preserveAspectRatio="none" aria-hidden="true">' +
-      '<use href="#frame" /></svg>'
-  );
+  // Three drawn sheets, offset, so the card is a stack and not a box
+  const sheet = cls =>
+    `<svg class="frame ${cls}" viewBox="0 0 300 200" preserveAspectRatio="none" aria-hidden="true">` +
+    '<use href="#frame" /></svg>';
+
+  li.insertAdjacentHTML('afterbegin', sheet('sheet-b2') + sheet('sheet-b1') + sheet('sheet-top'));
 
   const name = document.createElement('p');
   name.className = 'card-name';
