@@ -10,8 +10,12 @@ favicon, open them and type.
 | ------------- | ----------------------------------------------------- |
 | `index.html`  | The page, plus every drawn thing as inline SVG         |
 | `styles.css`  | The panel system, the palette, the black flash         |
-| `script.js`   | Reveals, the black flash, the hit targets, the presence |
+| `404.html`    | The same page, for a url that is not there             |
+| `flash.js`    | 黒閃, shared by both pages                              |
+| `script.js`   | Reveals, the hit targets, the clock, pushes, presence  |
+| `og.png`      | The share card, built from the front page's own parts  |
 | `favicon.svg` | The wheel, drawn the same way as the one on the page   |
+| `site.webmanifest`, `apple-touch-icon.png` | For a home screen |
 
 ## The look
 
@@ -135,6 +139,15 @@ When nothing is playing it says so and names the pinned track instead. The
 markup only holds a bare track id, so the title comes from Spotify's
 oembed endpoint — no key, no auth. If that is blocked the panel keeps the
 wording it already had.
+
+## The 404
+
+GitHub Pages serves `404.html` for anything it cannot find, and without
+one a typo lands on GitHub's own page, which has nothing to do with this
+site. It is the same page with less on it — same wheel, same cloud, same
+flag — and it is still worth hitting, so `flash.js` is shared rather than
+copied. Everything in there guards on its element existing, because the
+404 does not carry all of the front page's markup.
 
 ## Cache
 
