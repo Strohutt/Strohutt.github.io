@@ -289,11 +289,19 @@ a {
   to { transform: rotate(calc(var(--adapt) * 45deg + 360deg)); }
 }
 
-/* ink fill, not none — the spokes have to be occluded by the rim */
-.mg-body {
-  fill: var(--ink);
+/* ink fill, not none — the spokes have to be occluded by the rim.
+   stroke and stroke-width are inherited, and inheritance is the only
+   thing that crosses a <use> shadow boundary, so they are set on the svg
+   and the animation can reach the paths. */
+.wheel {
   stroke: var(--paper);
   stroke-width: 2.4;
+}
+
+.mg-body {
+  fill: var(--ink);
+  stroke: inherit;
+  stroke-width: inherit;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
@@ -304,7 +312,7 @@ a {
 }
 
 /* each adaptation burns a little hotter */
-.hero.is-adapted .mg-body { stroke: var(--blood); }
+.hero.is-adapted .wheel { stroke: var(--blood); }
 
 /* Sized to its own content. Left as a full-width block it lies across the
    wheel, and every click meant for the wheel lands on the text instead. */
@@ -1031,12 +1039,12 @@ a {
   pointer-events: auto;
 }
 
-.wheel.is-struck .mg-body {
+.wheel.is-struck {
   animation: adapt .5s ease-out;
 }
 
 @keyframes adapt {
-  0% { stroke: var(--blood); stroke-width: 4; }
+  0% { stroke: var(--blood); stroke-width: 4.4; }
   100% { stroke: var(--paper); stroke-width: 2.4; }
 }
 
@@ -1278,7 +1286,7 @@ body.is-domain::before {
   100% { opacity: 0; scale: 1.03; }
 }
 
-body.is-domain .mg-body {
+body.is-domain .wheel {
   animation: adapt .9s ease-out;
 }
 
@@ -1426,7 +1434,7 @@ body.is-domain .mg-body {
 
   .strikes { display: none; }
 
-  .sigil.is-struck .mg-body,
+  .wheel.is-struck,
   .band.is-struck svg,
   .flag.is-struck svg,
   .brush.is-struck {
