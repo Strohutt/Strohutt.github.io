@@ -521,46 +521,50 @@ footer {
   display: none;
 }
 
-/* ── the staff between sections ─────────────────────────────────
-      Nyoibō only ever does one thing, so it does it here: it comes in
-      short and pushes out to full width as the section arrives. The
-      stone is kept dark — a light grey cylinder on this page reads as
-      chrome pipe, and four of those down a page is a radiator. */
+/* ── the cloud between sections ─────────────────────────────────
+      The scarf that hangs round Luffy in gear 5, laid out flat. It blows
+      in from one side as the section arrives; the alternating direction
+      is what stops four of them down a page reading as a radiator. */
 .rule {
   display: block;
-  width: min(100% - 1.4rem, 62rem);
+  width: min(100% - 1.4rem, 58rem);
   height: auto;
-  margin: clamp(1.6rem, 4vw, 2.8rem) auto;
+  margin: clamp(1.4rem, 3.4vw, 2.4rem) auto;
   overflow: visible;
-  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .55));
 }
 
-/* no two are the same length or struck at the same angle */
-.rule:nth-of-type(1) { width: min(100% - 1.4rem, 62rem); transform: rotate(-1.4deg); }
-.rule:nth-of-type(2) { width: min(100% - 6rem, 44rem); transform: scaleX(-1) rotate(-.7deg); }
-.rule:nth-of-type(3) { width: min(100% - 2.6rem, 55rem); transform: rotate(-1.1deg); }
-.rule:nth-of-type(4) { width: min(100% - 9rem, 37rem); transform: scaleX(-1) rotate(-2.2deg); }
+.rule:nth-of-type(1) { width: min(100% - 1.4rem, 58rem); transform: rotate(-1.2deg); }
+.rule:nth-of-type(2) { width: min(100% - 5rem, 46rem); transform: scaleX(-1) rotate(-.6deg); }
+.rule:nth-of-type(3) { width: min(100% - 2.6rem, 53rem); transform: rotate(-1.6deg); }
+.rule:nth-of-type(4) { width: min(100% - 8rem, 40rem); transform: scaleX(-1) rotate(-1.9deg); }
 
 [data-js] .rule use {
-  transform: scaleX(.05);
-  transform-origin: 30px 35px;
-  transition: transform 1.15s cubic-bezier(.2, .9, .18, 1);
+  transform: translateX(-14%) scaleX(.55);
+  transform-origin: 450px 60px;
+  opacity: 0;
+  transition: transform 1.1s cubic-bezier(.2, .9, .18, 1), opacity .8s ease;
 }
 
-[data-js] .rule.is-here use { transform: scaleX(1); }
+[data-js] .rule.is-here use {
+  transform: none;
+  opacity: 1;
+}
 
-.ny-body { fill: #423d4d; stroke: #14111c; stroke-width: 3.2; stroke-linejoin: round; }
-.ny-face { fill: #5b5568; stroke: #14111c; stroke-width: 3; }
+.cb-body {
+  fill: rgb(242 238 230 / .05);
+  stroke: var(--bone);
+  stroke-width: 2.6;
+  stroke-opacity: .82;
+  stroke-linejoin: round;
+}
 
-/* the air torn open behind it */
-.ny-air { fill: none; stroke: var(--bone); stroke-linecap: round; }
-.ny-grain { fill: none; stroke: #17141f; stroke-width: 1.8; stroke-opacity: .9; stroke-linecap: round; }
-
-/* a gold band at each end — that is what marks the awakened staff */
-.ny-gold { fill: var(--gold); stroke: var(--gold-dark); stroke-width: 3; stroke-linejoin: round; }
-
-/* the light that says stone, not tube */
-.ny-lit { fill: none; stroke: #cbb6ee; stroke-width: 2.6; stroke-opacity: .5; stroke-linecap: round; }
+.cb-curl {
+  fill: none;
+  stroke: var(--bone);
+  stroke-width: 2;
+  stroke-opacity: .5;
+  stroke-linecap: round;
+}
 
 /* ── section heads ──────────────────────────────────────────── */
 .head {
