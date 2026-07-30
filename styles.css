@@ -285,8 +285,9 @@ a {
 
 .who {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: .7rem;
+  gap: .35rem .7rem;
   margin: 0 0 .9rem;
   font-size: .74rem;
   font-weight: 700;
@@ -298,6 +299,23 @@ a {
 #clock {
   font-variant-numeric: tabular-nums;
   color: var(--paper);
+  white-space: nowrap;
+}
+
+/* narrow enough and the clock takes its own line rather than breaking
+   mid-sentence */
+@media (max-width: 30rem) {
+  .who {
+    gap: .3rem;
+  }
+
+  .who > i:last-of-type {
+    display: none;
+  }
+
+  #clock {
+    flex-basis: 100%;
+  }
 }
 
 .who i {
