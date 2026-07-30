@@ -79,6 +79,21 @@ a wire. `cloudBar()` widens any pair that comes up short.
 pair of circles and the opposite sweep direction.** Reusing the top-edge
 maths gives a zigzag with spikes hanging off it.
 
+## The clock
+
+A homepage that says "Germany" says the same thing at four in the morning
+as at noon. This one says which it is, so a visitor can work out for
+themselves whether a message is going to be answered tonight. `Intl` does
+the timezone, so summer time is not something anyone has to maintain.
+
+## Lately
+
+The five most recent repositories pushed to, with the last commit message
+on each, from GitHub's public events feed — no key, no auth.
+
+If it is rate limited or unreachable the panel stays hidden. A section
+that only ever explains its own failure is not worth a heading.
+
 ## Things you can hit
 
 Every drawn thing answers to a click, and answers the way that thing
@@ -87,8 +102,9 @@ swings on its pole, the stroke under the name is pulled again. They are
 real `<button>` elements so a keyboard reaches them, with every scrap of
 button styling taken off — the drawing is the control.
 
-Clicking anywhere else may land a black flash. 黒閃 on the counter is what
-that is.
+Clicking anywhere else may land a black flash — 黒閃 on the counter. The
+odds climb while you are on a streak and reset the moment you miss, and
+five in a row stops being a counter and takes the whole field.
 
 Both live panels are hidden when JavaScript is off. They are fed by a
 socket, and without it they would sit on "reaching discord" forever, which
@@ -119,6 +135,14 @@ When nothing is playing it says so and names the pinned track instead. The
 markup only holds a bare track id, so the title comes from Spotify's
 oembed endpoint — no key, no auth. If that is blocked the panel keeps the
 wording it already had.
+
+## Cache
+
+`index.html` asks for `styles.css?v=N` and `script.js?v=N`. GitHub Pages
+does not fingerprint filenames and browsers hold onto both files, so
+**bump N whenever either changes** — otherwise a returning visitor gets
+new markup against an old stylesheet, which looks far more broken than a
+page that simply did not update.
 
 ## Running it locally
 

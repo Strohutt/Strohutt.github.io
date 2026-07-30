@@ -3,7 +3,8 @@
    1. Sections arriving as you scroll
    2. Black flash, and the wheel that adapts to it
    3. Things you can hit
-   4. Discord presence, via Lanyard
+   4. The clock, and what he has pushed
+   5. Discord presence, via Lanyard
    ════════════════════════════════════════════════════════════════ */
 
 const DISCORD_ID = '402858450926829568';
@@ -43,6 +44,7 @@ const wheel = document.querySelector('.wheel');
 const BASE_ODDS = 0.13;
 const ODDS_STEP = 0.12;
 const ODDS_CAP = 0.55;
+const DOMAIN_AT = 5;
 
 let streak = 0;
 let adapted = 0;
@@ -103,6 +105,13 @@ function landed() {
   document.body.classList.remove('is-flashing');
   void document.body.offsetWidth;
   document.body.classList.add('is-flashing');
+
+  // a long streak stops being a counter and takes the room
+  if (streak >= DOMAIN_AT) {
+    document.body.classList.remove('is-domain');
+    void document.body.offsetWidth;
+    document.body.classList.add('is-domain');
+  }
 }
 
 if (!stillPlease.matches) {
@@ -125,6 +134,7 @@ if (!stillPlease.matches) {
 
   document.body.addEventListener('animationend', event => {
     if (event.animationName === 'room') document.body.classList.remove('is-flashing');
+    if (event.animationName === 'domain') document.body.classList.remove('is-domain');
   });
 }
 
@@ -179,6 +189,117 @@ if (nameHit && brushSvg) {
     brushSvg.innerHTML = STROKES[pull];
     knock(brushSvg, 'is-struck');
   });
+}
+
+
+/* ──────────────────────── Time where he is ─────────────────────── */
+
+/* A homepage that says "Germany" says the same thing at four in the
+   morning as at noon. This says which one it is, and lets the visitor
+   work out for themselves whether a message is going to be answered.
+   Intl does the timezone, so summer time is not something to maintain. */
+
+const clock = document.getElementById('clock');
+
+if (clock) {
+  const face = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit', hour12: false
+  });
+  const hourOf = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Berlin', hour: 'numeric', hour12: false
+  });
+
+  const readOut = h =>
+    h < 5 ? 'probably asleep'
+      : h < 9 ? 'probably still asleep'
+        : h < 12 ? 'awake, allegedly'
+          : h < 18 ? 'around'
+            : h < 23 ? 'around' : 'up too late';
+
+  const tick = () => {
+    const now = new Date();
+    const h = parseInt(hourOf.format(now), 10);
+    clock.textContent = `${face.format(now)} — ${readOut(h)}`;
+  };
+
+  tick();
+  setInterval(tick, 20000);
+}
+
+
+/* ─────────────────────── What he has pushed ────────────────────── */
+
+/* The public events feed needs no key and no auth. If it is rate limited
+   or unreachable the panel stays hidden rather than showing an apology —
+   a section that only ever explains its own failure is not worth a
+   heading. */
+
+const GH_USER = 'Strohutt';
+const pushBox = document.getElementById('pushes');
+const pushList = document.getElementById('push-list');
+
+function ago(iso) {
+  const secs = Math.max(0, (Date.now() - new Date(iso)) / 1000);
+  const [n, unit] = secs < 3600 ? [secs / 60, 'minute']
+    : secs < 86400 ? [secs / 3600, 'hour']
+      : secs < 2592000 ? [secs / 86400, 'day']
+        : [secs / 2592000, 'month'];
+  const v = Math.max(1, Math.floor(n));
+  return `${v} ${unit}${v === 1 ? '' : 's'} ago`;
+}
+
+if (pushBox && pushList) {
+  fetch(`https://api.github.com/users/${GH_USER}/events/public?per_page=60`)
+    .then(r => (r.ok ? r.json() : null))
+    .then(events => {
+      if (!Array.isArray(events)) return;
+
+      // one row per repo, carrying its most recent push
+      const seen = new Map();
+      for (const e of events) {
+        if (e.type !== 'PushEvent' || !e.repo || seen.has(e.repo.name)) continue;
+        const commits = (e.payload && e.payload.commits) || [];
+        seen.set(e.repo.name, {
+          repo: e.repo.name,
+          when: e.created_at,
+          count: (e.payload && e.payload.size) || commits.length,
+          last: commits.length ? commits[commits.length - 1].message.split('\n')[0] : ''
+        });
+        if (seen.size >= 5) break;
+      }
+      if (!seen.size) return;
+
+      pushList.replaceChildren(...[...seen.values()].map(pushRow));
+      pushBox.hidden = false;
+      pushBox.classList.add('is-in');
+    })
+    .catch(() => {
+      /* stays hidden */
+    });
+}
+
+function pushRow(p) {
+  const li = document.createElement('li');
+
+  const link = document.createElement('a');
+  link.className = 'push-repo';
+  link.href = `https://github.com/${p.repo}`;
+  link.textContent = p.repo.replace(`${GH_USER}/`, '');
+  li.append(link);
+
+  if (p.last) {
+    const msg = document.createElement('p');
+    msg.className = 'push-msg';
+    msg.textContent = p.last;
+    li.append(msg);
+  }
+
+  const meta = document.createElement('p');
+  meta.className = 'push-meta';
+  meta.textContent = `${p.count} commit${p.count === 1 ? '' : 's'} · ${ago(p.when)}`;
+  li.append(meta);
+
+  return li;
 }
 
 /* ────────────────────── Discord presence ───────────────────────── */
