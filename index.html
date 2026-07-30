@@ -4,47 +4,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <title>strohut</title>
-  <meta name="description" content="Mico, known as Strohut online. Python, Lua, TypeScript, anime, manga and way too many games.">
-  <meta name="theme-color" content="#07060b">
-
+  <title>Strohut</title>
+  <meta name="description" content="Mico. Strohut on the internet. What I'm doing right now, and where to find me.">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+  <meta property="og:title" content="Strohut">
+  <meta property="og:description" content="Mico. Strohut on the internet.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="strohut">
-  <meta property="og:description" content="Mico. Python, Lua, TypeScript, anime, manga, way too many games.">
-  <meta property="og:url" content="https://strohutt.github.io/">
-  <meta name="twitter:card" content="summary">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
-  <script>
-    // before first paint, so the reveal styles only arm when scripts run
-    document.documentElement.dataset.js = '';
-  </script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+
+  <!-- set before first paint, so nothing that js reveals starts hidden -->
+  <script>document.documentElement.setAttribute('data-js', '');</script>
 </head>
 
 <body>
-  <!-- cursed energy, drifting behind everything -->
-  <div class="veil" aria-hidden="true">
-    <span class="cloud cloud-b"></span>
-    <span class="cloud cloud-r"></span>
-    <span class="cloud cloud-v"></span>
-    <svg class="puff puff-1" viewBox="0 0 400 230"><use href="#cloud-1" /></svg>
-    <svg class="puff puff-2" viewBox="0 0 400 230"><use href="#cloud-2" /></svg>
-    <svg class="puff puff-3" viewBox="0 0 400 230"><use href="#cloud-3" /></svg>
-    <svg class="puff puff-4" viewBox="0 0 400 230"><use href="#cloud-2" /></svg>
-    <svg class="puff puff-5" viewBox="0 0 400 230"><use href="#cloud-1" /></svg>
-    <svg class="puff puff-6" viewBox="0 0 400 230"><use href="#cloud-3" /></svg>
-  </div>
-  <div class="grain" aria-hidden="true"></div>
+  <div class="tone" aria-hidden="true"></div>
   <div class="strikes" id="strikes" aria-hidden="true"></div>
 
-  <!-- Hidden until the first one lands, so it reads as something you
-       found rather than a widget bolted to the corner. -->
+  <!-- hidden until the first one lands, so it reads as something you found -->
   <div class="tally" id="tally" hidden>
     <p class="tally-label"><span>黒</span><span>閃</span></p>
     <p class="tally-now"><b id="tally-streak">0</b><span>in a row</span></p>
@@ -215,22 +198,30 @@
     </symbol>
   </svg>
 
-  <main>
+  <main class="spread">
 
     <!-- ══════════════ 領域展開 ══════════════ -->
-    <header class="domain">
-      <p class="vert vert-lead" aria-hidden="true"><span>領</span><span>域</span><span>展</span><span>開</span></p>
+    <section class="panel hero">
+      <svg class="speed" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <g class="sp"><path d="M767.87 265.35L-237.81 327.79L-237.65 330.38Z" style="opacity:0.1"/><path d="M1355.87 289.25L2015.3 370.14L2016.65 358.19Z" style="opacity:0.52"/><path d="M892.82 409.16L585.98 819.57L592.06 824.05Z" style="opacity:0.3"/><path d="M1433.67 89.23L2399.36 -271.46L2395.53 -281.54Z" style="opacity:0.44"/><path d="M844.48 244.63L-178.29 208.56L-178.48 214.3Z" style="opacity:0.19"/><path d="M1424.37 361.02L2037.05 525.92L2037.43 524.52Z" style="opacity:0.08"/><path d="M906.43 68.76L626.83 -426.93L621.33 -423.79Z" style="opacity:0.25"/><path d="M1210.09 436.44L1898.48 1084.12L1904.69 1077.46Z" style="opacity:0.33"/><path d="M748.36 217.74L28.73 127.01L28.24 130.98Z" style="opacity:0.16"/><path d="M933.21 92.11L599.88 -598.97L595.38 -596.78Z" style="opacity:0.18"/><path d="M971.85 156.26L697.53 -540.58L681.65 -534.11Z" style="opacity:0.55"/><path d="M686.69 152.1L-129.46 -97.42L-130.79 -93.06Z" style="opacity:0.19"/><path d="M1070.12 332.78L1362.57 739.54L1366.5 736.68Z" style="opacity:0.17"/><path d="M785.03 219.64L-422.64 48.83L-424.72 64.22Z" style="opacity:0.52"/><path d="M1454.65 154.82L2143.41 8.73L2142.86 6.15Z" style="opacity:0.13"/><path d="M1150.82 162.25L1936.08 -319.9L1929.66 -330.2Z" style="opacity:0.41"/><path d="M558.56 135.12L-384.31 -105.63L-384.7 -104.1Z" style="opacity:0.07"/><path d="M576.67 144.25L21.74 6.68L20.76 10.71Z" style="opacity:0.21"/><path d="M839.37 71.65L326.5 -467.32L323.61 -464.55Z" style="opacity:0.16"/><path d="M1203.04 270.53L2147.86 378.02L2149.34 364.14Z" style="opacity:0.48"/><path d="M657.61 207.76L-294.18 90.67L-294.89 96.61Z" style="opacity:0.24"/><path d="M848 113.08L385.31 -279.52L383.79 -277.74Z" style="opacity:0.1"/><path d="M845.47 247.88L-116.6 233.22L-116.66 237.69Z" style="opacity:0.15"/><path d="M823.42 130.1L411.44 -136.62L409.63 -133.8Z" style="opacity:0.14"/><path d="M599.34 210.69L-464.5 107.66L-464.73 110.06Z" style="opacity:0.1"/><path d="M951 -102.36L859.23 -666.05L854.15 -665.2Z" style="opacity:0.24"/><path d="M1498.39 249.76L2140.4 250.07L2140.39 248.81Z" style="opacity:0.07"/><path d="M1642.1 169.86L2687.21 38.72L2686.87 36.02Z" style="opacity:0.13"/><path d="M1339.36 446.73L2157.19 938.75L2160.29 933.55Z" style="opacity:0.24"/><path d="M837.34 208.86L155.31 42.43L153.53 49.9Z" style="opacity:0.28"/><path d="M1339.43 328.7L2043.15 502.15L2045.55 492.09Z" style="opacity:0.43"/><path d="M922.73 -18.48L797.61 -409.25L794.15 -408.12Z" style="opacity:0.18"/><path d="M1404.35 35.79L1965.58 -268.32L1964.95 -269.48Z" style="opacity:0.07"/><path d="M1073.27 362.31L1418.75 978.67L1421.42 977.17Z" style="opacity:0.11"/><path d="M959.23 128.1L765.71 -342.39L761.57 -340.67Z" style="opacity:0.17"/><path d="M1551.74 453.46L2389.15 769.3L2390.04 766.94Z" style="opacity:0.12"/><path d="M1498.2 185.78L2373.97 72.79L2373.4 68.44Z" style="opacity:0.2"/><path d="M453.99 257.72L-719.76 269.95L-719.65 278.11Z" style="opacity:0.34"/><path d="M1530.03 84.97L2374.55 -182.3L2374.13 -183.64Z" style="opacity:0.07"/><path d="M1050.23 406.88L1206.57 1024.23L1210.23 1023.29Z" style="opacity:0.14"/><path d="M585.89 517.52L-138.16 973.43L-137.42 974.6Z" style="opacity:0.07"/><path d="M729.51 243.12L96.64 222.89L96.41 232.31Z" style="opacity:0.39"/><path d="M1173.1 74.87L1830.34 -622.64L1822.12 -630.29Z" style="opacity:0.4"/><path d="M634.51 -14.65L108.33 -390.11L104 -383.96Z" style="opacity:0.37"/><path d="M1181.28 190.17L2209.84 -163.24L2206.21 -173.64Z" style="opacity:0.37"/><path d="M1478.3 140.23L2208.51 -30.23L2208.2 -31.55Z" style="opacity:0.07"/></g>
+    </svg>
 
-      <div class="domain-text">
-        <svg class="crown" viewBox="0 0 400 200" aria-hidden="true"><use href="#nirvana" /></svg>
-        <h1 class="name">
-          <span class="lay lay-b" aria-hidden="true">STROHUT</span>
-          <span class="lay lay-r" aria-hidden="true">STROHUT</span>
-          <span class="lay lay-w">STROHUT</span>
-        </h1>
+      <div class="sigil" aria-hidden="true">
+        <svg class="wheel" viewBox="0 0 400 400">
+          <g class="wheel-turn"><use href="#dharma" /></g>
+        </svg>
+      </div>
 
-        <p class="who"><span>Mico</span><i></i><span>somewhere in Germany</span></p>
-        <p class="tagline">I'll write something useful here eventually..</p>
+      <p class="vert" aria-hidden="true"><span>領</span><span>域</span><span>展</span><span>開</span></p>
+
+      <div class="hero-text">
+        <svg class="loop" viewBox="0 0 400 200" aria-hidden="true"><use href="#nirvana" /></svg>
+        <h1 class="name">STROHUT</h1>
+        <p class="who">Mico<i></i>Germany</p>
+        <p class="line">
+          This page is a light on a porch. It tells you whether I'm in,
+          and what I'm doing while I'm there.
+        </p>
 
         <nav class="links" aria-label="Me, elsewhere">
           <a href="https://discord.com/users/402858450926829568" rel="me">
@@ -247,35 +238,13 @@
           </a>
         </nav>
       </div>
+    </section>
 
-      <!-- Blue and red collapsing into purple, with the live avatar
-           held in the middle of it -->
-      <div class="sigil">
-        <span class="orb" aria-hidden="true">
-          <i class="orb-b"></i><i class="orb-r"></i><i class="orb-v"></i><i class="orb-core"></i>
-        </span>
-
-        <svg class="wheel" viewBox="0 0 400 400" aria-hidden="true">
-          <g class="wheel-turn"><use href="#dharma" /></g>
-        </svg>
-
-        <div class="portrait">
-          <img id="dc-avatar" width="240" height="240" alt="" hidden>
-          <span class="portrait-void" aria-hidden="true"></span>
-        </div>
-      </div>
-    </header>
-
-    <svg class="rule" viewBox="0 0 900 120" aria-hidden="true"><use href="#cloudbar" /></svg>
+    <!-- the one thing allowed to cross a gutter -->
+    <svg class="band" viewBox="0 0 900 120" aria-hidden="true"><use href="#cloudbar" /></svg>
 
     <!-- ══════════════ 現在 ══════════════ -->
-    <noscript>
-      <style>
-        .now, .scribble { display: none; }
-      </style>
-    </noscript>
-
-    <section class="now reveal" aria-labelledby="now-h">
+    <section class="panel now reveal" aria-labelledby="now-h">
       <div class="head">
         <h2 id="now-h">right now</h2>
         <p class="vert" aria-hidden="true"><span>現</span><span>在</span></p>
@@ -284,75 +253,24 @@
       <div class="slab" data-state="loading">
         <div class="presence">
           <span class="dot" id="dc-dot" aria-hidden="true"></span>
-          <div>
+          <div class="presence-who">
             <p class="dc-name" id="dc-name">…</p>
             <p class="dc-state" id="dc-state">reaching discord</p>
+          </div>
+          <div class="portrait">
+            <img id="dc-avatar" width="160" height="160" alt="" hidden>
+            <span class="portrait-void" aria-hidden="true"></span>
           </div>
         </div>
 
         <ul class="doing" id="dc-doing"></ul>
 
-        <p class="quiet" id="dc-quiet" hidden>nothing open right now. probably asleep.</p>
+        <p class="quiet" id="dc-quiet" hidden>nothing open. probably asleep.</p>
       </div>
     </section>
-
-    <svg class="rule flip" viewBox="0 0 900 120" aria-hidden="true"><use href="#cloudbar" /></svg>
-
-    <!-- ══════════════ 自己紹介 ══════════════ -->
-    <section class="about reveal" aria-labelledby="about-h">
-      <div class="head">
-        <h2 id="about-h">about me</h2>
-        <p class="vert" aria-hidden="true"><span>自</span><span>己</span><span>紹</span><span>介</span></p>
-      </div>
-
-      <p class="shout">BELLO!</p>
-
-      <div class="prose">
-        <p>
-          I'm Mico, and on the internet I go by <b>Strohut</b>. I enjoy messing
-          around with <b>Python</b>, <b>Lua</b>, <b>TypeScript</b> and whatever
-          else I get my hands on.
-        </p>
-        <p>
-          If you're curious, slide into my DMs on Discord or anywhere else.
-          I'm always up for a chat :3
-        </p>
-      </div>
-    </section>
-
-    <svg class="rule" viewBox="0 0 900 120" aria-hidden="true"><use href="#cloudbar" /></svg>
-
-    <!-- ══════════════ 落書き ══════════════ -->
-    <section class="scribble reveal" aria-labelledby="scribble-h">
-      <div class="head">
-        <h2 id="scribble-h">your turn</h2>
-        <p class="vert" aria-hidden="true"><span>落</span><span>書</span><span>き</span></p>
-      </div>
-
-      <p class="lede">the rest of this page is mine. this bit is yours — it stays in your browser.</p>
-
-      <div class="pad-wrap">
-        <canvas id="doodle-pad" aria-label="Drawing area"></canvas>
-      </div>
-
-      <div class="pens" role="group" aria-label="Pens">
-        <button class="pen is-on" type="button" data-pen="blue" aria-pressed="true">
-          <i aria-hidden="true"></i><span>蒼</span>
-        </button>
-        <button class="pen" type="button" data-pen="red" aria-pressed="false">
-          <i aria-hidden="true"></i><span>赫</span>
-        </button>
-        <button class="pen" type="button" data-pen="violet" aria-pressed="false">
-          <i aria-hidden="true"></i><span>茈</span>
-        </button>
-        <button class="wipe" type="button" title="reverse cursed technique">反転</button>
-      </div>
-    </section>
-
-    <svg class="rule flip" viewBox="0 0 900 120" aria-hidden="true"><use href="#cloudbar" /></svg>
 
     <!-- ══════════════ 音楽 ══════════════ -->
-    <section class="music reveal" aria-labelledby="music-h">
+    <section class="panel music reveal" aria-labelledby="music-h">
       <div class="head">
         <h2 id="music-h">in my ears</h2>
         <p class="vert" aria-hidden="true"><span>音</span><span>楽</span></p>
@@ -370,10 +288,16 @@
       </div>
     </section>
 
-    <footer>
+    <!-- ══════════════ 海賊旗 ══════════════ -->
+    <footer class="panel foot">
       <svg class="flag" viewBox="0 0 320 300" aria-hidden="true"><use href="#roger" /></svg>
-      <p>built by hand. <a href="https://github.com/Strohutt/Strohutt.github.io">source</a></p>
+      <div class="foot-text">
+        <p>Built by hand, one file at a time.</p>
+        <p><a href="https://github.com/Strohutt/Strohutt.github.io">read the source</a></p>
+      </div>
+      <p class="hint">click anything — most of it is nothing</p>
     </footer>
+
   </main>
 
   <script src="script.js" defer></script>

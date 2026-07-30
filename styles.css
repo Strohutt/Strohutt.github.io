@@ -1,44 +1,34 @@
 /* ════════════════════════════════════════════════════════════════
    strohut
 
-   Built on the three cursed techniques: blue pulls, red pushes, and
-   where they meet you get purple. Dark throughout — a domain has no
-   daylight.
+   A manga spread, not a column of sections. Panels sit on black with
+   real gutters between them, every one of them cut on the skew, and the
+   drawings are cropped by the panel edges the way a panel crops a
+   drawing. One thing is allowed to break a gutter, and it does it once.
 
-   The drawn things carry their own colours, because they were traced off
-   the panels they come from and repainting them purple would lose them:
-   gold for the wheel and the straw hat, crimson for the crown, stone for
-   the staff. Those live under --gold / --crimson / --stone and are only
-   ever used inside a motif.
+   Ink, paper, and a single red. Gold exists only inside the wheel and
+   the straw hat, because those two objects are gold and repainting them
+   would lose them. There is no fourth colour and no gradient anywhere —
+   soft glow on black is the look every dark template already has.
    ════════════════════════════════════════════════════════════════ */
 
 :root {
   color-scheme: dark;
 
-  --void: #07060b;
-  --void-2: #100c1a;
-  --slab: rgba(168, 85, 247, .055);
+  --ink: #08080b;
+  --ink-2: #101015;
+  --ink-3: #16161d;
 
-  --blue: #2f6bff;
-  --red: #ff2547;
-  --violet: #a855f7;
+  --paper: #efece4;
+  --paper-2: #b8b4ab;
+  --paper-3: #6f6c66;
 
-  --bone: #ece9f2;
-  --ash: #8f889e;
-  --ash-dim: #5d566b;
+  --blood: #e01b2e;
+  --gold: #d8b45e;
+  --gold-dark: #6a5320;
 
-  --gold: #cfae5c;
-  --gold-dark: #5f4a1a;
-  --gold-lit: #f0dda6;
-  --crimson: #a01e28;
-  --crimson-dark: #4a0a11;
-  --crimson-lit: #e5717a;
-  --stone: #7e7a88;
-  --stone-face: #9d99a7;
-  --stone-dark: #17131f;
-
-  --edge: rgba(168, 85, 247, .32);
-  --cleave: 20px;
+  --rule: 2px;
+  --gut: clamp(.75rem, 1.8vw, 1.5rem);
 }
 
 *,
@@ -53,115 +43,25 @@ html {
 
 body {
   margin: 0;
-  background: var(--void);
-  color: var(--bone);
+  background: var(--ink);
+  color: var(--paper);
   font-family: "Zen Kaku Gothic New", ui-sans-serif, system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif;
-  font-size: clamp(1rem, .95rem + .2vw, 1.08rem);
-  line-height: 1.7;
+  font-size: clamp(.98rem, .93rem + .2vw, 1.06rem);
+  line-height: 1.65;
   overflow-x: hidden;
 }
 
-/* ── cursed energy, drifting ────────────────────────────────── */
-.veil {
+/* Screentone over the whole page. A dot grid is what shades a manga
+   panel; a blurred gradient is what shades a template. */
+.tone {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: 40;
   pointer-events: none;
-  overflow: hidden;
-}
-
-.cloud {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(90px);
-  mix-blend-mode: screen;
-  opacity: .5;
-}
-
-.cloud-b {
-  width: 60vw;
-  height: 60vw;
-  top: -18vw;
-  left: -14vw;
-  background: radial-gradient(circle, var(--blue) 0%, transparent 64%);
-  animation: roil 26s ease-in-out infinite alternate;
-}
-
-.cloud-r {
-  width: 52vw;
-  height: 52vw;
-  top: 8vw;
-  right: -16vw;
-  background: radial-gradient(circle, var(--red) 0%, transparent 64%);
-  animation: roil 31s ease-in-out infinite alternate-reverse;
-}
-
-.cloud-v {
-  width: 70vw;
-  height: 70vw;
-  bottom: -26vw;
-  left: 22vw;
-  background: radial-gradient(circle, var(--violet) 0%, transparent 62%);
-  opacity: .38;
-  animation: roil 37s ease-in-out infinite alternate;
-}
-
-/* Gear 5 clouds. A dim white fill alone disappears under the colour veil,
-   so the outline carries them — that is how they are inked anyway. */
-.puff {
-  position: absolute;
-  height: auto;
-  overflow: visible;
-}
-
-.puff {
-  --ink: .6;
-}
-
-.cl-body {
-  fill: none;
-  stroke: var(--bone);
-  stroke-width: 3.2;
-  stroke-opacity: var(--ink, 0);
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
-
-.cl-curl {
-  fill: none;
-  stroke: var(--bone);
-  stroke-width: 2.4;
-  stroke-opacity: calc(var(--ink, 0) * .65);
-  stroke-linecap: round;
-}
-
-/* negative delays, or all six start stacked off the left edge together */
-.puff-1 { width: clamp(16rem, 30vw, 30rem); top: 8vh; animation: drift 88s linear -22s infinite; }
-.puff-2 { width: clamp(11rem, 19vw, 20rem); top: 31vh; opacity: .7; animation: drift 124s linear -74s infinite; }
-.puff-3 { width: clamp(20rem, 40vw, 42rem); top: 50vh; opacity: .55; animation: drift 168s linear -50s infinite; }
-.puff-4 { width: clamp(13rem, 24vw, 25rem); top: 68vh; opacity: .8; animation: drift 104s linear -68s infinite reverse; }
-.puff-5 { width: clamp(9rem, 15vw, 16rem); top: 20vh; opacity: .6; animation: drift 146s linear -110s infinite; }
-.puff-6 { width: clamp(15rem, 27vw, 28rem); top: 82vh; opacity: .5; animation: drift 132s linear -36s infinite reverse; }
-
-@keyframes drift {
-  from { transform: translate3d(-42vw, 0, 0); }
-  to { transform: translate3d(122vw, 0, 0); }
-}
-
-@keyframes roil {
-  from { transform: translate3d(-4%, 3%, 0) scale(1); }
-  to { transform: translate3d(5%, -4%, 0) scale(1.16); }
-}
-
-.grain {
-  position: fixed;
-  inset: 0;
-  z-index: 9;
-  pointer-events: none;
-  opacity: .16;
+  opacity: .28;
+  background-image: radial-gradient(var(--paper) .6px, transparent .7px);
+  background-size: 4px 4px;
   mix-blend-mode: overlay;
-  background-size: 190px 190px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='190' height='190'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='190' height='190' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 .sprite {
@@ -174,14 +74,13 @@ body {
 /* ── type ───────────────────────────────────────────────────── */
 h1,
 h2,
-.shout,
 .vert,
 .dc-name,
 .kicker,
-.pen span {
-  font-family: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+.tally b {
+  font-family: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", Georgia, serif;
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1.05;
   margin: 0;
 }
 
@@ -189,275 +88,112 @@ a {
   color: inherit;
 }
 
-b {
-  font-weight: 700;
-  color: var(--bone);
-}
-
-/* Vertical japanese down the margin. Stacked as separate elements
+/* Vertical japanese down a panel edge. Stacked as separate elements
    rather than writing-mode, because that needs vertical metrics the
-   fallback font may not have. */
+   fallback font may not have — and without them every glyph lands on
+   top of the last one. */
 .vert {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: .3em;
-  font-weight: 600;
-  font-size: .95rem;
+  gap: .34em;
+  font-size: .82rem;
+  font-weight: 700;
   line-height: 1;
-  color: var(--violet);
-  opacity: .75;
+  color: var(--blood);
 }
 
-main {
+/* ── the spread ─────────────────────────────────────────────── */
+.spread {
   position: relative;
   z-index: 1;
-  /* the wheel is meant to run past the right margin; clip at the
-     viewport so it does not widen the document */
-  overflow-x: clip;
-}
-
-section {
-  width: min(100% - 2.6rem, 52rem);
+  width: min(100% - 1.6rem, 78rem);
   margin-inline: auto;
-}
-
-.domain,
-footer {
-  width: min(100% - 2.6rem, 66rem);
-  margin-inline: auto;
-}
-
-/* ══ 領域展開 ═══════════════════════════════════════════════ */
-.domain {
-  position: relative;
-  min-height: min(58vh, 31rem);
-  padding-block: clamp(2rem, 5vh, 3.6rem) clamp(.6rem, 2vh, 1.4rem);
+  padding-block: var(--gut);
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  column-gap: clamp(1.2rem, 4vw, 3.4rem);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gut);
 }
 
-.vert-lead {
-  font-size: 1.1rem;
-  letter-spacing: .55em;
-  opacity: .9;
-}
-
-.domain-text {
-  min-width: 0;
-}
-
-/* The Loop of Binding — a metal ring that floats round the forehead, red in
-   the nirvana form. It is a hoop, not a band, so the name sits inside it:
-   the near edge crosses above, the far edge sinks away behind. */
-.crown {
+/* A panel is a hard-edged plate on black. clip-path drops any border, so
+   the frame is faked: the panel itself is paper and an inset pseudo
+   element lays the ink down 2px inside it, clipped to the same cut.
+   (A copy sitting behind on z-index:-1 does not work — clip-path makes a
+   stacking context, so the copy paints over the panel instead.) */
+.panel {
   position: relative;
+  background: var(--paper);
+  clip-path: var(--cut);
+  padding: clamp(1.1rem, 2.4vw, 2rem);
+  --cut: polygon(0 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%);
+}
+
+.panel::after {
+  content: "";
+  position: absolute;
+  inset: var(--rule);
   z-index: 0;
-  display: block;
-  width: min(100%, 34rem);
-  height: auto;
-  margin: 0 0 clamp(-8.5rem, -11vw, -4.5rem);
-  overflow: visible;
-  filter: drop-shadow(0 10px 26px rgba(160, 30, 40, .45));
+  background: var(--ink-2);
+  clip-path: var(--cut);
 }
 
-.name {
+.panel > * {
   position: relative;
   z-index: 1;
 }
 
-.lb-body {
-  fill: var(--crimson);
-  stroke: var(--crimson-dark);
-  stroke-width: 3.4;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
+/* each plate laid down slightly off square */
+.hero { grid-column: 1 / -1; --cut: polygon(0 0, 100% 0, 100% calc(100% - 34px), calc(100% - 34px) 100%, 0 100%); }
+.now { grid-column: 1 / 8; }
+.music { grid-column: 8 / -1; --cut: polygon(26px 0, 100% 0, 100% 100%, 0 100%, 0 26px); }
+.foot { grid-column: 1 / -1; --cut: polygon(0 0, 100% 0, 100% 100%, 30px 100%, 0 calc(100% - 30px)); }
 
-/* the far side of the hoop, sunk behind */
-.lb-far {
-  fill: #5c1119;
-  stroke: #33070d;
-  stroke-width: 3;
-  stroke-linejoin: round;
-}
-
-.lb-lit {
-  fill: none;
-  stroke: var(--crimson-lit);
-  stroke-width: 3.2;
-  stroke-opacity: .85;
-  stroke-linecap: round;
-}
-
-
-
-
-/* the name, split into blue and red the way the techniques are */
-.name {
+/* ══ the hero panel ═════════════════════════════════════════ */
+.hero {
+  overflow: hidden;
+  align-content: center;
+  min-height: min(74vh, 34rem);
   display: grid;
-  margin-top: -.4rem;
-  font-size: clamp(2.9rem, 10vw, 6.4rem);
-  letter-spacing: .04em;
-  margin-bottom: 1.4rem;
-}
-
-.name .lay {
-  grid-area: 1 / 1;
-}
-
-.lay-b {
-  color: var(--blue);
-  mix-blend-mode: screen;
-  animation: split 5s ease-in-out infinite alternate;
-}
-
-.lay-r {
-  color: var(--red);
-  mix-blend-mode: screen;
-  animation: split 5s ease-in-out infinite alternate-reverse;
-}
-
-.lay-w {
-  color: var(--bone);
-}
-
-@keyframes split {
-  from { transform: translate(-3px, 2px); }
-  to { transform: translate(3px, -2px); }
-}
-
-.who {
-  margin: .9rem 0 0;
-  display: flex;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: .8rem;
-  font-size: .78rem;
-  letter-spacing: .26em;
-  text-transform: uppercase;
-  color: var(--ash);
+  column-gap: clamp(.8rem, 2vw, 1.6rem);
+  padding-block: clamp(1.6rem, 4vw, 3rem);
 }
 
-.who i {
-  width: 1.6rem;
-  height: 1px;
-  background: var(--violet);
-  opacity: .7;
-}
-
-.tagline {
-  margin: 1rem 0 0;
-  max-width: 26ch;
-  font-size: clamp(1.05rem, .95rem + .5vw, 1.3rem);
-  color: var(--ash);
-}
-
-/* ── links ──────────────────────────────────────────────────── */
-.links {
-  margin-top: 2.2rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: .6rem;
-}
-
-.links a {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
-  padding: .5rem .95rem;
-  font-size: .92rem;
-  font-weight: 500;
-  text-decoration: none;
-  color: var(--ash);
-  background: rgba(255, 255, 255, .03);
-  border: 1px solid rgba(255, 255, 255, .07);
-  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
-  transition: color .2s ease, background-color .2s ease, border-color .2s ease;
-}
-
-.links a svg {
-  width: 1.05rem;
-  height: 1.05rem;
-  fill: currentColor;
-}
-
-.links a:hover,
-.links a:focus-visible {
-  color: var(--bone);
-  background: rgba(168, 85, 247, .14);
-  border-color: var(--violet);
-}
-
-/* ── the sigil: orb, ring, and the live avatar inside ───────── */
-.sigil {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: clamp(15rem, 33vw, 27rem);
-  aspect-ratio: 1;
-  margin-right: clamp(-6rem, -7vw, -2rem);
-}
-
-.sigil > * {
-  grid-area: 1 / 1;
-}
-
-.orb {
-  position: relative;
-  width: 96%;
-  aspect-ratio: 1;
-}
-
-.orb i {
+/* speed lines, converging off the right edge */
+.speed {
   position: absolute;
   inset: 0;
-  border-radius: 50%;
-  filter: blur(38px);
-  mix-blend-mode: screen;
-  opacity: .34;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
-.orb-b {
-  background: radial-gradient(circle at 38% 42%, var(--blue) 0%, transparent 60%);
-  animation: collide 8s ease-in-out infinite alternate;
+.sp path {
+  fill: var(--paper);
 }
 
-.orb-r {
-  background: radial-gradient(circle at 62% 58%, var(--red) 0%, transparent 60%);
-  animation: collide 8s ease-in-out infinite alternate-reverse;
+/* The wheel is cropped by the panel edge. That is what a panel is for —
+   it is not a sticker placed inside the frame. */
+.sigil {
+  position: absolute;
+  top: 50%;
+  right: -17%;
+  width: min(36rem, 50%);
+  aspect-ratio: 1;
+  translate: 0 -50%;
+  pointer-events: none;
+  opacity: .8;
 }
 
-.orb-v {
-  background: radial-gradient(circle at 50% 50%, var(--violet) 0%, transparent 46%);
-  filter: blur(30px);
-  opacity: .26;
-}
-
-.orb-core {
-  /* just a rim of light behind the portrait, not a second sun */
-  inset: 26%;
-  background: radial-gradient(circle at 46% 42%, rgba(255, 255, 255, .5) 0%, rgba(168, 85, 247, .5) 42%, transparent 68%);
-  filter: blur(14px);
-  opacity: .55;
-}
-
-@keyframes collide {
-  from { transform: translate(-8px, 5px) scale(1); }
-  to { transform: translate(8px, -5px) scale(1.07); }
-}
-
-/* ── Mahoraga's wheel. It turns on its own, and lurches a spoke
-      further every time a black flash lands — the thing adapts. ── */
 .wheel {
   width: 100%;
   height: 100%;
-  overflow: visible;
   --adapt: 0;
 }
 
+/* Adaptation lands, it does not ease. steps() makes it click round
+   instead of sweeping. */
 .wheel-turn {
   transform-origin: 200px 200px;
   transform: rotate(calc(var(--adapt) * 45deg));
@@ -468,9 +204,6 @@ footer {
   to { transform: rotate(calc(var(--adapt) * 45deg + 360deg)); }
 }
 
-/* The wheel is traced off the panel, so it keeps its gold. Each ball is
-   drawn separately rather than stamped, and the rim is a band with a hole
-   punched through it so the spokes read as running underneath. */
 .mg-body {
   fill: var(--gold);
   stroke: var(--gold-dark);
@@ -480,17 +213,210 @@ footer {
 }
 
 .mg-lit {
-  fill: var(--gold-lit);
-  opacity: .5;
+  fill: #f0dda6;
+  opacity: .45;
 }
 
 /* each adaptation burns a little hotter */
-.sigil.is-adapted .mg-body { stroke: #7d6224; fill: #e0c069; }
-.sigil.is-adapted .mg-lit { opacity: .72; }
+.hero.is-adapted .mg-body { fill: #e8c877; stroke: #8a6c2a; }
+
+.hero-text {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+}
+
+/* The loop of binding: a metal ring that floats round the forehead, red
+   once Mori reaches nirvana. It is a hoop, not a headband, so the name
+   sits inside it — near edge over the top, far edge behind the letters. */
+.loop {
+  display: block;
+  width: min(100%, 42rem);
+  height: auto;
+  margin-bottom: clamp(-9.5rem, -12vw, -5rem);
+  overflow: visible;
+}
+
+.lb-body {
+  fill: var(--blood);
+  stroke: #4a0a11;
+  stroke-width: 3.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.lb-far {
+  fill: #6d0e1a;
+  stroke: #3a060d;
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.lb-lit {
+  fill: none;
+  stroke: #ff8b96;
+  stroke-width: 3.2;
+  stroke-opacity: .8;
+  stroke-linecap: round;
+}
+
+.name {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(2.6rem, 9vw, 6rem);
+  letter-spacing: .02em;
+  margin: 0 0 .5rem clamp(1rem, 4vw, 3.2rem);
+  text-shadow: 0 0 26px var(--ink), 0 0 12px var(--ink);
+}
+
+.who {
+  margin-left: clamp(1rem, 4vw, 3.2rem);
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  margin: 0 0 .9rem;
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--paper-2);
+}
+
+.who i {
+  width: 1.8rem;
+  height: var(--rule);
+  background: var(--blood);
+}
+
+.line {
+  margin: 0 0 1.6rem;
+  max-width: 34ch;
+  color: var(--paper-2);
+}
+
+/* ── links, as inked tags ───────────────────────────────────── */
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+
+.links a {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .42rem .8rem;
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-decoration: none;
+  color: var(--paper);
+  background: var(--ink);
+  box-shadow: inset 0 0 0 var(--rule) var(--paper-3);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+  transition: background-color .15s, box-shadow .15s, color .15s;
+}
+
+.links a svg {
+  width: 1rem;
+  height: 1rem;
+  fill: currentColor;
+}
+
+.links a:hover,
+.links a:focus-visible {
+  color: var(--ink);
+  background: var(--paper);
+  box-shadow: inset 0 0 0 var(--rule) var(--paper);
+}
+
+/* ── the cloud, the one thing that crosses a gutter ─────────── */
+.band {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(100%, 62rem);
+  height: auto;
+  margin-block: calc(var(--gut) * -.4);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.cb-body {
+  fill: var(--ink);
+  stroke: var(--paper);
+  stroke-width: 2.6;
+  stroke-linejoin: round;
+}
+
+.cb-curl {
+  fill: none;
+  stroke: var(--paper);
+  stroke-width: 2;
+  stroke-opacity: .55;
+  stroke-linecap: round;
+}
+
+/* ── panel heads ────────────────────────────────────────────── */
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+  padding-bottom: .7rem;
+  border-bottom: var(--rule) solid var(--paper-3);
+}
+
+.head h2 {
+  font-size: clamp(1.4rem, 3.4vw, 2rem);
+}
+
+.head .vert {
+  flex: none;
+}
+
+/* ══ 現在 — the live readout ════════════════════════════════ */
+.slab[data-state="loading"] .dc-state {
+  color: var(--paper-3);
+}
+
+.presence {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .8rem;
+}
+
+.presence-who {
+  min-width: 0;
+}
+
+.dot {
+  width: .62rem;
+  height: .62rem;
+  background: var(--paper-3);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+.dot.is-online { background: var(--blood); }
+.dot.is-idle { background: var(--gold); }
+.dot.is-dnd { background: var(--blood); opacity: .55; }
+.dot.is-offline { background: var(--paper-3); }
+
+.dc-name {
+  font-size: 1.22rem;
+}
+
+.dc-state {
+  margin: .1rem 0 0;
+  font-size: .88rem;
+  color: var(--paper-2);
+  overflow-wrap: anywhere;
+}
 
 .portrait {
   position: relative;
-  width: 54%;
+  width: clamp(3rem, 8vw, 4.4rem);
   aspect-ratio: 1;
   display: grid;
   place-items: center;
@@ -499,503 +425,200 @@ footer {
 .portrait img {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
   object-fit: cover;
-  box-shadow: 0 0 0 1px var(--edge), 0 0 40px -6px rgba(168, 85, 247, .55);
+  box-shadow: 0 0 0 var(--rule) var(--paper);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
 }
 
 .portrait img[hidden] {
   display: none;
 }
 
-/* what shows before the avatar arrives, or if it never does */
+.portrait:has(img[hidden]) {
+  display: none;
+}
+
+/* only reached where :has() is not supported */
 .portrait-void {
   position: absolute;
-  inset: 12%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 45%, rgba(168, 85, 247, .22), transparent 70%);
-  box-shadow: inset 0 0 0 1px var(--edge);
+  inset: 30%;
+  background: var(--paper-3);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
 }
 
 .portrait img:not([hidden]) + .portrait-void {
   display: none;
 }
 
-/* ── the cloud between sections ─────────────────────────────────
-      The scarf that hangs round Luffy in gear 5, laid out flat. It blows
-      in from one side as the section arrives; the alternating direction
-      is what stops four of them down a page reading as a radiator. */
-.rule {
-  display: block;
-  width: min(100% - 1.4rem, 58rem);
-  height: auto;
-  margin: clamp(1.4rem, 3.4vw, 2.4rem) auto;
-  overflow: visible;
-}
-
-.rule:nth-of-type(1) { width: min(100% - 1.4rem, 58rem); transform: rotate(-1.2deg); }
-.rule:nth-of-type(2) { width: min(100% - 5rem, 46rem); transform: scaleX(-1) rotate(-.6deg); }
-.rule:nth-of-type(3) { width: min(100% - 2.6rem, 53rem); transform: rotate(-1.6deg); }
-.rule:nth-of-type(4) { width: min(100% - 8rem, 40rem); transform: scaleX(-1) rotate(-1.9deg); }
-
-[data-js] .rule use {
-  transform: translateX(-14%) scaleX(.55);
-  transform-origin: 450px 60px;
-  opacity: 0;
-  transition: transform 1.1s cubic-bezier(.2, .9, .18, 1), opacity .8s ease;
-}
-
-[data-js] .rule.is-here use {
-  transform: none;
-  opacity: 1;
-}
-
-.cb-body {
-  fill: rgb(242 238 230 / .05);
-  stroke: var(--bone);
-  stroke-width: 2.6;
-  stroke-opacity: .82;
-  stroke-linejoin: round;
-}
-
-.cb-curl {
-  fill: none;
-  stroke: var(--bone);
-  stroke-width: 2;
-  stroke-opacity: .5;
-  stroke-linecap: round;
-}
-
-/* ── section heads ──────────────────────────────────────────── */
-.head {
-  display: flex;
-  align-items: flex-end;
-  gap: 1rem;
-  margin-bottom: 1.6rem;
-}
-
-.head h2 {
-  font-size: clamp(1.8rem, 1.3rem + 2vw, 2.9rem);
-  letter-spacing: .02em;
-}
-
-.head .vert {
-  margin-bottom: .35rem;
-}
-
-.lede {
-  margin: -.7rem 0 1.6rem;
-  max-width: 48ch;
-  color: var(--ash);
-}
-
-/* ── slab: the cleaved panel used across the page ───────────── */
-.slab {
-  --cleave: 20px;
-  position: relative;
-  padding: clamp(1.3rem, 3.4vw, 1.9rem);
-  background: var(--slab);
-  clip-path: polygon(var(--cleave) 0, 100% 0, 100% calc(100% - var(--cleave)),
-      calc(100% - var(--cleave)) 100%, 0 100%, 0 var(--cleave));
-}
-
-.slab::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  padding: 1px;
-  background: linear-gradient(155deg, var(--violet), rgba(47, 107, 255, .5) 45%, transparent 78%);
-  clip-path: polygon(var(--cleave) 0, 100% 0, 100% calc(100% - var(--cleave)),
-      calc(100% - var(--cleave)) 100%, 0 100%, 0 var(--cleave));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-/* ══ 現在 ═══════════════════════════════════════════════════ */
-.now .slab {
-  max-width: none;
-}
-
-.presence {
-  display: flex;
-  align-items: center;
-  gap: .9rem;
-}
-
-.dot {
-  flex: none;
-  width: .62rem;
-  height: .62rem;
-  border-radius: 50%;
-  background: var(--ash-dim);
-  box-shadow: 0 0 12px currentColor;
-  transition: background-color .3s ease;
-}
-
-.dot.is-online { background: #3ddc84; }
-.dot.is-idle { background: #ffb03a; }
-.dot.is-dnd { background: var(--red); }
-
-.dc-name {
-  font-size: 1.35rem;
-}
-
-.dc-state {
-  margin: .05rem 0 0;
-  font-size: .93rem;
-  color: var(--ash);
-}
-
-.dc-name,
-.dc-state,
-.doing-name,
-.doing-line {
-  overflow-wrap: anywhere;
-}
-
 .doing {
   list-style: none;
-  margin: 1.4rem 0 0;
+  margin: 1.1rem 0 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.doing:empty {
-  margin: 0;
+  display: grid;
+  gap: .7rem;
 }
 
 .doing li {
-  display: flex;
-  align-items: center;
-  gap: .9rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, .07);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: .8rem;
+  align-items: start;
+  padding-top: .7rem;
+  border-top: 1px solid var(--ink-3);
 }
 
 .doing img,
-.doing .no-art {
-  flex: none;
-  width: 3rem;
-  height: 3rem;
+.no-art {
+  width: 2.6rem;
+  height: 2.6rem;
   object-fit: cover;
-  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  box-shadow: inset 0 0 0 1px var(--paper-3);
 }
 
-.doing .no-art {
+.no-art {
   display: grid;
   place-items: center;
-  background: rgba(168, 85, 247, .14);
-  font-family: "Shippori Mincho B1", serif;
-  font-size: 1.3rem;
-  color: var(--violet);
+  font-weight: 700;
+  font-size: .95rem;
+  color: var(--ink);
+  background: var(--paper-3);
 }
 
 .doing-name {
   margin: 0;
   font-weight: 700;
-  font-size: 1rem;
 }
 
 .doing-line {
-  margin: .1rem 0 0;
-  font-size: .9rem;
-  color: var(--ash);
+  margin: .05rem 0 0;
+  font-size: .88rem;
+  color: var(--paper-2);
+  overflow-wrap: anywhere;
 }
 
 .doing-time {
-  margin: .1rem 0 0;
-  font-size: .82rem;
-  letter-spacing: .06em;
-  color: var(--violet);
+  margin: .18rem 0 0;
+  font-size: .78rem;
   font-variant-numeric: tabular-nums;
+  letter-spacing: .06em;
+  color: var(--blood);
 }
 
 .quiet {
-  margin: 1.2rem 0 0;
-  color: var(--ash-dim);
-}
-
-.slab[data-state="loading"] .dc-name,
-.slab[data-state="loading"] .dc-state {
-  opacity: .5;
-}
-
-/* ══ 自己紹介 ═══════════════════════════════════════════════ */
-/* the shout gets a technique plate: red ground, cleaved, tilted */
-.shout {
-  display: inline-block;
-  margin: 0 0 1.4rem;
-  padding: .3rem 1.5rem .45rem;
-  font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.1rem);
-  letter-spacing: .08em;
-  color: var(--void);
-  background: var(--red);
-  clip-path: polygon(13px 0, 100% 0, calc(100% - 13px) 100%, 0 100%);
-  transform: rotate(-1.6deg);
-}
-
-.prose p {
-  margin: 0 0 1rem;
-  max-width: 56ch;
-  color: var(--ash);
-}
-
-.prose b {
-  position: relative;
-  white-space: nowrap;
-  color: var(--bone);
-}
-
-.prose b::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -.15em;
-  height: 1px;
-  background: var(--violet);
-}
-
-/* ══ 落書き ═════════════════════════════════════════════════ */
-.pad-wrap {
-  position: relative;
-  height: clamp(13rem, 32vw, 18rem);
-  background: rgba(255, 255, 255, .022);
-  box-shadow: inset 0 0 0 1px rgba(168, 85, 247, .2);
-  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
-}
-
-.pad-wrap canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  touch-action: none;
-  cursor: crosshair;
-}
-
-.pens {
-  margin-top: 1rem;
-  display: flex;
-  align-items: center;
-  gap: .55rem;
-}
-
-.pen {
-  display: inline-flex;
-  align-items: center;
-  gap: .45rem;
-  padding: .4rem .75rem;
-  border: 1px solid rgba(255, 255, 255, .08);
-  background: rgba(255, 255, 255, .03);
-  color: var(--ash);
-  font-size: 1rem;
-  cursor: pointer;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-  transition: color .2s ease, border-color .2s ease, background-color .2s ease;
-}
-
-.pen i {
-  width: .6rem;
-  height: .6rem;
-  border-radius: 50%;
-  box-shadow: 0 0 10px currentColor;
-}
-
-.pen[data-pen="blue"] i { background: var(--blue); color: var(--blue); }
-.pen[data-pen="red"] i { background: var(--red); color: var(--red); }
-.pen[data-pen="violet"] i { background: var(--violet); color: var(--violet); }
-
-.pen[aria-pressed="true"] {
-  color: var(--bone);
-  border-color: var(--violet);
-  background: rgba(168, 85, 247, .13);
-}
-
-.wipe {
-  margin-left: auto;
-  padding: .4rem .2rem;
-  border: 0;
-  background: none;
-  color: var(--ash-dim);
-  font-family: inherit;
-  font-size: .9rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  cursor: pointer;
-  border-bottom: 1px solid rgba(255, 255, 255, .12);
-}
-
-.wipe:hover {
-  color: var(--red);
-  border-bottom-color: var(--red);
+  margin: 1.1rem 0 0;
+  color: var(--paper-3);
 }
 
 /* ══ 音楽 ═══════════════════════════════════════════════════ */
 .kicker {
-  margin: -.8rem 0 1rem;
-  font-size: 1.05rem;
-  color: var(--violet);
+  margin: 0 0 .9rem;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--blood);
 }
 
 .embed {
   position: relative;
-  max-width: none;
   min-height: 152px;
 }
 
 .embed iframe {
   position: relative;
-  z-index: 1;
   display: block;
-  width: 100%;
-  height: 152px;
   border: 0;
+  width: 100%;
 }
 
+/* shows through if the embed is blocked */
 .embed-fallback {
   position: absolute;
   inset: 0;
-  z-index: 0;
   margin: 0;
-  display: flex;
-  align-items: center;
-  padding: 0 1rem;
-  color: var(--ash);
+  display: grid;
+  place-items: center;
+  text-align: center;
 }
 
 .embed-fallback a {
-  border-bottom: 1px solid var(--violet);
+  font-size: .9rem;
+  color: var(--paper-2);
   text-decoration: none;
+  border-bottom: var(--rule) solid var(--blood);
 }
 
-/* ── foot ───────────────────────────────────────────────────── */
-footer {
-  padding-block: clamp(2rem, 5vw, 3.2rem) 2.4rem;
-  font-size: .85rem;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--ash-dim);
+/* ══ 海賊旗 ═════════════════════════════════════════════════ */
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2.4rem);
+  padding-block: clamp(.8rem, 1.6vw, 1.2rem);
 }
 
-footer a {
-  color: var(--ash);
-  text-decoration: none;
-  border-bottom: 1px solid var(--edge);
-}
-
-footer a:hover {
-  color: var(--violet);
-}
-
-/* the flag, hung at the bottom of the page */
 .flag {
-  display: block;
-  width: clamp(7rem, 15vw, 11rem);
+  width: clamp(3.6rem, 7vw, 5.2rem);
   height: auto;
-  margin: 0 auto 1.6rem;
-  overflow: visible;
-  filter: drop-shadow(0 0 26px rgba(232, 163, 60, .22));
+  flex: none;
 }
 
 .jr-ink {
-  stroke: var(--void);
+  stroke: var(--ink);
   stroke-width: 6;
   stroke-linejoin: round;
 }
 
-.jr-bone { fill: #f2ecdf; }
-.jr-hole { fill: var(--void); stroke: none; }
-.jr-straw { fill: #e8a33c; }
-.jr-band { fill: #d8322c; }
+.jr-bone { fill: var(--paper); }
+.jr-hole { fill: var(--ink); stroke: none; }
+.jr-straw { fill: var(--gold); }
+.jr-band { fill: var(--blood); }
 
 .jr-teeth {
   fill: none;
-  stroke: var(--void);
+  stroke: var(--ink);
   stroke-width: 4.5;
   stroke-linecap: butt;
 }
 
-
-
-/* ── sections arriving ──────────────────────────────────────── */
-[data-js] .reveal {
-  opacity: 0;
-  transform: translateY(20px);
+.foot-text {
+  flex: 1 1 14rem;
+  font-size: .82rem;
+  letter-spacing: .08em;
+  color: var(--paper-3);
 }
 
-[data-js] .reveal.is-in {
-  opacity: 1;
-  transform: none;
-  transition: opacity .7s ease, transform .7s cubic-bezier(.22, .8, .3, 1);
+.foot-text p {
+  margin: 0;
 }
 
-/* ── narrow ─────────────────────────────────────────────────── */
-@media (max-width: 60rem) {
-  .domain {
-    grid-template-columns: auto minmax(0, 1fr);
-    row-gap: clamp(2rem, 6vw, 3rem);
-  }
-
-  .sigil {
-    grid-column: 2;
-    justify-self: start;
-    width: clamp(11rem, 40vw, 15rem);
-  }
+.foot-text a {
+  color: var(--paper-2);
+  text-decoration: none;
+  border-bottom: var(--rule) solid var(--blood);
 }
 
-@media (max-width: 34rem) {
-  .vert-lead {
-    display: none;
-  }
-
-  .domain {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .sigil {
-    grid-column: 1;
-  }
-
-  .links a {
-    font-size: .86rem;
-    padding: .45rem .75rem;
-  }
+.foot-text a:hover {
+  color: var(--paper);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
-  }
-
-  [data-js] .reveal {
-    opacity: 1;
-    transform: none;
-  }
+.hint {
+  margin: 0;
+  font-size: .7rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--paper-3);
+  opacity: .7;
 }
 
-:focus-visible {
-  outline: 2px solid var(--violet);
-  outline-offset: 3px;
-}
-
-/* ══ 黒閃 ═══════════════════════════════════════════════════════
+/* ══ 黒閃 ═══════════════════════════════════════════════════
    Hit the page and you might land one. In the manga it is a hair's
    breadth of timing and the odds climb once you are in the zone, so
    they climb here too — and the wheel adapts to each one. */
 .strikes {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: 41;
   pointer-events: none;
   overflow: hidden;
 }
@@ -1006,12 +629,12 @@ footer a:hover {
   pointer-events: none;
 }
 
-/* the ordinary hit: a ring of cursed energy, gone in a blink */
+/* the ordinary hit: gone in a blink */
 .strike-hit {
   width: 3rem;
   height: 3rem;
-  border-radius: 50%;
-  border: 2px solid var(--violet);
+  border: var(--rule) solid var(--paper);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
   animation: hit .45s ease-out forwards;
 }
 
@@ -1020,7 +643,6 @@ footer a:hover {
   to { opacity: 0; scale: 1.8; }
 }
 
-/* the black flash itself */
 .strike-flash {
   width: clamp(11rem, 26vw, 17rem);
   aspect-ratio: 1;
@@ -1033,38 +655,38 @@ footer a:hover {
   overflow: visible;
 }
 
-/* It is named for the black, so the hole in the middle carries the shape
-   and the red only rims it. The bolts are filled tapers rather than
-   strokes — a stroke of even width reads as a diagram. */
+/* It is named for the black, so the hole carries the shape and the red
+   is only the edge. The bolts are filled tapers, not strokes — an even
+   width reads as a diagram. */
 .bf-bolt {
-  fill: #08060c;
-  stroke: var(--red);
+  fill: var(--ink);
+  stroke: var(--blood);
   stroke-width: 3.2;
   stroke-linejoin: round;
-  filter: drop-shadow(0 0 12px rgba(255, 37, 71, .75));
 }
 
 .bf-spark {
-  fill: #08060c;
-  stroke: var(--red);
+  fill: var(--ink);
+  stroke: var(--blood);
   stroke-width: 2;
   stroke-linejoin: round;
 }
 
 .bf-void {
   fill: #000;
-  stroke: var(--violet);
+  stroke: var(--blood);
   stroke-width: 2;
-  stroke-opacity: .9;
+  stroke-opacity: .8;
 }
 
-.bf-core { fill: var(--red); }
+.bf-core { fill: var(--blood); }
 .bf-hole { fill: #000; }
-.bf-hot { fill: #fff1f4; }
+.bf-hot { fill: var(--paper); }
 
 .bf-warp {
   fill: none;
-  stroke: var(--violet);
+  stroke: var(--blood);
+  stroke-opacity: .5;
   stroke-linecap: round;
 }
 
@@ -1082,26 +704,27 @@ body.is-flashing::after {
   inset: 0;
   z-index: 39;
   pointer-events: none;
-  background: radial-gradient(circle at 50% 50%, transparent 42%, rgba(255, 37, 71, .3) 100%);
+  background: var(--blood);
+  opacity: .12;
   animation: room .42s ease-out forwards;
 }
 
 @keyframes room {
-  from { opacity: 1; }
+  from { opacity: .16; }
   to { opacity: 0; }
 }
 
 /* ── the tally ──────────────────────────────────────────────── */
 .tally {
   position: fixed;
-  right: clamp(.8rem, 2vw, 1.6rem);
-  bottom: clamp(.8rem, 2vw, 1.6rem);
-  z-index: 41;
-  padding: .7rem .9rem;
+  right: clamp(.7rem, 2vw, 1.4rem);
+  bottom: clamp(.7rem, 2vw, 1.4rem);
+  z-index: 42;
+  padding: .6rem .8rem;
   text-align: right;
-  background: rgba(7, 6, 11, .82);
-  border: 1px solid var(--edge);
-  clip-path: polygon(11px 0, 100% 0, 100% calc(100% - 11px), calc(100% - 11px) 100%, 0 100%, 0 11px);
+  background: var(--ink);
+  box-shadow: inset 0 0 0 var(--rule) var(--paper-3);
+  clip-path: polygon(11px 0, 100% 0, 100% 100%, 0 100%, 0 11px);
 }
 
 .tally[hidden] {
@@ -1116,10 +739,10 @@ body.is-flashing::after {
   display: flex;
   justify-content: flex-end;
   gap: .1em;
-  font-family: "Shippori Mincho B1", "Noto Serif JP", serif;
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: var(--red);
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--blood);
 }
 
 .tally-now {
@@ -1127,37 +750,90 @@ body.is-flashing::after {
   align-items: baseline;
   justify-content: flex-end;
   gap: .4rem;
-  margin-top: .2rem;
-  font-size: .72rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--ash);
 }
 
 .tally-now b {
-  font-family: "Shippori Mincho B1", "Noto Serif JP", serif;
-  font-size: 1.7rem;
-  line-height: 1;
-  color: var(--bone);
-  font-variant-numeric: tabular-nums;
+  font-size: 1.5rem;
+}
+
+.tally-now span,
+.tally-best {
+  font-size: .66rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--paper-3);
 }
 
 .tally.is-hot .tally-now b {
-  color: var(--red);
+  color: var(--blood);
 }
 
-.tally-best {
-  font-size: .68rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--ash-dim);
+/* ── panels arriving ────────────────────────────────────────── */
+[data-js] .reveal {
+  opacity: 0;
+  transform: translateY(16px);
 }
 
-.tally-best b {
-  color: var(--ash);
-  font-variant-numeric: tabular-nums;
+[data-js] .reveal.is-in {
+  opacity: 1;
+  transform: none;
+  transition: opacity .55s ease, transform .55s cubic-bezier(.22, .8, .3, 1);
+}
+
+:focus-visible {
+  outline: var(--rule) solid var(--blood);
+  outline-offset: 3px;
+}
+
+/* ── narrower ───────────────────────────────────────────────── */
+@media (max-width: 60rem) {
+  .now,
+  .music,
+  .hero,
+  .foot {
+    grid-column: 1 / -1;
+  }
+
+  .hero {
+    min-height: 0;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  /* on a narrow screen the wheel sits right behind the running text, so
+     it gets pushed further out and dropped back */
+  .sigil {
+    top: 22%;
+    right: -34%;
+    width: min(26rem, 74%);
+    translate: 0 0;
+    opacity: .3;
+  }
+}
+
+@media (max-width: 34rem) {
+  .presence {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .portrait {
+    grid-column: 2;
+    justify-self: start;
+    margin-top: .6rem;
+  }
+
+  .foot {
+    gap: 1rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+
   .strikes { display: none; }
 }

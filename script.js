@@ -2,8 +2,7 @@
    strohut
    1. Sections arriving as you scroll
    2. Black flash, and the wheel that adapts to it
-   3. The doodle pad
-   4. Discord presence, via Lanyard
+   3. Discord presence, via Lanyard
    ════════════════════════════════════════════════════════════════ */
 
 const DISCORD_ID = '402858450926829568';
@@ -14,24 +13,18 @@ const stillPlease = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 const sections = document.querySelectorAll('.reveal');
 
-// The staff between sections comes in stubby and pushes out to full width
-// as you reach it — extending is the only thing Nyoibō does.
-const staves = document.querySelectorAll('.rule');
-
 if (stillPlease.matches || !('IntersectionObserver' in window)) {
   sections.forEach(s => s.classList.add('is-in'));
-  staves.forEach(s => s.classList.add('is-here'));
 } else {
   const watcher = new IntersectionObserver((entries, self) => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) return;
-      entry.target.classList.add(entry.target.matches('.rule') ? 'is-here' : 'is-in');
+      entry.target.classList.add('is-in');
       self.unobserve(entry.target);
     });
   }, { rootMargin: '0px 0px -12% 0px', threshold: 0.1 });
 
   sections.forEach(s => watcher.observe(s));
-  staves.forEach(s => watcher.observe(s));
 }
 
 
@@ -43,7 +36,7 @@ if (stillPlease.matches || !('IntersectionObserver' in window)) {
    you miss. Every one that lands turns Mahoraga's wheel a spoke on. */
 const strikes = document.getElementById('strikes');
 const tally = document.getElementById('tally');
-const sigil = document.querySelector('.sigil');
+const sigil = document.querySelector('.hero');
 const wheel = document.querySelector('.wheel');
 
 const BASE_ODDS = 0.13;
@@ -66,7 +59,7 @@ document.getElementById('tally-best').textContent = best;
 
 // Anything you can actually operate is off limits, or the flash would
 // fire on top of every link and button press
-const OFF_LIMITS = 'a, button, input, canvas, iframe, .tally, .pad-wrap';
+const OFF_LIMITS = 'a, button, input, iframe, .tally';
 
 function strikeAt(x, y, kind) {
   const mark = document.createElement('div');
@@ -132,150 +125,6 @@ if (!stillPlease.matches) {
   document.body.addEventListener('animationend', event => {
     if (event.animationName === 'room') document.body.classList.remove('is-flashing');
   });
-}
-
-/* ──────────────────────── The doodle pad ───────────────────────── */
-
-const pad = document.getElementById('doodle-pad');
-
-if (pad) {
-  const ctx = pad.getContext('2d');
-  const wrap = pad.parentElement;
-  const PENS = { blue: '--blue', red: '--red', violet: '--violet' };
-
-  let pen = 'blue';
-  let strokes = [];
-  let current = null;
-  let drawingWith = null;
-
-  // Anything could be under that key — an older version of this page,
-  // another tab, an extension. Check each stroke before trusting it,
-  // because one bad one would throw and kill the rest of this file.
-  const drawable = s =>
-    s && typeof s.c === 'string' && Array.isArray(s.pts) && s.pts.length &&
-    s.pts.every(pt => Array.isArray(pt) && pt.length === 2 &&
-      Number.isFinite(pt[0]) && Number.isFinite(pt[1]));
-
-  try {
-    const saved = JSON.parse(localStorage.getItem('strohut-doodle'));
-    if (saved && Array.isArray(saved.strokes)) strokes = saved.strokes.filter(drawable);
-  } catch {
-    /* fresh sheet then */
-  }
-
-  const inkOf = name =>
-    getComputedStyle(root).getPropertyValue(PENS[name] || '--violet').trim();
-
-  const nib = () => 2.8 * (window.devicePixelRatio || 1);
-
-  function drawStroke(s) {
-    ctx.strokeStyle = inkOf(s.c);
-    ctx.lineWidth = nib();
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.shadowColor = inkOf(s.c);
-    ctx.shadowBlur = 12 * (window.devicePixelRatio || 1);
-    ctx.beginPath();
-    s.pts.forEach(([x, y], i) => {
-      const px = x * pad.width;
-      const py = y * pad.height;
-      if (i === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
-    });
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-  }
-
-  function redraw() {
-    ctx.clearRect(0, 0, pad.width, pad.height);
-    strokes.forEach(drawStroke);
-    if (current) drawStroke(current);
-  }
-
-  function fit() {
-    const dpr = window.devicePixelRatio || 1;
-    const box = wrap.getBoundingClientRect();
-    pad.width = Math.max(1, Math.round(box.width * dpr));
-    pad.height = Math.max(1, Math.round(box.height * dpr));
-    redraw();
-  }
-
-  function save() {
-    // oldest strokes fall off the sheet before storage fills up
-    let total = strokes.reduce((n, s) => n + s.pts.length, 0);
-    while (total > 20000 && strokes.length > 1) total -= strokes.shift().pts.length;
-
-    try {
-      localStorage.setItem('strohut-doodle', JSON.stringify({ strokes }));
-    } catch {
-      /* it just won't survive a reload */
-    }
-  }
-
-  function at(event) {
-    const box = pad.getBoundingClientRect();
-    return [
-      Math.min(1, Math.max(0, (event.clientX - box.left) / box.width)),
-      Math.min(1, Math.max(0, (event.clientY - box.top) / box.height))
-    ];
-  }
-
-  pad.addEventListener('pointerdown', event => {
-    // one pointer at a time, or a second finger hijacks the stroke
-    if (drawingWith !== null) return;
-    event.preventDefault();
-    drawingWith = event.pointerId;
-    pad.setPointerCapture(event.pointerId);
-    const start = at(event);
-    // the nudged second point makes a lone tap show up as a dot
-    current = { c: pen, pts: [start, [start[0] + 0.0005, start[1]]] };
-    redraw();
-  });
-
-  pad.addEventListener('pointermove', event => {
-    if (!current || event.pointerId !== drawingWith) return;
-    current.pts.push(at(event));
-    redraw();
-  });
-
-  function penUp(event) {
-    if (event && event.pointerId !== drawingWith) return;
-    drawingWith = null;
-    if (!current) return;
-    strokes.push(current);
-    current = null;
-    save();
-  }
-
-  pad.addEventListener('pointerup', penUp);
-  pad.addEventListener('pointercancel', penUp);
-
-  document.querySelectorAll('.pen').forEach(button => {
-    button.addEventListener('click', () => {
-      pen = button.dataset.pen;
-      document.querySelectorAll('.pen').forEach(b =>
-        b.setAttribute('aria-pressed', String(b === button)));
-    });
-  });
-
-  document.querySelector('.wipe').addEventListener('click', () => {
-    strokes = [];
-    current = null;
-    save();
-    redraw();
-  });
-
-  let resizeQueued = false;
-  window.addEventListener('resize', () => {
-    if (resizeQueued) return;
-    resizeQueued = true;
-    requestAnimationFrame(() => {
-      resizeQueued = false;
-      fit();
-    });
-  });
-
-  fit();
 }
 
 /* ────────────────────── Discord presence ───────────────────────── */
