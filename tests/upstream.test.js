@@ -293,6 +293,18 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
     })());
   await p.close();
 
+  /* Titles are matched on their latin letters, so a native-script one
+     reduces to nothing. Two nothings must not be a match, or everything
+     matches everything. */
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: {
+    op_book: page(media({ title: { native: '別のもの' } }), media({ title: { romaji: 'One Piece' } }))
+  } }) });
+  await p.waitForTimeout(1800);
+  check('a native-only title does not match everything',
+    JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.like-name')].map(a => a.textContent))) === '["One Piece"]',
+    JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.like-name')].map(a => a.textContent))));
+  await p.close();
+
   // the same work under a name with an article and different punctuation
   p = await open({ '**/graphql.anilist.co/**': anilist({ data: {
     gohs_book: page(media({ title: { romaji: 'God of High School', native: '갓 오브 하이스쿨' }, format: 'MANHWA' }))

@@ -250,10 +250,17 @@ const nameOf = t => t.romaji || t.english || t.native || '';
 
 const plain = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
-// one of the titles it came back under has to be the one that was asked
-// for, give or take a "the" and the punctuation
+/* One of the titles it came back under has to be the one that was asked
+   for, give or take a "the" and the punctuation.
+
+   Comparing on the latin letters alone means a native title never matches
+   — 갓 오브 하이스쿨 reduces to nothing — which is fine, because romaji and
+   english are always there too. What is not fine is both sides reducing to
+   nothing, which would make everything match everything. */
 function answersTo(title, asked) {
   const want = plain(asked).replace(/^the /, '');
+  if (!want) return false;
+
   return [title.romaji, title.english, title.native]
     .filter(Boolean)
     .some(t => plain(t).replace(/^the /, '') === want);
