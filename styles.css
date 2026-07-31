@@ -281,21 +281,24 @@ body {
   stroke-width: 2;
 }
 
-.uv-disc,
-.uv-lens,
-.uv-rim {
+.uv-ring,
+.uv-halo {
   fill: none;
   stroke: var(--paper);
   stroke-linecap: round;
 }
 
-.uv-disc { stroke-width: 3.4; opacity: .85; }
-.uv-thin { stroke-width: 1.6; opacity: .45; }
+/* The edge of the sphere. Everything the shape does is done by what it
+   covers; this is the one line that says where it ends. */
+.uv-ring {
+  stroke-width: 2.6;
+  opacity: .9;
+}
 
-/* the far side of the disc, bent over the top — the part that makes it a
-   black hole rather than a ring around a ball */
-.uv-lens { stroke-width: 5.5; }
-.uv-rim { stroke-width: 1.4; opacity: .5; }
+/* and the light gathered along it */
+.uv-halo {
+  stroke-linejoin: round;
+}
 
 /* more than a mind can take, pouring through it */
 .curtain-streams {
@@ -341,9 +344,61 @@ body {
 }
 
 .curtain-say p {
+  position: relative;
   margin: 0;
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+}
+
+/* Something dark behind each line. The sky is sliced to fill, so on a
+   narrow screen only its middle two hundred and seventy units show and
+   whatever galaxy happens to be there lands inside the characters. A
+   gradient rather than a shadow on the glyphs: they are svg, so a shadow
+   would be a filter re-run on every frame of them landing, and this is
+   one paint that never changes. */
+.curtain-say p::before {
+  content: "";
+  position: absolute;
+  inset: -70% -12%;
+  z-index: -1;
+  background: radial-gradient(ellipse at 50% 50%, var(--ink) 0 38%, rgb(8 8 11 / 0) 72%);
+}
+
+/* What it says, under it. The kanji are the drawing and the drawing is
+   the point, but a technique nobody can read the name of is a decoration
+   — so the accurate English sits under each one, quietly. */
+.says {
+  flex-basis: 100%;
+  margin-top: .55rem;
+  font-family: "Zen Kaku Gothic New", ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(.62rem, 1.5vw, .78rem);
+  font-weight: 700;
+  letter-spacing: .42em;
+  text-indent: .42em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--paper-3);
+}
+
+.curtain-name .says {
+  color: var(--paper-2);
+}
+
+/* After its own line has finished landing, not before it starts. The
+   characters are struck one at a time; the words underneath were sitting
+   there fully formed while the first one was still on its way, which
+   reads as a caption on a slide rather than a name being spoken. */
+.curtain-cast .says {
+  animation: said .55s ease-out 1.05s backwards;
+}
+
+.curtain-name .says {
+  animation: said .55s ease-out 1.62s backwards;
+}
+
+@keyframes said {
+  from { opacity: 0; letter-spacing: .9em; text-indent: .9em; }
 }
 
 .curtain-say span {
@@ -2081,9 +2136,25 @@ svg.band {
 }
 
 /* the two characters stacked, the way the tally carries them */
-.score .head h2 {
+.score .head h2,
+.tally-label {
+  display: grid;
+  justify-items: start;
+  gap: .15rem;
+}
+
+.score .head h2 .glyphs,
+.tally-label .glyphs {
   display: flex;
   gap: .1em;
+}
+
+.score .head h2 .says {
+  margin-top: 0;
+  letter-spacing: .3em;
+  text-indent: .3em;
+  text-align: left;
+  color: var(--paper-3);
 }
 
 /* ══ 海賊旗 ═════════════════════════════════════════════════ */
@@ -2466,11 +2537,22 @@ svg.flag {
    a second animation that is simply delayed until the window opens and
    lasts exactly as long as it. Keyframe selectors cannot take var(), so
    the timing has to live in delay and duration, not in percentages. */
+/* Big, and it does not close far.
+
+   It used to be a hundred and twenty pixels closing to twenty, so by the
+   time the window opened the whole ring was forty across — entirely
+   underneath the thumb holding it down. On a phone the one thing you had
+   to watch was the one thing you could not see, and the game was
+   guesswork.
+
+   Fourteen rem closing to six tenths keeps the edge better than seventy
+   pixels out from the middle at the moment it matters, which clears a
+   thumb. It still travels ninety pixels, so it still reads as closing. */
 .charge {
   position: absolute;
   translate: -50% -50%;
-  width: 7.5rem;
-  height: 7.5rem;
+  width: 14rem;
+  height: 14rem;
   pointer-events: none;
 }
 
@@ -2487,9 +2569,15 @@ svg.flag {
   animation: close var(--wind, 620ms) linear forwards;
 }
 
+/* The red one is a shade wider than the grey it rides on, and it carries
+   a glow, so the moment it comes on there is a bright line moving
+   outwards away from whatever is covering the middle. Colour alone was
+   only readable if you could see the middle. */
 .charge::after {
-  border: 3px solid var(--blood);
+  border: 4px solid var(--blood);
+  inset: -7px;
   opacity: 0;
+  box-shadow: 0 0 18px 2px rgb(224 27 46 / .55), inset 0 0 12px rgb(224 27 46 / .35);
   animation:
     close var(--wind, 620ms) linear forwards,
     window var(--span, 80ms) var(--open-at, 496ms) linear;
@@ -2497,7 +2585,7 @@ svg.flag {
 
 @keyframes close {
   from { scale: 1; }
-  to { scale: .17; }
+  to { scale: .6; }
 }
 
 /* on for exactly the length of the window, off either side of it */
@@ -2718,14 +2806,20 @@ body.is-domain .wheel {
   display: none;
 }
 
+.tally-label .says {
+  margin-top: 0;
+  font-size: .52rem;
+  letter-spacing: .22em;
+  text-indent: .22em;
+  color: var(--paper-3);
+}
+
 .tally p {
   margin: 0;
 }
 
 .tally-label {
-  display: flex;
-  justify-content: flex-end;
-  gap: .1em;
+  justify-items: end;
   font-size: .74rem;
   font-weight: 700;
   letter-spacing: .1em;
