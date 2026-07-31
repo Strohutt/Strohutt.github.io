@@ -40,11 +40,19 @@ const up = p => p.evaluate(() => {
      page where everything is about to happen. */
   check('what is under it has not arrived yet',
     await p.evaluate(() => ![...document.querySelectorAll('.reveal')].some(s => s.classList.contains('is-in'))));
-  check('and the stroke has not been pulled',
-    await p.evaluate(() => {
-      const a = document.getElementById('brush').getAnimations()[0];
-      return Boolean(a) && a.playState === 'paused';
+  /* The header inks itself in — the name, then the stroke under it, then
+     the line, then the tags. All four have to be held, and they have to
+     be held in a way that keeps the order: paused rather than delayed, so
+     nothing here has to know how long the barrier lasts. */
+  const held = await p.evaluate(() => ['.name button > span', '.brush', '.who', '.links a']
+    .map(s => {
+      const a = document.querySelector(s).getAnimations()[0];
+      return a ? `${a.playState}@${Math.round(a.effect.getTiming().delay)}` : 'none';
     }));
+  check('and none of the header has been drawn yet',
+    held.every(h => h.startsWith('paused')), held.join(' '));
+  check('and it is held in an order rather than all at once',
+    new Set(held.map(h => h.split('@')[1])).size >= 3, held.join(' '));
 
   await p.waitForTimeout(2200);
   check('it lifts on its own', !(await up(p)));
@@ -53,11 +61,12 @@ const up = p => p.evaluate(() => {
      itself and the favourites never appeared — both correctly. */
   check('and then what is in view arrives',
     await p.evaluate(() => document.querySelector('.now').classList.contains('is-in')));
-  check('and the stroke is pulled',
-    await p.evaluate(() => {
-      const a = document.getElementById('brush').getAnimations()[0];
-      return !a || a.playState !== 'paused';
-    }));
+  check('and the header is drawn',
+    await p.evaluate(() => ['.name button > span', '.brush', '.who', '.links a']
+      .every(s => {
+        const a = document.querySelector(s).getAnimations()[0];
+        return !a || a.playState !== 'paused';
+      })));
   check('and stops being in the way',
     await p.evaluate(() => getComputedStyle(document.getElementById('curtain')).display) === 'none');
   check('what is under it can be clicked once it is gone',

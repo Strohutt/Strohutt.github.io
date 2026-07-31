@@ -793,19 +793,54 @@ a {
   fill: var(--blood);
 }
 
-/* The stroke is pulled once, when the page arrives. Held while the
-   barrier is up: it used to be inked in behind 無量空処 and be sitting
-   there finished the moment that lifted. Paused rather than delayed,
-   because a delay has to know how long the barrier lasts and this does
-   not — it just does not start until there is nothing over it. */
-[data-js] .brush {
-  animation: pull .8s .25s cubic-bezier(.2, .9, .2, 1) backwards;
+/* ── the header putting itself together ─────────────────────── */
+
+/* The header used to be finished before it was ever visible. It is inked
+   in now, in the order it would be drawn: the name, the stroke under it,
+   the line, then the tags. One gesture — a wipe left to right — at four
+   sizes, rather than four different arrivals.
+
+   All of it is paused rather than delayed while the barrier is up. A
+   delay would have to know how long the barrier lasts; this does not, it
+   simply does not start until there is nothing over it. */
+/* Not the struck curve everything else on the page uses. That one is
+   nine tenths done in four tenths of its time, which is right for
+   something landing and wrong for a stroke being drawn — the word was
+   simply there. A wipe has to be watchable along its whole length. */
+[data-js] .name button > span {
+  animation: ink .85s cubic-bezier(.45, .1, .25, 1) backwards;
 }
 
-/* No space. data-js and is-cast are both set on the html element, so a
-   descendant combinator between them asks for one inside the other and
-   matches nothing at all. */
-[data-js].is-cast .brush {
+[data-js] .brush {
+  animation: pull .8s .38s cubic-bezier(.3, .2, .3, 1) backwards;
+}
+
+[data-js] .who {
+  animation: arrive .5s cubic-bezier(.22, .8, .3, 1) .82s backwards;
+}
+
+[data-js] .links a {
+  animation: arrive .5s cubic-bezier(.22, .8, .3, 1) calc(.94s + var(--n, 0) * .09s) backwards;
+}
+
+[data-js] .links a:nth-child(2) { --n: 1; }
+[data-js] .links a:nth-child(3) { --n: 2; }
+[data-js] .links a:nth-child(4) { --n: 3; }
+
+/* the box a wipe cuts against is the type's own, and a mincho T overhangs
+   it — so the wipe finishes a little past the end rather than on it */
+@keyframes ink {
+  from { clip-path: inset(-12% 100% -24% -4%); }
+  to { clip-path: inset(-12% -6% -24% -4%); }
+}
+
+/* No space between the two. data-js and is-cast are both set on the html
+   element, so a descendant combinator between them asks for one inside
+   the other and matches nothing at all. */
+[data-js].is-cast .name button > span,
+[data-js].is-cast .brush,
+[data-js].is-cast .who,
+[data-js].is-cast .links a {
   animation-play-state: paused;
 }
 

@@ -7,14 +7,32 @@ const { chromium, devices } = require('playwright');
    page in front of us instead. */
 let AT = [710, 610];
 
-const openGround = p => p.evaluate(() => {
-  for (let y = 200; y < innerHeight - 40; y += 20)
-    for (let x = 40; x < innerWidth - 40; x += 30) {
-      const el = document.elementFromPoint(x, y);
-      if (el && !el.closest('a, button, input, iframe, .tally')) return [x, y];
-    }
-  throw new Error('the whole viewport is controls');
-});
+/* A point with nothing on it that takes a click.
+
+   Waits for the page to stop arriving first. Everything in the header
+   comes in on its own delay, and a link fourteen pixels below where it
+   will end up leaves a gap that is clear now and a link in a moment — so
+   a spot chosen mid-arrival gets tapped a second later and navigates,
+   which surfaces as the execution context being destroyed halfway
+   through a check about timing. Nothing that loops forever is waited on,
+   and the whole wait gives up rather than hanging. */
+const openGround = async p => {
+  await p.evaluate(() => Promise.race([
+    Promise.all(document.getAnimations()
+      .filter(a => a.effect && a.effect.getTiming().iterations !== Infinity)
+      .map(a => a.finished.catch(() => { /* cancelled is finished enough */ }))),
+    new Promise(done => setTimeout(done, 3000))
+  ]));
+
+  return p.evaluate(() => {
+    for (let y = 200; y < innerHeight - 40; y += 20)
+      for (let x = 40; x < innerWidth - 40; x += 30) {
+        const el = document.elementFromPoint(x, y);
+        if (el && !el.closest('a, button, input, iframe, .tally')) return [x, y];
+      }
+    throw new Error('the whole viewport is controls');
+  });
+};
 const streak = p => p.evaluate(() => document.getElementById('tally-streak').textContent);
 
 /* The wind-up is drawn fresh per attempt now, so a fixed 520ms hold lands
