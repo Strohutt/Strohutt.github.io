@@ -789,6 +789,182 @@ a {
   opacity: .55;
 }
 
+/* ══ 여의봉 ═══════════════════════════════════════════════════
+   Yeoui, the staff, which grows to whatever length is asked of it. So
+   it cannot be one drawing: an end, a middle that stretches, an end.
+   The middle is the only part that is scaled, and everything in it runs
+   lengthwise, so pulling it along its own axis distorts nothing.
+
+   It hangs off the foot of the hero, where the column under the name
+   was empty, and it lies at a slight angle so it reads as leaning
+   rather than as a rule under the text. */
+/* A row of the hero rather than something laid over it: the pole is
+   free to run off the page, but the space it lies in at rest is space
+   nothing else is using. Laid over the text it covered the links. */
+.staff {
+  position: relative;
+  /* behind the name and the links rather than over them: a pole drawn
+     across a line of text reads as a mistake, and drawn behind it reads
+     as a pole lying behind the page */
+  z-index: 0;
+  --rig-h: clamp(2.4rem, 5.4vw, 3.3rem);
+  /* how long it is, and which way it points. Both are written from the
+     script; everything else about it is css. */
+  --len: 18rem;
+  --turn: -4deg;
+  --pull: 0;
+  height: calc(var(--rig-h) + 2.9rem);
+  margin-top: clamp(.7rem, 2.4vw, 1.5rem);
+}
+
+.staff-rig {
+  position: absolute;
+  left: 0;
+  bottom: 1.5rem;
+  display: flex;
+  align-items: stretch;
+  width: var(--len);
+  height: var(--rig-h);
+  /* it turns about the middle of its own near end, which is where a
+     hand holding it would be */
+  transform-origin: 1.6rem 50%;
+  rotate: var(--turn);
+  pointer-events: none;
+}
+
+.staff-cap {
+  flex: none;
+  width: calc(var(--rig-h) * 140 / 120);
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+.staff-back { scale: -1 1; }
+
+/* The far end drops a couple of degrees once there is enough of it out
+   to have any weight. It is the one thing that stops a long pole from
+   reading as a rule drawn across the page. */
+.staff-tip {
+  transform-origin: left center;
+  rotate: calc(var(--pull, 0) * 2.4deg);
+}
+
+.staff-mid {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  display: block;
+}
+
+.ye-fill { fill: #2b2b34; stroke: none; }
+
+/* No part of it is outlined as a box — the ink is the top edge and the
+   bottom edge, drawn open, running straight across the joins. Outline
+   each part and what you have is three tubes in a row. */
+.ye-edge {
+  fill: none;
+  stroke: var(--paper);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* four bands make it round: the dark side, the shadow above it, a wide
+   soft light on the upper third, and a thin specular inside that */
+.ye-dark,
+.ye-shade,
+.ye-lit,
+.ye-spec,
+.ye-grain {
+  fill: none;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.ye-dark { stroke: #000; stroke-width: 15; stroke-opacity: .5; }
+.ye-shade { stroke: #000; stroke-width: 6; stroke-opacity: .55; }
+.ye-lit { stroke: var(--paper); stroke-width: 8; stroke-opacity: .15; }
+.ye-spec { stroke: var(--paper); stroke-width: 2.6; stroke-opacity: .5; }
+.ye-grain { stroke: var(--paper); stroke-width: 1.4; stroke-opacity: .2; }
+
+/* the one thing on it that is not stone */
+.ye-gold { fill: #c9a227; stroke: var(--paper); stroke-width: 2.6; stroke-linejoin: round; }
+.ye-gold-line { fill: none; stroke: #3a2c06; stroke-width: 2; stroke-opacity: .55; }
+.ye-gold-lit { fill: none; stroke: #f7ecb8; stroke-width: 3.4; stroke-linecap: round; }
+.ye-gold-dark { fill: none; stroke: #6b4f0d; stroke-width: 3; stroke-linecap: round; stroke-opacity: .7; }
+
+/* The grip. The pole itself takes no pointer — a staff lying across the
+   page would otherwise be a wall between the reader and everything
+   under it — so this is the only part of it that can be taken hold of,
+   and it sits over the near end where a hand would be. */
+.staff-grip {
+  position: absolute;
+  left: 0;
+  /* centred on the pole's own axis, and taller than the pole is, so
+     what has to be taken hold of on a phone is a real target */
+  bottom: calc(1.5rem + var(--rig-h) / 2);
+  translate: 0 50%;
+  width: clamp(4.6rem, 11vw, 6.4rem);
+  height: max(46px, var(--rig-h));
+  cursor: grab;
+  /* the page keeps vertical scrolling; the drag takes the rest */
+  touch-action: pan-y;
+}
+
+.staff-grip:active { cursor: grabbing; }
+
+/* what it is, under the grip, the way every other drawn thing here is
+   named — small, and it goes as soon as the staff is moving */
+.staff-says {
+  position: absolute;
+  left: .1rem;
+  bottom: 0;
+  margin: 0;
+  display: grid;
+  justify-items: start;
+  gap: .05rem;
+  opacity: calc(.55 - var(--pull, 0) * .55);
+  transition: opacity .25s ease;
+  pointer-events: none;
+}
+
+.staff-han {
+  font-family: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", Georgia, serif;
+  font-size: .84rem;
+  line-height: 1;
+  color: #c9a227;
+}
+
+.staff-says .says {
+  margin-top: 0;
+  font-size: .52rem;
+  letter-spacing: .28em;
+  text-indent: .28em;
+  text-align: left;
+  color: var(--paper-3);
+}
+
+/* The air it moves. Park Yongje draws the wind-up and the aftermath of
+   a blow rather than the contact, so what this carries is the travel:
+   lines off the tip while it is going out, and nothing at all when it
+   is standing still. */
+.staff-air {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: clamp(3rem, 9vw, 6rem);
+  height: 5.2rem;
+  translate: 46% -50%;
+  opacity: var(--pull, 0);
+  background:
+    linear-gradient(to left, rgb(239 236 228 / .5), transparent 68%) 0 22% / 100% 2px no-repeat,
+    linear-gradient(to left, rgb(239 236 228 / .32), transparent 60%) 0 44% / 100% 2px no-repeat,
+    linear-gradient(to left, rgb(239 236 228 / .42), transparent 74%) 0 62% / 100% 2px no-repeat,
+    linear-gradient(to left, rgb(239 236 228 / .28), transparent 56%) 0 80% / 100% 2px no-repeat;
+}
+
 /* The control: a defined circle over the hub, where the wheel actually
    looks like something you would press. */
 .sigil {
@@ -2525,6 +2701,7 @@ svg.flag {
 .sigil,
 .band,
 .flag,
+.staff-grip,
 .name button {
   -webkit-appearance: none;
   appearance: none;

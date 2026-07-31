@@ -157,6 +157,63 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
     check(`${id} does something`, before !== after, `stayed ${before}`);
   }
 
+  /* ── 여의봉 ──────────────────────────────────────────────────────
+     The staff grows to wherever it is pulled and comes back on its own.
+     Three things have to hold or it is in the way rather than on the
+     page: the pole takes no pointer at all, the page does not get any
+     bigger while it is out, and it does come back. */
+  /* The loop above presses the name, and the name puts the barrier back
+     up — which covers the whole page for the best part of three
+     seconds. Anything after it that means to reach the page has to get
+     rid of that first, or it is dragging on a sheet of black. */
+  await p.keyboard.press('Escape');
+  await p.waitForTimeout(700);
+  check('the barrier is out of the way again',
+    await p.evaluate(() => getComputedStyle(document.getElementById('curtain')).display) === 'none');
+
+  /* Measured off the pole rather than off the property that drives it:
+     at rest the property is written in rem and under the hand it is
+     written in pixels, so the two are not the same number even when
+     nothing has moved. */
+  const staffOf = () => p.evaluate(() => ({
+    len: Math.round(document.querySelector('.staff-rig').offsetWidth),
+    turn: getComputedStyle(document.querySelector('.staff')).getPropertyValue('--turn').trim()
+  }));
+  const grip = await p.$('#staff-hit');
+  const gb = await grip.boundingBox();
+  check('the staff is a real target', gb.width >= 44 && gb.height >= 44,
+    `${Math.round(gb.width)}x${Math.round(gb.height)}`);
+
+  const parked = await staffOf();
+  await p.mouse.move(gb.x + gb.width / 2, gb.y + gb.height / 2);
+  await p.mouse.down();
+  await p.mouse.move(1180, 300, { steps: 8 });
+  await p.waitForTimeout(150);
+  const pulled = await staffOf();
+  check('the staff goes where it is pulled', pulled.len > parked.len * 2.5,
+    `${parked.len}px → ${pulled.len}px`);
+  check('and it points at what pulled it', pulled.turn !== parked.turn,
+    `${parked.turn} → ${pulled.turn}`);
+
+  const grew = await p.evaluate(() => ({
+    wide: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+    // what is under the middle of the pole must not be the pole
+    under: (() => {
+      const r = document.querySelector('.staff-rig').getBoundingClientRect();
+      const el = document.elementFromPoint(r.left + r.width * .75, r.top + r.height / 2);
+      return el ? (el.closest('.staff-rig') ? 'the pole' : 'something else') : 'nothing';
+    })()
+  }));
+  check('a staff across the page does not widen it', !grew.wide);
+  check('and nothing can be blocked by the pole itself', grew.under !== 'the pole', grew.under);
+
+  await p.mouse.up();
+  await p.waitForTimeout(2000);
+  const home = await staffOf();
+  check('and it comes back on its own',
+    Math.abs(home.len - parked.len) <= 2 && Math.abs(parseFloat(home.turn) - parseFloat(parked.turn)) < .05,
+    `${JSON.stringify(home)} vs ${JSON.stringify(parked)}`);
+
   // scrolling has to reach the drawings, not just the text
   await p.evaluate(() => scrollTo(0, 900));
   await p.waitForTimeout(400);
