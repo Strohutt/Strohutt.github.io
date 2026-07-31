@@ -8,12 +8,12 @@
   <meta name="description" content="That page does not exist.">
   <meta name="robots" content="noindex">
 
-  <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=5">
+  <link rel="icon" href="favicon.svg?v=6" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=6">
   <meta name="theme-color" content="#08080b">
 
-  <link rel="stylesheet" href="fonts.css?v=5">
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="fonts.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=6">
 </head>
 
 <body class="lost">
@@ -86,7 +86,12 @@
     </symbol>
 
     <symbol id="roger" viewBox="0 0 320 300">
-      <path id="jr-crossbone" d="M-103-10C-103-22-113-28-124-25-136-22-139-7-130 0-139 7-136 22-124 25-113 28-103 22-103 10L103 10C103 22 113 28 124 25 136 22 139 7 130 0 139-7 136-22 124-25 113-28 103-22 103-10Z"/>
+      <!-- the crossbone is a template for the two <use> below, not a shape.
+           Left loose in the symbol it also draws itself, at its own
+           coordinates — which start at x=-103, so it lands as a grey slab
+           off the top left corner. At five rem that was two pixels and
+           nobody saw it. defs is what stops a template rendering. -->
+      <defs><path id="jr-crossbone" d="M-103-10C-103-22-113-28-124-25-136-22-139-7-130 0-139 7-136 22-124 25-113 28-103 22-103 10L103 10C103 22 113 28 124 25 136 22 139 7 130 0 139-7 136-22 124-25 113-28 103-22 103-10Z"/></defs>
       <g class="jr-ink">
           <g class="jr-bone">
             <use href="#jr-crossbone" transform="translate(160 184) rotate(-27)"/>
@@ -178,7 +183,7 @@
     </div>
   </main>
 
-  <script src="flash.js?v=5" defer></script>
+  <script src="flash.js?v=6" defer></script>
 </body>
 
 </html>

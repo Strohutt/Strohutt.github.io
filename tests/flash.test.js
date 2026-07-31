@@ -16,7 +16,73 @@ const openGround = p => p.evaluate(() => {
   throw new Error('the whole viewport is controls');
 });
 const streak = p => p.evaluate(() => document.getElementById('tally-streak').textContent);
+
+/* The wind-up is drawn fresh per attempt now, so a fixed 520ms hold lands
+   only sometimes — the checks would be flaky for a reason that has nothing
+   to do with what they are checking. The ring carries this attempt's
+   timing, so it is read off the ring and the hold is aimed at the middle
+   of the window. That tests the mechanism rather than a magic number. */
+const ringPlan = p => p.evaluate(() => {
+  // a spent ring hangs about for the best part of a second while it fades,
+  // so the first .charge in the document is very often the last attempt's
+  const ring = document.querySelector('.charge:not(.is-landed):not(.is-spent)');
+  if (!ring) return null;
+  const ms = k => parseFloat(ring.style.getPropertyValue(k));
+  return { open: ms('--open-at'), span: ms('--span'), wind: ms('--wind') };
+});
 const rings = p => p.evaluate(() => document.querySelectorAll('.charge').length);
+
+/* Landing one has to be driven from inside the page. Every press and
+   release from out here is a round trip over the debugging protocol, and
+   in this container that jitters by well over a hundred milliseconds —
+   wider than the window it is trying to hit. The page's own setTimeout
+   and the performance.now the handler reads share one clock and have no
+   protocol in between, so a release scheduled in here is accurate to the
+   millisecond.
+
+   Everything with room to spare — an early tap, a late one, the hold
+   limit — still goes through real input. This is only for the cases where
+   the whole point is landing inside a window tens of milliseconds wide. */
+const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new Promise((done, fail) => {
+  const target = document.elementFromPoint(x, y);
+  if (!target) return fail(new Error('nothing at that point'));
+
+  const fire = (type, buttons) => target.dispatchEvent(new PointerEvent(type, {
+    bubbles: true, composed: true, clientX: x, clientY: y,
+    button: 0, buttons, pointerId: 1, pointerType: kind, isPrimary: true
+  }));
+
+  fire('pointerdown', 1);
+
+  // the ring this attempt just opened, not one still fading from the last
+  const ring = document.querySelector('.charge:not(.is-landed):not(.is-spent)');
+  if (!ring) return fail(new Error('no ring opened'));
+  const ms = k => parseFloat(ring.style.getPropertyValue(k));
+  const plan = { open: ms('--open-at'), span: ms('--span'), wind: ms('--wind') };
+
+  /* The middle of the window, on the same clock the handler is reading.
+     One long setTimeout is not good enough — with the field animating,
+     a six hundred millisecond timer comes back tens of milliseconds late
+     often enough to miss a window this narrow. Coasting most of the way
+     and then polling against the real clock cannot drift: each check is
+     against performance.now, not against the last timer. */
+  const t0 = performance.now();
+  const at = plan.open + plan.span / 2;
+
+  const spin = () => {
+    const left = at - (performance.now() - t0);
+    if (left <= 0) {
+      fire('pointerup', 0);
+      done(plan);
+    } else {
+      setTimeout(spin, left > 40 ? left - 30 : 1);
+    }
+  };
+  spin();
+}), [at[0], at[1], pointerType]).then(async plan => {
+  await p.waitForTimeout(140);
+  return plan;
+});
 
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
@@ -38,10 +104,10 @@ const rings = p => p.evaluate(() => document.querySelectorAll('.charge').length)
   await p.waitForTimeout(80);
   check('early release misses', await streak(p) === '0');
 
-  await p.mouse.down(); await p.waitForTimeout(520); await p.mouse.up(); await p.waitForTimeout(80);
+  await land(p, AT);
   check('release in window lands', await streak(p) === '1');
 
-  await p.mouse.down(); await p.waitForTimeout(1200); await p.mouse.up(); await p.waitForTimeout(80);
+  await p.mouse.down(); await p.waitForTimeout(1400); await p.mouse.up(); await p.waitForTimeout(80);
   check('late release misses', await streak(p) === '0');
 
   // ── the ring must never pile up
@@ -90,11 +156,11 @@ const rings = p => p.evaluate(() => document.querySelectorAll('.charge').length)
   };
   check('touch-action lets a finger scroll but not zoom',
     await p.evaluate(() => getComputedStyle(document.body).touchAction) === 'manipulation');
-  let r = await finger(520);
-  check('a held finger lands', r.streak === '1');
+  await land(p, spot, 'touch');
+  check('a held finger lands', await streak(p) === '1');
+  let r = await finger(90);
   check('the callout is suppressed while holding', r.sel === 'none');
-  r = await finger(120);
-  check('a tap is too early', r.streak === '0');
+  check('a real finger, tapped, is too early', r.streak === '0');
   check('selection comes back after release',
     await p.evaluate(() => getComputedStyle(document.body).webkitUserSelect) !== 'none');
   await phone.close();
@@ -103,7 +169,7 @@ const rings = p => p.evaluate(() => document.querySelectorAll('.charge').length)
   const rm = await b.newContext({ reducedMotion: 'reduce' });
   p = await rm.newPage({ viewport: { width: 900, height: 700 } });
   await p.goto(BASE + '/index.html'); await p.waitForTimeout(600);
-  await p.mouse.move(...(await openGround(p))); await p.mouse.down(); await p.waitForTimeout(520); await p.mouse.up();
+  await p.mouse.move(...(await openGround(p))); await p.mouse.down(); await p.waitForTimeout(700); await p.mouse.up();
   await p.waitForTimeout(150);
   check('reduced motion stays still', await rings(p) === 0 && await p.evaluate(() => document.querySelectorAll('.strike').length) === 0);
   await rm.close();
@@ -121,10 +187,11 @@ const rings = p => p.evaluate(() => document.querySelectorAll('.charge').length)
   };
   /* "too early" tells you nothing you can act on; the number of
      milliseconds does. Both the side and the size have to be there. */
-  const early = await hold(120);
+  const early = await hold(90);
   check('an early miss says how early', /^\d+ ms early$/.test(early), early);
-  check('a landing is named', await hold(520) === 'landed');
-  const late = await hold(1000);
+  await land(p, AT);
+  check('a landing is named', await hint() === 'landed');
+  const late = await hold(1400);
   check('a late miss says how late', /^\d+ ms late$/.test(late), late);
 
   // and the panel keeps the reading after the corner tally has gone
@@ -149,8 +216,7 @@ const rings = p => p.evaluate(() => document.querySelectorAll('.charge').length)
 
   // ── the best score survives a reload
   p = await fresh();
-  await p.mouse.move(...AT);
-  for (let i = 0; i < 2; i++) { await p.mouse.down(); await p.waitForTimeout(520); await p.mouse.up(); await p.waitForTimeout(100); }
+  for (let i = 0; i < 2; i++) await land(p, AT);
   const got = await streak(p);
   await p.reload(); await p.waitForTimeout(700);
   const kept = await p.evaluate(() => document.getElementById('tally-best').textContent);
@@ -168,11 +234,11 @@ const rings = p => p.evaluate(() => document.querySelectorAll('.charge').length)
   }));
 
   await p.mouse.move(...AT);
-  await p.mouse.down(); await p.waitForTimeout(120); await p.mouse.up(); await p.waitForTimeout(120);
+  await p.mouse.down(); await p.waitForTimeout(90); await p.mouse.up(); await p.waitForTimeout(120);
   let s = await score();
   check('a miss leaves a mark', s.marks.length === 1 && !s.marks[0].includes('is-hit'), s.marks.join(' | '));
 
-  await p.mouse.down(); await p.waitForTimeout(520); await p.mouse.up(); await p.waitForTimeout(160);
+  await land(p, AT);
   s = await score();
   check('a landed flash is counted', s.best === '1' && s.total === '1', JSON.stringify(s));
   check('a landed flash turns the wheel', s.turns === '1', s.turns);

@@ -8,9 +8,9 @@
   <meta name="description" content="Mico. Discord presence, what is playing, and recent pushes.">
   <link rel="canonical" href="https://strohutt.github.io/">
 
-  <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=5">
-  <link rel="manifest" href="site.webmanifest?v=5">
+  <link rel="icon" href="favicon.svg?v=6" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=6">
+  <link rel="manifest" href="site.webmanifest?v=6">
   <meta name="theme-color" content="#08080b">
 
   <!-- Posting the link used to give a blank card. The image is built from
@@ -19,14 +19,14 @@
   <meta property="og:description" content="Mico. Discord presence, what is playing, and recent pushes.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://strohutt.github.io/">
-  <meta property="og:image" content="https://strohutt.github.io/og.png?v=5">
+  <meta property="og:image" content="https://strohutt.github.io/og.png?v=6">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="STROHUT, in white serif on black, over a red brush stroke, with Mahoraga's wheel cropped by the right edge.">
   <meta name="twitter:card" content="summary_large_image">
 
-  <link rel="stylesheet" href="fonts.css?v=5">
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="fonts.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=6">
 
   <!-- set before first paint, so nothing that js reveals starts hidden -->
   <script>document.documentElement.setAttribute('data-js', '');</script>
@@ -180,7 +180,12 @@
     </symbol>
 
     <symbol id="roger" viewBox="0 0 320 300">
-      <path id="jr-crossbone" d="M-103-10C-103-22-113-28-124-25-136-22-139-7-130 0-139 7-136 22-124 25-113 28-103 22-103 10L103 10C103 22 113 28 124 25 136 22 139 7 130 0 139-7 136-22 124-25 113-28 103-22 103-10Z"/>
+      <!-- the crossbone is a template for the two <use> below, not a shape.
+           Left loose in the symbol it also draws itself, at its own
+           coordinates — which start at x=-103, so it lands as a grey slab
+           off the top left corner. At five rem that was two pixels and
+           nobody saw it. defs is what stops a template rendering. -->
+      <defs><path id="jr-crossbone" d="M-103-10C-103-22-113-28-124-25-136-22-139-7-130 0-139 7-136 22-124 25-113 28-103 22-103 10L103 10C103 22 113 28 124 25 136 22 139 7 130 0 139-7 136-22 124-25 113-28 103-22 103-10Z"/></defs>
       <g class="jr-ink">
           <g class="jr-bone">
             <use href="#jr-crossbone" transform="translate(160 184) rotate(-27)"/>
@@ -387,6 +392,12 @@
         <li><b id="score-best">0</b><span>best run</span></li>
         <li><b id="score-total">0</b><span>landed</span></li>
         <li><b id="score-adapt">0</b><span>turns taken</span></li>
+      </ul>
+
+      <!-- counts and readings are different things: one only ever goes up,
+           the other says where you are right now -->
+      <ul class="score-list score-read">
+        <li><b id="score-window">—</b><span>window open for</span></li>
         <li><b id="score-last">—</b><span>last attempt</span></li>
       </ul>
     </section>
@@ -410,8 +421,8 @@
     </div>
   </main>
 
-  <script src="flash.js?v=5" defer></script>
-  <script src="script.js?v=5" defer></script>
+  <script src="flash.js?v=6" defer></script>
+  <script src="script.js?v=6" defer></script>
 </body>
 
 </html>
