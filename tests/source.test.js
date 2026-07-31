@@ -94,6 +94,42 @@ const opens = (css.match(/{/g) || []).length;
 const closes = (css.match(/}/g) || []).length;
 check('the braces balance', opens === closes, `${opens} open, ${closes} close`);
 
+/* The query the page ships to anilist is built by joining template
+   strings, and nothing in the browser complains if that comes out
+   malformed — the endpoint answers with errors, the region stays hidden,
+   and it stays hidden for good. Nobody would find out.
+
+   This container cannot reach anilist, so the query cannot be run. It can
+   be parsed. The field names are not guesses either: every one of them
+   appears in the query a maintained client sends to the live api, which is
+   in the note above them in script.js. */
+{
+  const block = js.slice(js.indexOf('const LIKE_FIELDS'));
+  const fields = block.match(/const LIKE_FIELDS = `([^`]+)`/);
+  const shape = block.match(/`\$\{l\.key\}: ([^`]+)`/);
+  check('the anilist query is still built here', Boolean(fields && shape));
+
+  if (fields && shape) {
+    // the same join the page does, with the templating filled in
+    const one = shape[1]
+      .replace('${JSON.stringify(l.title)}', '"One Piece"')
+      .replace('${LIKE_FIELDS}', fields[1]);
+    const query = `{${['a', 'b', 'c'].map(k => `${k}: ${one}`).join('\n')}}`;
+
+    let why = '';
+    try {
+      require('graphql').parse(query);
+    } catch (e) {
+      why = e.message;
+    }
+    check('the anilist query parses as graphql', !why, why);
+
+    // Media has no "large" of its own — asking for a cover without one is
+    // how a whole card comes back empty
+    check('the cover is asked for inside coverImage', /coverImage \{[^}]*large/.test(fields[1]));
+  }
+}
+
 // ── motion nobody asked for has to be switchable off
 const still = css.slice(css.indexOf('prefers-reduced-motion'));
 check('reduced motion drops the field', /\.field\s*{\s*display:\s*none/.test(still));

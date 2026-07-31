@@ -272,7 +272,6 @@ a {
 .music { grid-column: 7 / -1; align-content: start; }
 
 .likes { grid-column: 1 / -1; }
-.work { grid-column: 1 / -1; }
 .score { grid-column: 1 / -1; }
 
 .foot {
@@ -828,7 +827,7 @@ svg.band {
 
 /* the mark that runs along a row under the pointer */
 .doing li::before,
-.work-list li::before {
+.like-list li::before {
   content: "";
   position: absolute;
   top: -1px;
@@ -840,8 +839,8 @@ svg.band {
 }
 
 .doing li:hover::before,
-.work-list li:hover::before,
-.work-list li:focus-within::before {
+.like-list li:hover::before,
+.like-list li:focus-within::before {
   width: 100%;
 }
 
@@ -1088,7 +1087,10 @@ svg.band {
   gap: 1.6rem clamp(1.6rem, 4vw, 3rem);
 }
 
+/* position, because the mark that runs along the top edge under the
+   pointer is absolutely placed against it */
 .like-list li {
+  position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 1rem;
@@ -1096,11 +1098,6 @@ svg.band {
   min-width: 0;
   padding-top: .7rem;
   border-top: 1px solid var(--ink-3);
-  transition: border-color .2s;
-}
-
-.like-list li:hover {
-  border-top-color: var(--blood);
 }
 
 .cover {
@@ -1163,7 +1160,12 @@ svg.band {
   line-height: 1.25;
 }
 
+/* a card's title is its target, so it has to be one — a line of text at
+   the font's own height is twenty-five pixels and a miss on a phone */
 .like-name a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   text-decoration: underline;
   text-decoration-color: var(--blood);
   text-decoration-thickness: var(--rule);
@@ -1190,87 +1192,6 @@ svg.band {
   text-transform: uppercase;
   color: var(--paper-3);
   overflow-wrap: anywhere;
-}
-
-/* ══ what I keep poking at ══════════════════════════════════
-   The repositories themselves, which say more about what someone is
-   actually doing than a list of commit messages does. Same rule as
-   lately: no data, no heading. */
-.work-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-  gap: 1.4rem clamp(1.6rem, 4vw, 3rem);
-}
-
-.work-list li {
-  position: relative;
-  min-width: 0;
-  padding-top: .7rem;
-  border-top: 1px solid var(--ink-3);
-}
-
-.work-name {
-  display: inline-block;
-  font-weight: 700;
-  text-decoration: underline;
-  text-decoration-color: var(--blood);
-  text-decoration-thickness: var(--rule);
-  text-underline-offset: .3em;
-  overflow-wrap: anywhere;
-}
-
-.work-name:hover,
-.work-name:focus-visible {
-  color: var(--blood-lit);
-}
-
-.work-what {
-  margin: .45rem 0 0;
-  font-size: .92rem;
-  color: var(--paper-2);
-  overflow-wrap: anywhere;
-}
-
-/* what he last said about it, in his own words. The description is what
-   the thing is for; this is what happened to it on Tuesday. */
-.work-last {
-  margin: .45rem 0 0;
-  padding-left: .7rem;
-  border-left: var(--rule) solid var(--ink-3);
-  font-size: .86rem;
-  color: var(--paper-3);
-  overflow-wrap: anywhere;
-}
-
-.work-list li:hover .work-last {
-  border-left-color: var(--blood);
-}
-
-.work-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: .25rem .8rem;
-  margin: .5rem 0 0;
-  font-size: .72rem;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--paper-3);
-}
-
-/* the language gets the one coloured mark, so the row has an anchor the
-   eye can find without reading it */
-.work-lang::before {
-  content: "";
-  display: inline-block;
-  width: .45rem;
-  height: .45rem;
-  margin-right: .45rem;
-  background: var(--blood);
-  rotate: 45deg;
 }
 
 /* ══ 黒閃, kept ═════════════════════════════════════════════
@@ -1913,7 +1834,7 @@ body.is-domain .wheel {
 
 /* rows that arrive with the data they came for, rather than with the
    panel that will hold them */
-.work-list li {
+.like-list li {
   animation: arrive .55s cubic-bezier(.22, .8, .3, 1) calc(var(--i, 0) * 70ms) backwards;
 }
 
@@ -1935,7 +1856,6 @@ body.is-domain .wheel {
   .now,
   .music,
   .likes,
-  .work,
   .score,
   .hero,
   .foot {

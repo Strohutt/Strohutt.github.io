@@ -147,28 +147,7 @@ if (clock) {
 }
 
 
-/* ───────────────────────────── His repos ───────────────────────── */
-
-/* There used to be two regions here. One listed his repositories and one
-   listed his recent pushes, which on a personal account is the same three
-   or four names printed twice with the same timestamps next to them. It
-   is one list: the repositories, each carrying whatever was last pushed
-   to it.
-
-   Two calls feed it. The repository list is the spine — it is the thing
-   that says what exists and what it is for. The events feed only adds the
-   last commit message and how many landed with it, so losing it costs a
-   line rather than the section. Losing the repository list instead falls
-   back to building rows out of the events alone, which is what the second
-   region used to be.
-
-   Neither needs a key. Sixty unauthenticated calls an hour are shared by
-   everyone behind one address, so being refused is ordinary rather than
-   exceptional: whatever last came back is kept and stands in. Every row
-   carries its own timestamp, so a stale list ages honestly instead of
-   claiming to be current. */
-
-const GH_USER = 'Strohutt';
+/* ──────────────────────── How long ago ────────────────────────── */
 
 function ago(iso) {
   const secs = Math.max(0, (Date.now() - new Date(iso)) / 1000);
@@ -180,132 +159,6 @@ function ago(iso) {
   return `${v} ${unit}${v === 1 ? '' : 's'} ago`;
 }
 
-function fromGithub(key, url, shape) {
-  return fetch(url)
-    .then(r => (r.ok ? r.json() : null))
-    .then(body => {
-      const rows = Array.isArray(body) ? shape(body) : null;
-      if (rows && rows.length) {
-        stash(key, rows);
-        return rows;
-      }
-      return unstash(key);
-    })
-    .catch(() => unstash(key));
-}
-
-const workBox = document.getElementById('work');
-const workList = document.getElementById('work-list');
-
-if (workBox && workList) {
-  const repos = fromGithub('strohut-repos',
-    `https://api.github.com/users/${GH_USER}/repos?sort=pushed&per_page=100`,
-    body => body
-      // github answering with the right shape is not the same as github
-      // answering with what was asked for
-      .filter(r => r && typeof r.name === 'string' && !r.fork && !r.archived
-        && r.name.toLowerCase() !== `${GH_USER.toLowerCase()}.github.io`)
-      .slice(0, 6)
-      .map(r => ({
-        name: r.name,
-        url: r.html_url || `https://github.com/${GH_USER}/${r.name}`,
-        about: r.description || '',
-        language: r.language || '',
-        stars: r.stargazers_count || 0,
-        when: r.pushed_at || ''
-      })));
-
-  const pushes = fromGithub('strohut-pushes',
-    `https://api.github.com/users/${GH_USER}/events/public?per_page=60`,
-    body => {
-      // one entry per repository, carrying its most recent push
-      const seen = new Map();
-      for (const e of body) {
-        if (!e || e.type !== 'PushEvent' || !e.repo || !e.repo.name || seen.has(e.repo.name)) continue;
-        const commits = (e.payload && e.payload.commits) || [];
-        seen.set(e.repo.name, {
-          name: String(e.repo.name).replace(`${GH_USER}/`, ''),
-          url: `https://github.com/${e.repo.name}`,
-          when: e.created_at || '',
-          count: (e.payload && e.payload.size) || commits.length,
-          last: commits.length ? String(commits[commits.length - 1].message).split('\n')[0] : ''
-        });
-      }
-      return [...seen.values()];
-    });
-
-  Promise.all([repos, pushes]).then(([list, recent]) => {
-    const byName = new Map((recent || []).map(r => [r.name.toLowerCase(), r]));
-
-    // the repository list is the spine; without it, the pushes are all
-    // there is to go on
-    const rows = (list && list.length ? list : (recent || []).slice(0, 6))
-      .map(r => ({ ...r, ...pick(byName.get(r.name.toLowerCase())) }));
-
-    if (!rows.length) return;
-    workList.replaceChildren(...rows.map((r, i) => workRow(r, i)));
-    workBox.hidden = false;
-    workBox.classList.add('is-in');
-  });
-}
-
-// only the two fields the events feed is here for, so it cannot overwrite
-// the repository's own name, link or description with a thinner version
-function pick(push) {
-  return push ? { last: push.last, count: push.count } : {};
-}
-
-function workRow(repo, i) {
-  const li = document.createElement('li');
-  li.style.setProperty('--i', i);
-
-  const link = document.createElement('a');
-  link.className = 'work-name';
-  link.href = repo.url;
-  link.textContent = repo.name;
-  li.append(link);
-
-  if (repo.about) {
-    const what = document.createElement('p');
-    what.className = 'work-what';
-    what.textContent = repo.about;
-    li.append(what);
-  }
-
-  // what he last said about it, in his own words
-  if (repo.last) {
-    const said = document.createElement('p');
-    said.className = 'work-last';
-    said.textContent = repo.last;
-    li.append(said);
-  }
-
-  const bits = [
-    repo.language,
-    repo.stars ? `${repo.stars} star${repo.stars === 1 ? '' : 's'}` : '',
-    repo.count ? `${repo.count} commit${repo.count === 1 ? '' : 's'}` : '',
-    repo.when ? ago(repo.when) : ''
-  ].filter(Boolean);
-
-  if (bits.length) {
-    const meta = document.createElement('p');
-    meta.className = 'work-meta';
-    if (repo.language) {
-      const lang = document.createElement('span');
-      lang.className = 'work-lang';
-      lang.textContent = bits.shift();
-      meta.append(lang);
-    }
-    for (const b of bits) {
-      const span = document.createElement('span');
-      span.textContent = b;
-      meta.append(span);
-    }
-    li.append(meta);
-  }
-
-  return li;
-}
 
 /* ───────────────────────────── Favourites ──────────────────────── */
 
@@ -335,9 +188,15 @@ const LIKE_FIELDS = `
   startDate { year }`;
 
 if (likeBox && likeList) {
-  // one request, one alias per title, rather than three round trips
+  /* Page { media(search:) } rather than Media(search:) at the root. Both
+     exist, but this is the shape a maintained client uses against the live
+     api, and it hands back a list instead of one best guess — so a search
+     whose top hit is a spin-off can still be answered by the entry below
+     it rather than being dropped.
+
+     One request, one alias per title, rather than three round trips. */
   const query = `{${LIKED.map(l =>
-    `${l.key}: Media(search: ${JSON.stringify(l.title)}, type: MANGA) {${LIKE_FIELDS}}`
+    `${l.key}: Page(perPage: 5) { media(search: ${JSON.stringify(l.title)}, type: MANGA) {${LIKE_FIELDS}} }`
   ).join('\n')}}`;
 
   fetch('https://graphql.anilist.co', {
@@ -350,19 +209,23 @@ if (likeBox && likeList) {
       const data = body && body.data;
       if (!data) return;
 
-      /* A search returns a best match, not a promise. Asked for one of
-         these it can hand back a spin-off, a colour edition or a databook
-         with a longer name, and the card would then state that thing's
-         format and chapter count under a heading that says favourites.
-         So what came back has to answer to what was asked for. */
+      /* A search returns what it thinks you meant, not what you asked
+         for. Any of these can come back as a spin-off, a colour edition
+         or a databook with a longer name, and the card would then state
+         that thing's format and chapter count under a heading that says
+         favourites. So the entry taken is the one that answers to the
+         title that was asked for, wherever it sits in the results. */
       const got = LIKED
-        .map(l => [l, data[l.key]])
-        .filter(([l, m]) => m && m.title && answersTo(m.title, l.title))
-        .map(([, m]) => m);
+        .map(l => {
+          const page = data[l.key];
+          const list = (page && Array.isArray(page.media)) ? page.media : [];
+          return list.find(m => m && m.title && answersTo(m.title, l.title));
+        })
+        .filter(Boolean);
 
       if (!got.length) return;
 
-      likeList.replaceChildren(...got.map(likeRow));
+      likeList.replaceChildren(...got.map((m, i) => likeRow(m, i)));
       likeBox.hidden = false;
       likeBox.classList.add('is-in');
     })
@@ -406,8 +269,9 @@ const STATE = {
   CANCELLED: 'cancelled'
 };
 
-function likeRow(media) {
+function likeRow(media, i) {
   const li = document.createElement('li');
+  li.style.setProperty('--i', i);
 
   const plate = document.createElement('div');
   plate.className = 'cover';

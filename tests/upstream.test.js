@@ -25,57 +25,15 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   // ── every upstream refuses
   let p = await open({
     '**/api.lanyard.rest/**': r => r.abort(),
-    '**/api.github.com/**': r => r.abort(),
+    '**/graphql.anilist.co/**': r => r.abort(),
     '**/oembed**': r => r.abort()
   });
   await p.waitForTimeout(2500);
   check('all upstreams dead: page still stands', !(await overflows(p)));
-  check('all upstreams dead: the repo list stays hidden', await p.evaluate(() => document.getElementById('work').hidden));
+  check('all upstreams dead: the favourites stay hidden', await p.evaluate(() => document.getElementById('likes').hidden));
   check('all upstreams dead: readout says so',
     /reach|can't|offline/i.test(await p.evaluate(() => document.getElementById('dc-state').textContent)),
     await p.evaluate(() => document.getElementById('dc-state').textContent));
-  await p.close();
-
-  // ── github rate limits
-  p = await open({ '**/api.github.com/**': r => r.fulfill({ status: 403, contentType: 'application/json', body: '{"message":"rate limit"}' }) });
-  await p.waitForTimeout(1800);
-  check('github 403: panel stays hidden', await p.evaluate(() => document.getElementById('work').hidden));
-  await p.close();
-
-  // ── github answers with junk
-  p = await open({ '**/api.github.com/**': r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"not":"an array"}' }) });
-  await p.waitForTimeout(1500);
-  check('github junk: panel stays hidden', await p.evaluate(() => document.getElementById('work').hidden));
-  await p.close();
-
-  /* The repository list is the spine of that region and the events feed
-     only adds a line to each row. With the list refused and the events
-     answering, the events are all there is to go on — which is what the
-     second region used to be on its own. */
-  p = await open({
-    '**/api.github.com/**/repos**': r => r.fulfill({ status: 403, contentType: 'application/json', body: '{}' }),
-    '**/api.github.com/**/events/**': r => r.fulfill({
-      status: 200, contentType: 'application/json',
-      body: JSON.stringify([{ type: 'PushEvent', repo: { name: 'Strohutt/only-this' }, created_at: new Date().toISOString(), payload: { size: 2, commits: [{ message: 'A message' }] } }])
-    })
-  });
-  await p.waitForTimeout(1800);
-  check('no repo list: the pushes carry the region alone',
-    await p.evaluate(() => document.querySelectorAll('#work-list li').length) === 1 &&
-    await p.evaluate(() => document.querySelector('.work-name').textContent) === 'only-this',
-    await p.evaluate(() => (document.querySelector('.work-name') || {}).textContent || 'none'));
-  await p.close();
-
-  // and a push carrying no commits still renders its row
-  p = await open({
-    '**/api.github.com/**/repos**': r => r.abort(),
-    '**/api.github.com/**/events/**': r => r.fulfill({
-      status: 200, contentType: 'application/json',
-      body: JSON.stringify([{ type: 'PushEvent', repo: { name: 'Strohutt/bare' }, created_at: new Date().toISOString(), payload: {} }])
-    })
-  });
-  await p.waitForTimeout(1800);
-  check('a push with no commits renders', await p.evaluate(() => document.querySelectorAll('#work-list li').length) === 1);
   await p.close();
 
   // ── twenty activities, all with very long names
@@ -143,88 +101,35 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   check('quiet line appears when nothing is on', !(await p.evaluate(() => document.getElementById('dc-quiet').hidden)));
   await p.close();
 
-  // ── the repository list, which is the other thing github can refuse
-  const REPOS = n => Array.from({ length: n }, (_, i) => ({
-    name: `repo-${i}`, html_url: 'https://example.invalid', description: LONG,
-    language: 'TypeScript', stargazers_count: i, pushed_at: new Date(Date.now() - i * 6e7).toISOString(),
-    fork: false, archived: false
-  }));
-
-  p = await open({ '**/api.github.com/**/repos**': r => r.fulfill({ status: 403, contentType: 'application/json', body: '{}' }) });
-  await p.waitForTimeout(1600);
-  check('repos 403: the panel stays hidden', await p.evaluate(() => document.getElementById('work').hidden));
-  await p.close();
-
-  p = await open({ '**/api.github.com/**/repos**': r => r.fulfill({ status: 200, contentType: 'application/json', body: '[{"fork":true},{},{"name":null}]' }) });
-  await p.waitForTimeout(1600);
-  check('repos with no usable rows: the panel stays hidden',
-    await p.evaluate(() => document.getElementById('work').hidden));
-  await p.close();
-
-  p = await open({ '**/api.github.com/**/repos**': r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(REPOS(40)) }) });
-  await p.waitForTimeout(1600);
-  check('forty repos are cut down to six',
-    await p.evaluate(() => document.querySelectorAll('#work-list li').length) === 6,
-    String(await p.evaluate(() => document.querySelectorAll('#work-list li').length)));
-  check('a 220-char description does not overflow', !(await overflows(p)));
-  await p.close();
-
-  // his own page is where the visitor already is, so listing it is noise
-  p = await open({
-    '**/api.github.com/**/repos**': r => r.fulfill({
-      status: 200, contentType: 'application/json',
-      body: JSON.stringify([{ name: 'Strohutt.github.io', html_url: 'x', fork: false, archived: false },
-        { name: 'kept', html_url: 'x', fork: false, archived: false },
-        { name: 'gone', html_url: 'x', fork: true, archived: false },
-        { name: 'done', html_url: 'x', fork: false, archived: true }])
-    })
+  /* What the page remembers between visits. Nothing playing is not the
+     same as nothing ever playing, and the panel should not have to choose
+     between claiming silence and saying nothing. */
+  const SONG = playing => ({
+    status: 200, contentType: 'application/json',
+    body: JSON.stringify({ success: true, data: {
+      discord_user: { id: '1', username: 'u', display_name: 'Strohut', avatar: null },
+      discord_status: 'online', activities: [], listening_to_spotify: playing,
+      spotify: playing ? { track_id: 'abc123', song: 'Kaikai Kitan', artist: 'Eve', album: 'Smile',
+        album_art_url: '', timestamps: { start: Date.now() - 3e4, end: Date.now() + 1e5 } } : null } })
   });
-  await p.waitForTimeout(1600);
-  check('forks, archives and this page itself are left out',
-    JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.work-name')].map(a => a.textContent))) === '["kept"]',
-    JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.work-name')].map(a => a.textContent))));
-  await p.close();
-
-  /* Sixty unauthenticated calls an hour are shared by a whole address, so
-     being refused is ordinary. What came back last time has to stand in —
-     but only if there was a last time. */
-  const ok = x => ({ status: 200, contentType: 'application/json', body: JSON.stringify(x) });
-  const REPO = [{ name: 'centauri', html_url: 'https://x.invalid', description: 'a bot',
-    language: 'TypeScript', stargazers_count: 4, pushed_at: new Date().toISOString(), fork: false, archived: false }];
-  const EVENT = [{ type: 'PushEvent', repo: { name: 'Strohutt/centauri' }, created_at: new Date().toISOString(),
-    payload: { size: 2, commits: [{ message: 'Fix the thing' }] } }];
-  const SONG = playing => ok({ success: true, data: {
-    discord_user: { id: '1', username: 'strohut', display_name: 'Strohut', avatar: null },
-    discord_status: 'online', listening_to_spotify: playing, activities: [],
-    spotify: playing ? { song: 'Kaikai Kitan', artist: 'Eve', track_id: 'abc123', album_art_url: '',
-      timestamps: { start: Date.now() - 3e4, end: Date.now() + 1e5 } } : null } });
 
   const jar = await b.newContext({ viewport: { width: 1340, height: 900 } });
 
   p = await jar.newPage();
   p.on('pageerror', e => fails.push('pageerror(cache 1): ' + e.message));
-  await p.route('**/api.github.com/**/repos**', r => r.fulfill(ok(REPO)));
-  await p.route('**/api.github.com/**/events/**', r => r.fulfill(ok(EVENT)));
   await p.route('**/api.lanyard.rest/**', r => r.fulfill(SONG(true)));
   await p.goto(BASE + '/index.html');
-  await p.waitForTimeout(1800);
-  check('a good visit fills the repo list, commit line and all',
-    await p.evaluate(() => document.querySelectorAll('#work-list li').length) === 1 &&
-    await p.evaluate(() => document.querySelectorAll('.work-last').length) === 1);
+  await p.waitForTimeout(1600);
   check('a track that is playing says so',
     await p.evaluate(() => document.getElementById('music-kicker').textContent) === 'now playing');
   await p.close();
 
-  // same visitor, back later: github refuses and the music has stopped
+  // same visitor, back later, and the music has stopped
   p = await jar.newPage();
   p.on('pageerror', e => fails.push('pageerror(cache 2): ' + e.message));
-  await p.route('**/api.github.com/**', r => r.fulfill({ status: 403, contentType: 'application/json', body: '{"message":"rate limit"}' }));
   await p.route('**/api.lanyard.rest/**', r => r.fulfill(SONG(false)));
   await p.goto(BASE + '/index.html');
-  await p.waitForTimeout(1800);
-  check('a rate limit falls back to what came back last time',
-    !(await p.evaluate(() => document.getElementById('work').hidden)) &&
-    await p.evaluate(() => document.querySelectorAll('#work-list li').length) === 1);
+  await p.waitForTimeout(1600);
   check('nothing playing falls back to the last one caught',
     await p.evaluate(() => document.getElementById('music-kicker').textContent) === 'last played' &&
     await p.evaluate(() => document.getElementById('track-song').textContent) === 'Kaikai Kitan');
@@ -236,51 +141,15 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   await p.close();
   await jar.close();
 
-  // a first-ever visit with nothing stored and nothing answering: the
-  // regions have to be absent rather than empty, and the panel must not
-  // offer a link to a track it cannot name
-  p = await open({ '**/api.github.com/**': r => r.abort(), '**/api.lanyard.rest/**': r => r.fulfill(SONG(false)) });
-  await p.waitForTimeout(1800);
-  check('cold and refused: both github regions stay hidden',
-    await p.evaluate(() => document.getElementById('work').hidden));
+  // a first-ever visit with nothing stored: the panel must not invent a
+  // song, and must not link at one nobody picked
+  p = await open({ '**/api.lanyard.rest/**': r => r.fulfill(SONG(false)) });
+  await p.waitForTimeout(1600);
   check('cold and quiet: the panel says nothing is playing',
     await p.evaluate(() => document.getElementById('track-song').textContent) === 'nothing playing');
   check('cold and quiet: no link to a track nobody picked',
     await p.evaluate(() => document.getElementById('music-link').hidden));
   await p.close();
-
-  /* The track rides the same socket as the presence, so with lanyard
-     unreachable there is nothing to say about it. The panel used to sit on
-     "checking…" for as long as the tab stayed open. */
-  p = await open({ '**/api.lanyard.rest/**': r => r.abort(), '**/api.github.com/**': r => r.abort() });
-  await p.waitForTimeout(2500);
-  check('discord unreachable and nothing stored: the music region goes',
-    await p.evaluate(() => document.querySelector('.music').hidden));
-  check('discord unreachable: nothing is left saying "checking"',
-    !/checking/i.test(await p.evaluate(() => document.body.innerText)));
-  await p.close();
-
-  // but a track this page has caught before still stands
-  const kept = await b.newContext({ viewport: { width: 1340, height: 900 } });
-  p = await kept.newPage();
-  p.on('pageerror', e => fails.push('pageerror(kept): ' + e.message));
-  await p.route('**/api.github.com/**', r => r.abort());
-  await p.route('**/api.lanyard.rest/**', r => r.fulfill(SONG(true)));
-  await p.goto(BASE + '/index.html');
-  await p.waitForTimeout(1500);
-  await p.close();
-
-  p = await kept.newPage();
-  p.on('pageerror', e => fails.push('pageerror(kept 2): ' + e.message));
-  await p.route('**/api.github.com/**', r => r.abort());
-  await p.route('**/api.lanyard.rest/**', r => r.abort());
-  await p.goto(BASE + '/index.html');
-  await p.waitForTimeout(2500);
-  check('discord unreachable but something stored: the region stays',
-    !(await p.evaluate(() => document.querySelector('.music').hidden)) &&
-    await p.evaluate(() => document.getElementById('track-song').textContent) === 'Kaikai Kitan');
-  await p.close();
-  await kept.close();
 
   /* Anilist. This is the one upstream nobody here can reach, so every
      shape it might answer with is forced rather than assumed. */
@@ -290,6 +159,8 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
     coverImage: { large: 'https://example.invalid/cover.jpg' }, startDate: { year: 2018 }, ...over
   });
   const anilist = body => r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+  // the page asks Page { media }, so an answer is a list per alias
+  const page = (...items) => ({ media: items.filter(Boolean) });
 
   p = await open({ '**/graphql.anilist.co/**': r => r.abort(), '**/api.github.com/**': r => r.abort() });
   await p.waitForTimeout(2000);
@@ -301,14 +172,14 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   check('anilist errors: the panel stays hidden', await p.evaluate(() => document.getElementById('likes').hidden));
   await p.close();
 
-  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: null, gohs: null, op: null } }) });
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: page(), gohs: page(), op: page() } }) });
   await p.waitForTimeout(1800);
   check('anilist finds none of them: the panel stays hidden',
     await p.evaluate(() => document.getElementById('likes').hidden));
   await p.close();
 
   // one of the three missing is still worth showing
-  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: media(), gohs: null, op: media({ title: { romaji: 'One Piece', native: 'ONE PIECE' } }) } }) });
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: page(media()), gohs: page(), op: page(media({ title: { romaji: 'One Piece', native: 'ONE PIECE' } })) } }) });
   await p.waitForTimeout(1800);
   check('anilist missing one: the other two still show',
     await p.evaluate(() => document.querySelectorAll('#like-list li').length) === 2,
@@ -316,7 +187,7 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   await p.close();
 
   // a record with nothing but a title, which is all the code may assume
-  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: { title: { romaji: 'Jujutsu Kaisen' } } } }) });
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: page({ title: { romaji: 'Jujutsu Kaisen' } }) } }) });
   await p.waitForTimeout(1800);
   check('anilist sends only a title: it still renders',
     await p.evaluate(() => document.querySelectorAll('#like-list li').length) === 1 &&
@@ -332,7 +203,7 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
      Nothing errors and nothing appears. */
   const COVER = 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 345"><rect width="230" height="345" fill="#c9c4b8"/></svg>');
-  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: media({ coverImage: { large: COVER } }) } }) });
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: page(media({ coverImage: { large: COVER } })) } }) });
   await p.waitForTimeout(2200);
   const cover = await p.evaluate(() => {
     const img = document.querySelector('.cover img');
@@ -346,7 +217,7 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
 
   // the cover host refusing must not leave a broken image
   p = await open({
-    '**/graphql.anilist.co/**': anilist({ data: { jjk: media() } }),
+    '**/graphql.anilist.co/**': anilist({ data: { jjk: page(media()) } }),
     '**/example.invalid/**': r => r.abort()
   });
   await p.waitForTimeout(2000);
@@ -360,18 +231,36 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
      that thing's format and chapter count under a heading saying these
      are his favourites. */
   p = await open({ '**/graphql.anilist.co/**': anilist({ data: {
-    jjk: media({ title: { romaji: 'Jujutsu Kaisen 0: Tokyo Metropolitan Curse Technical School' } }),
-    op: media({ title: { romaji: 'One Piece' } })
+    jjk: page(media({ title: { romaji: 'Jujutsu Kaisen 0: Tokyo Metropolitan Curse Technical School' } })),
+    op: page(media({ title: { romaji: 'One Piece' } }))
   } }) });
   await p.waitForTimeout(1800);
-  check('a search that lands on a spin-off is dropped',
+  check('a search whose only hit is a spin-off is dropped',
     JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.like-name')].map(a => a.textContent))) === '["One Piece"]',
     JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.like-name')].map(a => a.textContent))));
   await p.close();
 
+  /* The whole reason for taking a list rather than one best guess: the
+     top hit being wrong no longer costs the row. */
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: {
+    op: page(
+      media({ title: { romaji: 'One Piece: Colour Walk' }, chapters: 1 }),
+      media({ title: { romaji: 'One Piece Databook' }, chapters: 2 }),
+      media({ title: { romaji: 'One Piece', native: 'ONE PIECE' }, chapters: null, status: 'RELEASING' })
+    )
+  } }) });
+  await p.waitForTimeout(1800);
+  check('the right entry is taken from further down the results',
+    JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.like-name')].map(a => a.textContent))) === '["One Piece"]',
+    JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.like-name')].map(a => a.textContent))));
+  check('and it is that entry that is described, not the top hit',
+    !/chapters/.test(await p.evaluate(() => document.querySelector('.like-meta').textContent)),
+    await p.evaluate(() => document.querySelector('.like-meta').textContent));
+  await p.close();
+
   // the same work under a name with an article and different punctuation
   p = await open({ '**/graphql.anilist.co/**': anilist({ data: {
-    gohs: media({ title: { romaji: 'God of High School', native: '갓 오브 하이스쿨' }, format: 'MANHWA' })
+    gohs: page(media({ title: { romaji: 'God of High School', native: '갓 오브 하이스쿨' }, format: 'MANHWA' }))
   } }) });
   await p.waitForTimeout(1800);
   check('a leading "the" and punctuation do not lose a match',
@@ -382,7 +271,7 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   await p.close();
 
   // a title long enough to be a paragraph
-  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: media({ title: { romaji: 'Jujutsu Kaisen', native: LONG } }) } }) });
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: page(media({ title: { romaji: 'Jujutsu Kaisen', native: LONG } })) } }) });
   await p.waitForTimeout(1800);
   check('a 220-char title does not overflow', !(await overflows(p)));
   await p.close();
