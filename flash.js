@@ -27,8 +27,8 @@ const curtain = document.getElementById('curtain');
 const flare = document.getElementById('curtain-white');
 
 if (curtain) {
-  const CUT = 1560;        // the white is at its peak; take the drawing away
-  const DONE = 2250;       // and the white is finished
+  const CUT = 1660;        // the white is at its peak; take the drawing away
+  const DONE = 2350;       // and the white is finished
   const SKIPS = ['pointerdown', 'keydown', 'wheel', 'touchstart'];
 
   let seen = true;
