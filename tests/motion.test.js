@@ -286,10 +286,11 @@ const json = body => ({ status: 200, contentType: 'application/json', body: JSON
   check('and nothing else has pinned it open', sigil.cold < .1, String(sigil.cold));
 
   /* ── the field belongs to whoever is hitting ─────────────────────
-     Five in a row opens 無量空処 over the page for a second. It is a
-     full-screen layer, so the only thing that really matters about it is
-     that it comes down again and that it never takes a click while it is
-     there. */
+     Five in a row opens 無量空処 over the page and it stands there for
+     seven seconds. It is a full-screen layer over a live page, so the two
+     things that matter about it are that it never takes a click while it
+     is up and that it comes down again — and it has to still be up well
+     after the length the old one-second flash would have run for. */
   const cast = await p.evaluate(async () => {
     const el = document.querySelector('.domain');
     const seen = { takes: getComputedStyle(el).pointerEvents };
@@ -299,11 +300,14 @@ const json = body => ({ status: 200, contentType: 'application/json', body: JSON
     await new Promise(r => setTimeout(r, 200));
     seen.up = getComputedStyle(el).display;
     seen.red = getComputedStyle(el).getPropertyValue('--paper').trim();
-    await new Promise(r => setTimeout(r, 1800));
+    await new Promise(r => setTimeout(r, 2500));
+    seen.still = getComputedStyle(el).display;
+    await new Promise(r => setTimeout(r, 5200));
     seen.down = getComputedStyle(el).display;
     return seen;
   });
   check('five in a row opens the domain', cast.up === 'block', JSON.stringify(cast));
+  check('and it stands rather than flashing', cast.still === 'block', cast.still);
   check('and it is cast in red rather than paper', /blood|#ff|255/.test(cast.red) || cast.red !== '', cast.red);
   check('and it never takes a click', cast.takes === 'none', cast.takes);
   check('and it comes down again', cast.down === 'none', cast.down);
@@ -320,7 +324,7 @@ const json = body => ({ status: 200, contentType: 'application/json', body: JSON
   const stuck = await q.evaluate(async () => {
     streak = 4;
     landed();
-    await new Promise(r => setTimeout(r, 2200));
+    await new Promise(r => setTimeout(r, 7800));
     return getComputedStyle(document.querySelector('.domain')).display;
   });
   check('holding still, the domain still comes down', stuck === 'none', stuck);

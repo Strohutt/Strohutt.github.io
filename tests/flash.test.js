@@ -227,7 +227,11 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
   const early = await hold(90);
   check('an early miss says how early', /^\d+ ms early$/.test(early), early);
   await land(p, AT);
-  check('a landing is named', await hint() === 'landed');
+  /* It used to just say "landed", which is the one thing you already knew
+     from the drawing. What it says now is how close to the middle you
+     were — the same number a miss gets, so a hit and a miss are on one
+     scale and there is something to compare. */
+  check('a landing says how close it was', /^(\d+ ms (early|late)|dead on)$/.test(await hint()), await hint());
   const late = await hold(1400);
   check('a late miss says how late', /^\d+ ms late$/.test(late), late);
 
@@ -286,7 +290,7 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
     .map(e => (e.className.baseVal ?? e.className).split(' ')[0]));
   check('a landed flash goes through everything drawn on the page',
     ['brush', 'band', 'flag'].every(k => rippled.includes(k)), rippled.join(', '));
-  check('a landed flash turns the wheel', s.turns === '1', s.turns);
+  check('a landed flash teaches the wheel', s.turns === '1 of 8', s.turns);
   check('a landed flash leaves a lit mark', s.marks.length === 2 && s.marks[1].includes('is-hit'), s.marks.join(' | '));
 
   // a cancelled hold is not an attempt
@@ -399,6 +403,105 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
   check('a finger can throw the wheel too', byFinger > 1, String(byFinger));
   check('throwing it does not scroll the page', await p.evaluate(() => scrollY) === 0);
   await pad.close();
+
+  /* ── what the wheel learns, and what a domain is for ─────────────
+     The three drawings on this page that carry the game are one system
+     now, and none of it is visible in a screenshot: the wheel learns
+     from every landed flash and never unlearns, the window narrows
+     because of that rather than because of the run, and five in a row
+     opens a domain in which a release lands whatever the timing was.
+
+     Landing five by hand is unreliable under load, so the run is set to
+     four and only the fifth is landed for real. Everything after that is
+     the rule under test. */
+  const own = await b.newContext({ viewport: { width: 1200, height: 800 } });
+  const q = await own.newPage();
+  await q.addInitScript(seen);
+  await q.addInitScript(() => { try { localStorage.clear(); } catch { /* fine */ } });
+  q.on('pageerror', e => fails.push('game pageerror: ' + e.message));
+  await q.goto(BASE + '/index.html');
+  await q.waitForTimeout(900);
+  const ground = await openGround(q);
+
+  const reading = () => q.evaluate(() => ({
+    streak: document.getElementById('tally-streak').textContent,
+    on: document.body.classList.contains('is-domain'),
+    left: document.getElementById('domain-left').textContent,
+    last: document.getElementById('score-last').textContent,
+    adapt: document.getElementById('score-adapt').textContent,
+    close: document.getElementById('score-close').textContent,
+    window: document.getElementById('score-window').textContent,
+    learned: getComputedStyle(document.querySelector('.wheel')).getPropertyValue('--learned').trim()
+  }));
+  // a hold nowhere near the window
+  const wild = () => q.evaluate(([x, y]) => new Promise(done => {
+    const ev = k => dispatchEvent(new PointerEvent(k, { clientX: x, clientY: y, button: 0, bubbles: true }));
+    ev('pointerdown');
+    setTimeout(() => { ev('pointerup'); done(); }, 90);
+  }), ground);
+
+  const cold = await reading();
+  check('the wheel starts having learned nothing', cold.adapt === '0 of 8', cold.adapt);
+
+  await land(q, ground);
+  await q.waitForTimeout(220);
+  const one = await reading();
+  check('a landed flash teaches the wheel', one.learned === '1', JSON.stringify(one));
+  check('and that is what narrows the window', one.window !== cold.window, `${cold.window} → ${one.window}`);
+  check('and a landed flash says how close it was, not just that it landed',
+    /ms|dead on/.test(one.last), one.last);
+  check('and the closest ever is kept', /ms/.test(one.close), one.close);
+
+  await wild();
+  await q.waitForTimeout(220);
+  const after = await reading();
+  check('a miss breaks the run', after.streak === '0', after.streak);
+  /* The whole point of hanging the difficulty on the wheel rather than
+     the run: it does not give back what it has learned. */
+  check('but the wheel does not unlearn', after.learned === '1', after.learned);
+  check('and the window stays where it was', after.window === one.window, after.window);
+
+  await q.evaluate(() => { streak = 4; });
+  await land(q, ground);
+  await q.waitForTimeout(260);
+  const open = await reading();
+  check('five in a row opens the domain', open.on, JSON.stringify(open));
+  check('and it says how long it has left', /^\d+(\.\d)?s$/.test(open.left), open.left);
+
+  await wild();
+  await q.waitForTimeout(240);
+  const sure = await reading();
+  check('inside it, a release lands whatever the timing was',
+    sure.last === 'sure hit' && sure.streak === '6', JSON.stringify(sure));
+  check('and the wheel learns from that too — it is what the domain costs',
+    Number(sure.learned) > Number(open.learned), `${open.learned} → ${sure.learned}`);
+  /* A hit that was given to you is not a piece of timing anybody did, so
+     it has no business in the record of the best anybody has managed. */
+  check('but a given hit is not a reading', sure.close === open.close, `${open.close} → ${sure.close}`);
+
+  await q.waitForTimeout(7400);
+  const done = await reading();
+  check('the domain closes on its own', !done.on && done.left === '', JSON.stringify(done));
+
+  /* One per run, and the run is still going here — six in a row and
+     climbing. Without this a streak that has been past five once re-opens
+     it on every hit after that, and the thing that costs something is
+     free from then on. */
+  await land(q, ground);
+  await q.waitForTimeout(300);
+  check('a run only gets one domain', !(await reading()).on, JSON.stringify(await reading()));
+
+  await wild();
+  await q.waitForTimeout(240);
+  const out = await reading();
+  check('and afterwards the same release misses again', out.streak === '0', out.last);
+
+  // but breaking the run and building it again earns another
+  await q.evaluate(() => { streak = 4; });
+  await land(q, ground);
+  await q.waitForTimeout(260);
+  check('breaking the run and rebuilding it earns another', (await reading()).on);
+  await own.close();
 
   await b.close();
   console.log(fails.length ? '\n' + fails.length + ' FAILING: ' + fails.join(', ') : '\nall flash checks pass');
