@@ -27,8 +27,11 @@ const curtain = document.getElementById('curtain');
 const flare = document.getElementById('curtain-white');
 
 if (curtain) {
-  const CUT = 1660;        // the white is at its peak; take the drawing away
-  const DONE = 2350;       // and the white is finished
+  /* The white starts at 1.8s and runs for 0.95, so it is at its peak at
+     about 2.25. The drawing goes then — not before the sequence under it
+     has finished, which is 1.71s for the last word to land. */
+  const CUT = 2250;        // the white is at its peak; take the drawing away
+  const DONE = 2820;       // and the white is finished
   const SKIPS = ['pointerdown', 'keydown', 'wheel', 'touchstart'];
 
   let seen = true;

@@ -54,7 +54,7 @@ const up = p => p.evaluate(() => {
   check('and it is held in an order rather than all at once',
     new Set(held.map(h => h.split('@')[1])).size >= 3, held.join(' '));
 
-  await p.waitForTimeout(2200);
+  await p.waitForTimeout(2400);
   check('it lifts on its own', !(await up(p)));
 
   /* .now only. Nothing is mocked here, so the music region has hidden
@@ -77,6 +77,7 @@ const up = p => p.evaluate(() => {
      layer over a live page, and it must not be in the way while it is. */
   check('the white never takes a click',
     await p.evaluate(() => getComputedStyle(document.getElementById('curtain-white')).pointerEvents) === 'none');
+  await p.waitForTimeout(600);
   check('and it is gone afterwards too',
     await p.evaluate(() => getComputedStyle(document.getElementById('curtain-white')).display) === 'none');
 

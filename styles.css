@@ -407,13 +407,20 @@ body {
 /* After its own line has finished landing, not before it starts. The
    characters are struck one at a time; the words underneath were sitting
    there fully formed while the first one was still on its way, which
-   reads as a caption on a slide rather than a name being spoken. */
+   reads as a caption on a slide rather than a name being spoken.
+
+   And the whole run has to finish before the drawing is taken away. It
+   did not: the second line began fading in at 1.62s and the barrier
+   removed the drawing at 1.66s, so nobody ever saw the words under
+   無量空処 at all. Everything is a little tighter now and the white starts
+   later, which costs the intro four hundred milliseconds and is the
+   difference between the sequence existing and not. */
 .curtain-cast .says {
-  animation: said .55s ease-out 1.05s backwards;
+  animation: said .4s ease-out .82s backwards;
 }
 
 .curtain-name .says {
-  animation: said .55s ease-out 1.62s backwards;
+  animation: said .4s ease-out 1.31s backwards;
 }
 
 @keyframes said {
@@ -437,7 +444,7 @@ body {
 
 .curtain-cast span {
   width: clamp(1.5rem, 5vw, 3.1rem);
-  animation: strike-in .38s cubic-bezier(.2, .9, .2, 1) calc(.5s + var(--n) * .07s) both;
+  animation: strike-in .38s cubic-bezier(.2, .9, .2, 1) calc(.3s + var(--n) * .055s) both;
 }
 
 .curtain-name {
@@ -446,7 +453,7 @@ body {
 
 .curtain-name span {
   width: clamp(3rem, 11vw, 7.4rem);
-  animation: strike-in .44s cubic-bezier(.2, .9, .2, 1) calc(.9s + var(--n) * .09s) both;
+  animation: strike-in .44s cubic-bezier(.2, .9, .2, 1) calc(.7s + var(--n) * .065s) both;
 }
 
 /* one mark in red, the way exactly one mark on this page is */
@@ -483,7 +490,7 @@ body {
 
 .is-cast .curtain-white,
 .curtain-white.is-going {
-  animation: white-out .95s ease-in-out 1.24s both;
+  animation: white-out .95s ease-in-out 1.8s both;
 }
 
 .curtain-white.is-done {
@@ -675,7 +682,22 @@ a {
    four lines and is never going to be more. Splitting the row down the
    middle gave the shorter one the same width as the taller. */
 .now { grid-column: 1 / 8; align-content: start; }
-.music { grid-column: 8 / -1; align-content: start; }
+
+/* The presence runs to four panels and the track is one record and four
+   lines, so the right column used to stop halfway up and leave the rest
+   of its height as black. It keeps the height and puts the record at the
+   foot of it instead, level with the last thing he has open. */
+.music {
+  grid-column: 8 / -1;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+/* centred in whatever height the column beside it is taller by, rather
+   than at the top of it with the whole difference hanging underneath.
+   A flex column would do this with two auto margins and shrink its own
+   items when the row is short — a grid row cannot. */
+.playing { align-self: center; }
 
 /* The music region takes itself away when there is nothing to say and
    nothing remembered — a socket that will not open and no track this page
@@ -1306,6 +1328,9 @@ svg.band {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
   gap: .8rem;
+  /* the panel he is in, above the panels of what he is doing */
+  padding: .9rem 1rem 1rem;
+  background: var(--ink-2);
 }
 
 .presence .dot {
@@ -1407,12 +1432,26 @@ svg.band {
   display: none;
 }
 
+/* Four stacked rows of small text, each one four lines deep and all of
+   them starting at the same margin, read as a status page. A page reads
+   as panels: the first thing he is doing gets the establishing shot
+   across the width, and whatever else is open sits beside it in smaller
+   ones. The gutters are the page's own black; the panels are a shade off
+   it. No outlines — a light rule on black is an interface, and the ground
+   does the same work the other way round. */
 .doing {
   list-style: none;
-  margin: 1.1rem 0 0;
+  margin: .5rem 0 0;
   padding: 0;
   display: grid;
-  gap: .7rem;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: .5rem;
+}
+
+/* a panel left alone at the end of a row takes the whole row rather than
+   sitting in half of it with the other half black */
+.doing li:last-child:nth-child(even) {
+  grid-column: 1 / -1;
 }
 
 .doing li {
@@ -1421,8 +1460,39 @@ svg.band {
   grid-template-columns: auto minmax(0, 1fr);
   gap: .8rem;
   align-items: start;
-  padding-top: .8rem;
-  background: var(--ruled) 0 0 / 44rem 3.5px repeat-x;
+  padding: .8rem .9rem .9rem;
+  background: var(--ruled) 0 0 / 44rem 3.5px repeat-x, var(--ink-2);
+}
+
+/* the establishing panel */
+.doing li:first-child {
+  grid-column: 1 / -1;
+  padding-block: .95rem 1.1rem;
+}
+
+.doing li:first-child .doing-name {
+  font-size: 1.3rem;
+  letter-spacing: -.01em;
+}
+
+/* The one number on the page that moves on its own. In the wide panel it
+   is the only thing in the right half, so it is set as the panel's own
+   figure rather than as a fourth line of small text under the name. */
+@media (min-width: 46rem) {
+  .doing li:first-child .doing-time {
+    position: absolute;
+    right: 1rem;
+    bottom: .8rem;
+    margin: 0;
+    font-size: 1.75rem;
+    letter-spacing: .02em;
+  }
+}
+
+.doing li:first-child img,
+.doing li:first-child .no-art {
+  width: 3.6rem;
+  height: 3.6rem;
 }
 
 /* the mark that runs along a row under the pointer */
@@ -1549,7 +1619,7 @@ svg.band {
    playing without words. */
 .deck {
   position: relative;
-  padding-right: 3rem;
+  padding-right: clamp(3rem, 8vw, 5.4rem);
   /* so the record's negative z-index is measured against the deck rather
      than against the whole sheet, where it would fall behind the panel */
   isolation: isolate;
@@ -1558,8 +1628,8 @@ svg.band {
 .disc {
   position: absolute;
   top: 50%;
-  right: 3rem;
-  width: clamp(4.4rem, 11vw, 6.4rem);
+  right: clamp(3rem, 8vw, 5.4rem);
+  width: clamp(4.4rem, 14vw, 9.4rem);
   z-index: -1;
   translate: 4% -50%;
   transition: translate .7s cubic-bezier(.3, .8, .3, 1);
@@ -1616,7 +1686,7 @@ svg.band {
 
 .sleeve {
   position: relative;
-  width: clamp(4.4rem, 11vw, 6.4rem);
+  width: clamp(4.4rem, 14vw, 9.4rem);
   aspect-ratio: 1;
   display: grid;
   place-items: center;
@@ -1988,9 +2058,12 @@ svg.band {
     margin-top: 0;
   }
 
+  /* One row, not two. Spanning both put the counts and the sentence
+     explaining them in the same cell, and the sentence was drawn straight
+     over the numbers. */
   .score > .score-list {
     grid-column: 1;
-    grid-row: 3 / span 2;
+    grid-row: 3;
   }
 
   .score > .score-read {
@@ -2047,7 +2120,7 @@ svg.band {
 }
 
 .score-line {
-  margin-block: -.4rem 1.1rem;
+  margin-block: .5rem 1.1rem;
   margin-inline: 0;
   max-width: 54ch;
   font-size: .92rem;
@@ -2159,13 +2232,29 @@ svg.band {
 .tally-label {
   display: grid;
   justify-items: start;
-  gap: .15rem;
+  gap: .3rem;
 }
 
+/* 黒 lives in one eighteen-kilobyte subset of Shippori and 閃 lives in
+   another, and nothing else on this page needs either of them. Two
+   characters were pulling down more than a third of the font the site
+   loads. Drawn as outlines they are a kilobyte and a half, and the
+   barrier's kanji were already done exactly this way.
+
+   The words underneath are real text and carry the name, so the drawing
+   is hidden from the tree rather than labelled twice. */
 .score .head h2 .glyphs,
 .tally-label .glyphs {
   display: flex;
-  gap: .1em;
+  gap: .08em;
+  align-items: baseline;
+}
+
+.glyphs svg {
+  display: block;
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
 }
 
 .score .head h2 .says {

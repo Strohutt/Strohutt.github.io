@@ -55,9 +55,31 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
     op_screen: { media: [{ title: { romaji: 'One Piece' }, episodes: 1140, status: 'RELEASING', genres: ['Adventure'] }] }
   } })));
 
+  /* And the presence, for the same reason: the two live regions are half
+     the page's boxes and a layout checked without them is a layout with
+     two holes where its widest content goes. */
+  const now = Date.now();
+  await p.route('**/api.lanyard.rest/**', r => r.fulfill(json({ success: true, data: {
+    discord_user: { id: '402858450926829568', username: 'strohut', display_name: 'Strohut' },
+    discord_status: 'online', active_on_discord_desktop: true,
+    listening_to_spotify: true,
+    spotify: { song: 'Kaikai Kitan', artist: 'Eve', album: 'Smile', album_art_url: '',
+      track_id: '2N7umuRBdK014bDuwREFZS', timestamps: { start: now - 74e3, end: now + 130e3 } },
+    activities: [
+      { type: 0, name: 'Counter-Strike 2', timestamps: { start: now - 4200e3 }, assets: {},
+        details: 'Competitive', state: 'de_dust2 — 12:4', party: { size: [5, 5] } },
+      { type: 0, name: 'Visual Studio Code', timestamps: { start: now - 900e3 }, assets: {},
+        details: 'Editing script.js', state: 'Workspace: Strohutt.github.io' },
+      { type: 3, name: 'Crunchyroll', timestamps: { start: now - 300e3 }, assets: {},
+        details: 'Jujutsu Kaisen', state: 'S2 E17' }
+    ]
+  } })));
+
   await p.goto(BASE + '/index.html');
   await p.waitForTimeout(1800);
-  check('the favourites fill', await p.evaluate(() => document.querySelectorAll('#like-list li').length) === 3,
+  check('the presence fills', await p.evaluate(() => document.querySelectorAll('#dc-doing li').length) === 3,
+    String(await p.evaluate(() => document.querySelectorAll('#dc-doing li').length)));
+  check('the favourites fill',await p.evaluate(() => document.querySelectorAll('#like-list li').length) === 3,
     String(await p.evaluate(() => document.querySelectorAll('#like-list li').length)));
   check('each card says what was made of it too',
     await p.evaluate(() => document.querySelectorAll('#like-list li').length) ===
@@ -144,6 +166,41 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
     .map(s => parseFloat(s.style.getPropertyValue('--drift')) || 0));
   check('the wheel rolls with the page', Math.abs(rolled) > 1, String(rolled));
   check('the bands drift, and not together', drifted.length >= 2 && drifted[0] !== drifted[1], drifted.join(','));
+
+  /* Off the raw scroll position the lean grew with the page: near the
+     foot of a phone one of the clouds was a hundred and thirty pixels
+     from where it had been placed and was drawn across the last line of
+     the region above it. Wherever you stop, a drawing that is meant to
+     lean stays inside the gutter it was given. */
+  const wander = await p.evaluate(async () => {
+    const worst = [];
+    for (const at of [400, 1200, 2000, 3200, document.body.scrollHeight]) {
+      scrollTo(0, at);
+      await new Promise(r => setTimeout(r, 120));
+      for (const s of document.querySelectorAll('.band svg, svg.band, .flag svg, svg.flag')) {
+        worst.push(Math.abs(parseFloat(s.style.getPropertyValue('--drift')) || 0));
+      }
+    }
+    return Math.max(...worst);
+  });
+  check('and never further than the gutter they lean in', wander <= 20, `${wander}px`);
+
+  /* And the line under the record is a line of text, not something to be
+     drawn over — the point where that came apart. On a phone, where the
+     regions stack and the gutters are at their narrowest. */
+  await p.setViewportSize({ width: 390, height: 844 });
+  await p.waitForTimeout(300);
+  const covered = await p.evaluate(async () => {
+    const t = document.getElementById('track-time');
+    if (!t || t.hidden) return 'no readout';
+    t.scrollIntoView({ block: 'center' });
+    await new Promise(r => setTimeout(r, 200));
+    const b = t.getBoundingClientRect();
+    const hit = document.elementFromPoint(b.left + 8, b.bottom - 4);
+    return hit === t ? '' : (hit ? hit.tagName : 'nothing');
+  });
+  check('nothing is drawn over the time under the record', !covered, covered);
+  await p.setViewportSize({ width: 1340, height: 900 });
   await p.evaluate(() => scrollTo(0, 0));
 
   // keyboard: can you tab to them
