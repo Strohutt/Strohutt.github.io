@@ -193,7 +193,7 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
     await p.evaluate(() => document.querySelectorAll('#work-list li').length) === 1 &&
     await p.evaluate(() => document.querySelectorAll('#push-list li').length) === 1);
   check('a track that is playing says so',
-    await p.evaluate(() => document.getElementById('music-kicker').textContent) === 'playing right now');
+    await p.evaluate(() => document.getElementById('music-kicker').textContent) === 'now playing');
   await p.close();
 
   // same visitor, back later: github refuses and the music has stopped
@@ -207,7 +207,7 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
     !(await p.evaluate(() => document.getElementById('work').hidden)) &&
     await p.evaluate(() => document.querySelectorAll('#work-list li').length) === 1);
   check('nothing playing falls back to the last one caught',
-    await p.evaluate(() => document.getElementById('music-kicker').textContent) === 'last thing I caught' &&
+    await p.evaluate(() => document.getElementById('music-kicker').textContent) === 'last played' &&
     await p.evaluate(() => document.getElementById('track-song').textContent) === 'Kaikai Kitan');
   check('the last one caught says when it was',
     /ago$/.test(await p.evaluate(() => document.getElementById('track-seen').textContent)),
@@ -229,6 +229,39 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   check('cold and quiet: no link to a track nobody picked',
     await p.evaluate(() => document.getElementById('music-link').hidden));
   await p.close();
+
+  /* The track rides the same socket as the presence, so with lanyard
+     unreachable there is nothing to say about it. The panel used to sit on
+     "checking…" for as long as the tab stayed open. */
+  p = await open({ '**/api.lanyard.rest/**': r => r.abort(), '**/api.github.com/**': r => r.abort() });
+  await p.waitForTimeout(2500);
+  check('discord unreachable and nothing stored: the music region goes',
+    await p.evaluate(() => document.querySelector('.music').hidden));
+  check('discord unreachable: nothing is left saying "checking"',
+    !/checking/i.test(await p.evaluate(() => document.body.innerText)));
+  await p.close();
+
+  // but a track this page has caught before still stands
+  const kept = await b.newContext({ viewport: { width: 1340, height: 900 } });
+  p = await kept.newPage();
+  p.on('pageerror', e => fails.push('pageerror(kept): ' + e.message));
+  await p.route('**/api.github.com/**', r => r.abort());
+  await p.route('**/api.lanyard.rest/**', r => r.fulfill(SONG(true)));
+  await p.goto(BASE + '/index.html');
+  await p.waitForTimeout(1500);
+  await p.close();
+
+  p = await kept.newPage();
+  p.on('pageerror', e => fails.push('pageerror(kept 2): ' + e.message));
+  await p.route('**/api.github.com/**', r => r.abort());
+  await p.route('**/api.lanyard.rest/**', r => r.abort());
+  await p.goto(BASE + '/index.html');
+  await p.waitForTimeout(2500);
+  check('discord unreachable but something stored: the region stays',
+    !(await p.evaluate(() => document.querySelector('.music').hidden)) &&
+    await p.evaluate(() => document.getElementById('track-song').textContent) === 'Kaikai Kitan');
+  await p.close();
+  await kept.close();
 
   await b.close();
   console.log(fails.length ? '\n' + fails.length + ' FAILING: ' + fails.join(' | ') : '\nall failure modes hold');

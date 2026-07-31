@@ -4,7 +4,7 @@
 
    1. Sections arriving, and the layers that lean and drift
    2. Things you can hit
-   3. The clock, what he has pushed, and what he keeps poking at
+   3. The clock, what he has pushed, and what he is building
    4. Discord presence, via Lanyard
    ════════════════════════════════════════════════════════════════ */
 
@@ -127,9 +127,10 @@ if (nameHit && brushSvg) {
 
 /* ──────────────────────── Time where he is ─────────────────────── */
 
-/* A homepage that says "Germany" says the same thing at four in the
-   morning as at noon. This says which one it is, and lets the visitor
-   work out for themselves whether a message is going to be answered.
+/* "Germany" says the same thing at four in the morning as it does at noon;
+   the time says which one it is, and the reader can work out for
+   themselves whether a message is going to be answered tonight. It used to
+   spell that out as well, in the voice of a caption. It does not now.
    Intl does the timezone, so summer time is not something to maintain. */
 
 const clock = document.getElementById('clock');
@@ -138,22 +139,8 @@ if (clock) {
   const face = new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit', hour12: false
   });
-  const hourOf = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Europe/Berlin', hour: 'numeric', hour12: false
-  });
 
-  const readOut = h =>
-    h < 5 ? 'probably asleep'
-      : h < 9 ? 'probably still asleep'
-        : h < 12 ? 'awake, allegedly'
-          : h < 18 ? 'around'
-            : h < 23 ? 'around' : 'up too late';
-
-  const tick = () => {
-    const now = new Date();
-    const h = parseInt(hourOf.format(now), 10);
-    clock.textContent = `${face.format(now)} — ${readOut(h)}`;
-  };
+  const tick = () => { clock.textContent = face.format(new Date()); };
 
   tick();
   setInterval(tick, 20000);
@@ -250,7 +237,7 @@ function pushRow(p, i) {
   return li;
 }
 
-/* ──────────────────── What he keeps poking at ──────────────────── */
+/* ─────────────────────────── His repos ─────────────────────────── */
 
 /* Commit messages say what changed this week; the repositories say what
    someone actually spends their time on. Forks are somebody else's work
@@ -384,7 +371,7 @@ el.avatar.addEventListener('error', () => showPortrait(false));
 
 const STATUS_TEXT = {
   online: 'online',
-  idle: 'away for a bit',
+  idle: 'idle',
   dnd: 'do not disturb',
   offline: 'offline'
 };
@@ -556,7 +543,7 @@ function showTrack(track) {
   const seen = track ? null : unstash(LAST_TRACK);
   const show = track || seen;
 
-  el.kicker.textContent = track ? 'playing right now' : seen ? 'last thing I caught' : 'nothing playing';
+  el.kicker.textContent = track ? 'now playing' : seen ? 'last played' : 'nothing playing';
   el.song.textContent = show ? show.song : 'nothing playing';
   el.artist.textContent = show ? show.artist || '' : '';
   el.artist.hidden = !el.artist.textContent;
@@ -601,4 +588,13 @@ function fail() {
   el.name.textContent = 'Strohut';
   el.state.textContent = "can't reach discord right now";
   el.quiet.hidden = true;
+
+  /* The track comes from the same socket, so with that unreachable there
+     is nothing to say about what is playing — and the panel used to sit on
+     "checking…" for as long as the tab stayed open. If this page has caught
+     something before, that still stands. If it never has, the region goes,
+     which is the same rule the github ones follow. */
+  const music = document.querySelector('.music');
+  if (unstash(LAST_TRACK)) showTrack(null);
+  else if (music) music.hidden = true;
 }
