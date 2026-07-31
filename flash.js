@@ -202,10 +202,20 @@ function post(cell, value, bump) {
   cell.classList.add('is-up');
 }
 
+/* The sigil behind the panel burns with the run. Written as a number
+   rather than a class so the drawing can be a fraction of it — a class per
+   step would be eight classes to say one thing. */
+const scorePanel = document.querySelector('.score');
+
+function heat() {
+  if (scorePanel) scorePanel.style.setProperty('--streak', streak);
+}
+
 function tell(bump) {
   post(score.best, best, bump);
   post(score.total, total, bump);
   post(score.adapt, turns, bump);
+  heat();
   said();
 }
 
@@ -315,6 +325,7 @@ function shutCharge(hit) {
    says which side of the window you were on. */
 function missed(how, off) {
   streak = 0;
+  heat();
 
   if (tally) {
     tally.classList.remove('is-hot');
@@ -382,7 +393,7 @@ function landed() {
      rest of the page a backdrop it happened in front of. It goes through
      everything drawn on the page instead, one after another, so a hit is
      something the whole thing feels. */
-  document.querySelectorAll('.band, .flag, .brush').forEach((el, i) => {
+  document.querySelectorAll('.band, .flag, .brush, .score-sigil').forEach((el, i) => {
     setTimeout(() => knock(el, 'is-struck'), 60 + i * 70);
   });
 
@@ -401,7 +412,10 @@ function landed() {
 if (!stillPlease.matches) {
   addEventListener('pointerdown', event => {
     if (event.button !== 0 || charge) return;
-    if (event.target.closest(OFF_LIMITS)) return;
+    // not every pointerdown lands on an element — one dispatched at the
+    // window has the window as its target, and asking that what it sits
+    // inside of throws before anything else on the page gets to run
+    if (event.target?.closest?.(OFF_LIMITS)) return;
 
     const at = performance.now();
     const wind = windUp();

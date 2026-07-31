@@ -489,6 +489,45 @@ body {
 .mote-fleck svg { fill: var(--paper); }
 .mote-fleck.is-hot svg { fill: var(--blood); }
 
+/* ── what the pointer stirs up ──────────────────────────────── */
+
+/* The field goes whether anybody is there or not. This is the half that
+   only exists because somebody is: energy comes off whatever you drag the
+   pointer through, and while a strike is being held it comes off red.
+
+   Fixed, over the sheet rather than under it — a wake that goes behind the
+   text is a wake nobody sees. It takes no clicks, and every piece of it is
+   a drawn fleck rather than a dot, so it belongs to the same hand as the
+   rest of the page. */
+.wake {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  contain: strict;
+}
+
+.spark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--sz, 12px);
+  margin: calc(var(--sz, 12px) / -2);
+  opacity: 0;
+}
+
+.spark svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  fill: var(--paper);
+}
+
+/* held: the charge is building, and what comes off it says so */
+.wake.is-hot .spark svg {
+  fill: var(--blood-lit);
+}
+
 .sprite {
   position: absolute;
   width: 0;
@@ -593,6 +632,7 @@ a {
   from { transform: translate3d(-1.4%, 0, 0) scaleX(1); opacity: .75; }
   to { transform: translate3d(1.8%, -.6%, 0) scaleX(1.05); opacity: 1; }
 }
+
 
 .sp path {
   fill: var(--paper);
@@ -707,9 +747,22 @@ a {
    aimed at, or leaves it behind, in which case the drawing lies about
    where to press. */
 
+/* Speed lines are drawn for exactly one reason, and the page had them
+   sitting still while it was being scrolled past. They stretch and
+   brighten with how hard the page is being thrown about, which is the
+   only honest thing a speed line can do.
+
+   scale is its own property, so the stretch and the lean are not fighting
+   over one transform — but they do share the transition list, and setting
+   it twice would drop whichever came first. */
 .speed {
   transform: translate3d(calc(var(--lean-x) * 14px), calc(var(--lean-y) * 9px), 0);
-  transition: transform 1.1s cubic-bezier(.2, .8, .2, 1);
+  scale: calc(1 + var(--vel, 0) * .12) 1;
+  opacity: calc(.72 + var(--vel, 0) * .28);
+  transform-origin: 100% 40%;
+  transition: transform 1.1s cubic-bezier(.2, .8, .2, 1),
+              scale .45s ease-out,
+              opacity .45s ease-out;
 }
 
 .hero-text {
@@ -756,10 +809,20 @@ a {
    it is a logo sliding up and down; staggered by --n it is ink that has
    not quite settled, which is the difference between a header that moves
    and a header that is animated. */
+/* --near is how close the pointer is to this letter, one on it and nought
+   a letter and a half away. translate and scale are their own properties,
+   so answering the pointer and the idle drift are not fighting over the
+   single transform the letter has. */
 .name i {
   display: inline-block;
   font-style: normal;
   animation: settle 5.2s ease-in-out calc(var(--n) * -.62s) infinite alternate;
+  translate: 0 calc(var(--pull, 0) * -.07em);
+  scale: calc(1 + var(--pull, 0) * .05);
+  transition: translate .35s cubic-bezier(.2, .9, .2, 1),
+              scale .35s cubic-bezier(.2, .9, .2, 1),
+              color .3s ease;
+  color: color-mix(in srgb, var(--paper), var(--blood-lit) calc(var(--pull, 0) * 75%));
 }
 
 @keyframes settle {
@@ -767,10 +830,21 @@ a {
   to { transform: translateY(-.018em) rotate(.5deg); }
 }
 
-/* reaching for it wakes the whole word up */
+/* Reaching for it wakes the whole word up. Only the beat, though — the
+   colour travels with the pointer and reddening every letter as well just
+   washed the word out under a highlight that was supposed to be moving
+   across it.
+
+   Arriving by keyboard is the one case with nothing to travel: there is
+   no pointer, --pull stays at nought, and the letters would answer a tab
+   with nothing at all. So that case gets the whole word. */
 .name button:hover i,
 .name button:focus-visible i {
   animation-duration: 1.5s;
+}
+
+.name button:focus-visible i {
+  color: var(--blood-lit);
 }
 
 .who {
@@ -787,9 +861,18 @@ a {
 }
 
 #clock {
+  display: inline-block;
   font-variant-numeric: tabular-nums;
   color: var(--paper);
   white-space: nowrap;
+}
+
+.is-turned {
+  animation: turned .5s cubic-bezier(.2, .9, .2, 1);
+}
+
+@keyframes turned {
+  from { opacity: 0; translate: 0 -.5em; color: var(--blood-lit); }
 }
 
 /* narrow enough and the clock takes its own line rather than breaking
@@ -849,13 +932,35 @@ a {
   width: 1rem;
   height: 1rem;
   fill: currentColor;
+  transition: rotate .35s cubic-bezier(.2, .9, .2, 1), scale .35s cubic-bezier(.2, .9, .2, 1);
+}
+
+/* A tag that only changes colour is a hyperlink with a border on it.
+   These lift off the page and the mark on them turns, so reaching for one
+   is the same kind of event as reaching for anything else here. */
+.links a {
+  translate: 0 0;
+  transition: background-color .15s, box-shadow .15s, color .15s,
+              translate .3s cubic-bezier(.2, .9, .2, 1);
 }
 
 .links a:hover,
 .links a:focus-visible {
   color: var(--ink);
   background: var(--paper);
-  box-shadow: inset 0 0 0 var(--rule) var(--paper);
+  box-shadow: inset 0 0 0 var(--rule) var(--paper), 0 6px 18px rgb(0 0 0 / .55);
+  translate: 0 -3px;
+}
+
+.links a:hover svg,
+.links a:focus-visible svg {
+  rotate: -12deg;
+  scale: 1.18;
+}
+
+.links a:active {
+  translate: 0 0;
+  transition-duration: .06s;
 }
 
 /* ── the cloud, the one thing that crosses a gutter ─────────── */
@@ -926,13 +1031,18 @@ svg.band {
 /* The one heavy mark in the rule, so the eye knows where a region starts.
    It is struck when the region arrives rather than being there already —
    a rule that draws itself is the difference between a section appearing
-   and a section being scrolled past. */
+   and a section being scrolled past.
+
+   And it keeps answering after that: --near is how centred the region is
+   on the screen, so the mark runs out as its region comes up and pulls
+   back as it goes. Width for that and scale for the arrival, because the
+   two have to be able to happen at once. */
 .head::before {
   content: "";
   position: absolute;
   left: 0;
   bottom: 0;
-  width: 3.2rem;
+  width: calc(2.2rem + var(--near, .4) * 3rem);
   height: var(--rule);
   background: var(--blood);
   transform-origin: 0 50%;
@@ -953,6 +1063,20 @@ svg.band {
 
 .head h2 {
   font-size: clamp(1.4rem, 3.4vw, 2rem);
+}
+
+/* The heading was sliding up with the rest of the region. It is inked in
+   instead — the same wipe the brush stroke under the name gets, so the
+   two openings on the page are the same gesture at two sizes. The right
+   inset goes past nought because a mincho 閃 has strokes that reach the
+   very edge of its box, and cutting at nought shaves them. */
+[data-js] .reveal .head h2 {
+  clip-path: inset(0 100% -10% 0);
+}
+
+[data-js] .reveal.is-in .head h2 {
+  clip-path: inset(0 -6% -10% 0);
+  transition: clip-path .8s cubic-bezier(.2, .9, .2, 1) .1s;
 }
 
 /* ══ 現在 — the live readout ════════════════════════════════ */
@@ -1144,6 +1268,18 @@ svg.band {
   height: 2.6rem;
   object-fit: cover;
   box-shadow: inset 0 0 0 1px var(--paper-3);
+  transition: translate .3s cubic-bezier(.2, .9, .2, 1),
+              rotate .3s cubic-bezier(.2, .9, .2, 1),
+              box-shadow .3s ease;
+}
+
+/* the row already draws a red mark along its top edge under the pointer;
+   the icon comes up to meet it rather than sitting there while it does */
+.doing li:hover img,
+.doing li:hover .no-art {
+  translate: 0 -3px;
+  rotate: -3deg;
+  box-shadow: inset 0 0 0 var(--rule) var(--paper);
 }
 
 /* no icon from discord: the same mark the empty sleeve carries, rather
@@ -1221,6 +1357,79 @@ svg.band {
   grid-template-columns: auto minmax(0, 1fr);
   gap: clamp(.8rem, 2vw, 1.2rem);
   align-items: center;
+}
+
+/* ── the deck ───────────────────────────────────────────────── */
+
+/* The record is behind the sleeve and mostly inside it. When something is
+   playing it rides out to the right and turns; when it stops it goes back
+   in and stands still. Nothing else on the panel says playing or not
+   playing without words. */
+.deck {
+  position: relative;
+  padding-right: 3rem;
+  /* so the record's negative z-index is measured against the deck rather
+     than against the whole sheet, where it would fall behind the panel */
+  isolation: isolate;
+}
+
+.disc {
+  position: absolute;
+  top: 50%;
+  right: 3rem;
+  width: clamp(4.4rem, 11vw, 6.4rem);
+  z-index: -1;
+  translate: 4% -50%;
+  transition: translate .7s cubic-bezier(.3, .8, .3, 1);
+}
+
+.disc svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  animation: spin 3.4s linear infinite;
+  animation-play-state: paused;
+}
+
+.track.is-playing .disc {
+  translate: 52% -50%;
+}
+
+.track.is-playing .disc svg {
+  animation-play-state: running;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.vn-body {
+  fill: var(--ink-2);
+  stroke: var(--paper);
+  stroke-width: 2;
+}
+
+.vn-groove {
+  fill: none;
+  stroke: var(--paper);
+  stroke-width: 1;
+}
+
+.vn-label {
+  fill: var(--blood);
+  stroke: var(--paper);
+  stroke-width: 1.6;
+}
+
+.vn-hole {
+  fill: var(--ink);
+  stroke: none;
+}
+
+.vn-shine {
+  fill: var(--paper);
+  stroke: none;
+  opacity: .1;
 }
 
 .sleeve {
@@ -1324,6 +1533,7 @@ svg.band {
 
 /* how far through the song it is */
 .track-bar {
+  position: relative;
   grid-column: 1 / -1;
   height: 6px;
   margin-top: .3rem;
@@ -1336,11 +1546,37 @@ svg.band {
 }
 
 .track-bar span {
+  position: relative;
   display: block;
   height: 100%;
   width: 0;
   background: var(--blood);
   transition: width 1s linear;
+}
+
+/* the head of the bar, so the thing that is moving has a point on it and
+   not just an edge. the same diamond the empty sleeve and the status dot
+   use, because it is the page's one small mark */
+.track-bar span::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: .58rem;
+  height: .58rem;
+  translate: 50% -50%;
+  background: var(--blood-lit);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  opacity: 0;
+}
+
+.track.is-playing .track-bar span::after {
+  opacity: 1;
+  animation: head 2.2s ease-in-out infinite;
+}
+
+@keyframes head {
+  50% { scale: 1.35; }
 }
 
 /* the bar says roughly, these say exactly */
@@ -1379,6 +1615,9 @@ svg.band {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
   gap: 1.6rem clamp(1.6rem, 4vw, 3rem);
+  /* the depth the cards turn in. shallow — at 400 the far corner of a
+     card this wide swings far enough to read as a page curling */
+  perspective: 1100px;
 }
 
 /* position, because the mark that runs along the top edge under the
@@ -1404,15 +1643,43 @@ svg.band {
   flex: none;
 }
 
+/* The card turns toward wherever the pointer is on it, and the cover
+   stands off the card while it does — which is what makes it a card being
+   picked up rather than a rectangle being scaled. The two angles come
+   from js as −1…1 across the card. */
+.like-list li {
+  transform-style: preserve-3d;
+  transform: rotateY(calc(var(--tilt-x, 0) * 5deg)) rotateX(calc(var(--tilt-y, 0) * -4deg));
+  transition: transform .5s cubic-bezier(.2, .9, .2, 1);
+}
+
+/* under the pointer it has to keep up; leaving it, it can take its time */
+.like-list li:hover {
+  transition-duration: .12s;
+}
+
 /* the only pictures on the page, so they are the only thing that gets to
    lean when you reach for it */
 .like-list li:hover .cover,
 .like-list li:focus-within .cover {
-  transform: rotate(-1.4deg) scale(1.04);
+  transform: translateZ(30px) rotate(-1.4deg) scale(1.04);
 }
 
 .cover {
+  transform: translateZ(0);
   transition: transform .35s cubic-bezier(.2, .9, .2, 1);
+}
+
+/* the text lifts too, less far, or the cover reads as pasted on top of a
+   flat card rather than as the near edge of a card that is turning */
+.like-text {
+  transform: translateZ(0);
+  transition: transform .35s cubic-bezier(.2, .9, .2, 1);
+}
+
+.like-list li:hover .like-text,
+.like-list li:focus-within .like-text {
+  transform: translateZ(14px);
 }
 
 /* visibility, not display — see the note in script.js. It keeps a box, so
@@ -1549,6 +1816,42 @@ svg.band {
   }
 }
 
+/* The right of this panel was a reading and a lot of black. The mark that
+   goes there is the hit itself, drawn once for the strike and used again
+   here at almost no opacity, so it costs nothing and it is the one drawing
+   on the page that belongs to whoever is reading it rather than to him.
+
+   It bleeds off the right edge the way the wheel does in the header — a
+   drawing sitting neatly inside its box is a sticker. */
+.score {
+  isolation: isolate;
+}
+
+.score-sigil {
+  position: absolute;
+  right: -2%;
+  bottom: -4%;
+  z-index: -1;
+  width: min(15rem, 26%);
+  aspect-ratio: 1;
+  pointer-events: none;
+  /* nought is a mark you have to look for; eight in a row and it is
+     properly alight. Red on black carries a very long way, so this range
+     is far lower than it reads on paper. */
+  opacity: calc(.035 + min(var(--streak, 0), 8) * .015);
+  rotate: -8deg;
+  transition: opacity .6s ease-out;
+}
+
+.score-sigil.is-struck {
+  animation: burn .55s cubic-bezier(.2, .9, .2, 1);
+}
+
+@keyframes burn {
+  0% { opacity: .4; scale: 1.14; }
+  100% { scale: 1; }
+}
+
 .score-list {
   list-style: none;
   display: grid;
@@ -1660,6 +1963,114 @@ svg.band {
   align-items: center;
   gap: clamp(1rem, 3vw, 2.4rem);
   padding-block: clamp(1.2rem, 3vw, 2.4rem);
+  isolation: isolate;
+}
+
+/* ── the sea ────────────────────────────────────────────────── */
+
+/* The footer was a flag and a link at either end of an empty band. Under
+   a jolly roger there should be water, and water is the one thing on a
+   page that has an excuse to never stop moving.
+
+   Full bleed rather than the width of the spread: the sheet clips, so a
+   hundred viewport widths in here cannot widen the document. */
+.sea {
+  --band: clamp(8rem, 22vw, 15rem);
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  z-index: -1;
+  width: 100vw;
+  height: var(--band);
+  translate: -50% 0;
+  pointer-events: none;
+}
+
+/* The ends have to go to nothing or the sea is a strip with two cut
+   edges. A mask would do it, and did — but a mask on a box this size
+   costs its own compositing pass every frame the water moves, and here
+   that was a sixth of the frame rate. The page behind is one flat ink, so
+   two gradients painted over the ends are the same picture for nothing.
+   ::after rather than ::before, so it lands on top of the water. */
+.sea::after {
+  content: "";
+  position: absolute;
+  inset: -1px 0;
+  background:
+    linear-gradient(to right, var(--ink), transparent 13%),
+    linear-gradient(to left, var(--ink), transparent 13%);
+}
+
+/* The lane is what clips; the drawing inside it is three tiles wide and
+   slides. Both are needed — the svg cannot both overrun and hide its own
+   overrun. */
+.sea .lane {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+}
+
+.sea svg {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 300%;
+  height: 100%;
+  fill: none;
+  stroke: var(--paper);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: roll 41s linear infinite;
+  will-change: transform;
+}
+
+/* Two layers at unrelated speeds and depths. One sea rolling on its own
+   is a texture; two at different rates is distance. */
+.sea-far {
+  opacity: .2;
+  scale: 1 .72;
+  transform-origin: 50% 100%;
+  animation-duration: 67s;
+  animation-direction: reverse;
+}
+
+.sea-near {
+  opacity: .38;
+}
+
+/* One tile exactly, then back to nothing — the drawing is built to tile,
+   so the jump at the end lands on the same pixels it left.
+
+   A third of the band is only one tile while `slice` is scaling to the
+   width. Below about four and a half times the band's height it scales to
+   the height instead, the drawing comes out wider than a third of the
+   box, and a third of the box is then short of a tile — so the loop jumps
+   by the difference every time round. That is the whole reason for the
+   max(): 1200 units of tile against 260 of band is 4.6154 of one for one
+   of the other, and whichever of the two is larger is the real tile. */
+@keyframes roll {
+  to { transform: translateX(calc(-1 * max(100% / 3, var(--band) * 4.6154))); }
+}
+
+.sea-line { stroke-width: 3.2; }
+.sea-crest { stroke-width: 3.6; }
+.sea-face { stroke-width: 2.8; }
+
+.sea-vein {
+  stroke-width: 1.8;
+  opacity: .55;
+}
+
+.sea-dash {
+  stroke-width: 1.6;
+  opacity: .45;
+}
+
+.sea-spray {
+  fill: var(--paper);
+  stroke: none;
+  opacity: .7;
 }
 
 /* The straw hat is the handle. It had been sitting at five rem in the
@@ -2151,12 +2562,15 @@ body.is-domain .wheel {
   transition: opacity .5s ease;
 }
 
-[data-js] .reveal > * {
+/* Drawing behind a region is not one of its parts, and it has its own
+   reasons for the opacity it is at — left in, this rule wins on
+   specificity and pins it to one whatever those reasons were. */
+[data-js] .reveal > :not(svg) {
   opacity: 0;
   transform: translateY(18px);
 }
 
-[data-js] .reveal.is-in > * {
+[data-js] .reveal.is-in > :not(svg) {
   opacity: 1;
   transform: none;
   transition: opacity .5s ease var(--in, 0s),
@@ -2169,12 +2583,24 @@ body.is-domain .wheel {
 
 /* rows that arrive with the data they came for, rather than with the
    panel that will hold them */
-.like-list li {
+.like-list li,
+.doing li {
   animation: arrive .55s cubic-bezier(.22, .8, .3, 1) calc(var(--i, 0) * 70ms) backwards;
 }
 
 @keyframes arrive {
   from { opacity: 0; transform: translateY(14px); }
+}
+
+/* the card's own resting transform is a rotation, so the arrival cannot
+   also be one — it would win, and every card would sit flat until it was
+   pointed at */
+.like-list li {
+  animation-name: arrive-flat;
+}
+
+@keyframes arrive-flat {
+  from { opacity: 0; translate: 0 14px; }
 }
 
 :focus-visible {
