@@ -41,6 +41,14 @@ const up = p => p.evaluate(() => {
   check('what is under it can be clicked once it is gone',
     await p.evaluate(() => !!document.elementFromPoint(120, 400)));
 
+  /* The white outlives the drawing on purpose — the page arrives out of it
+     rather than cross-fading with it — so for a moment it is a full-screen
+     layer over a live page, and it must not be in the way while it is. */
+  check('the white never takes a click',
+    await p.evaluate(() => getComputedStyle(document.getElementById('curtain-white')).pointerEvents) === 'none');
+  check('and it is gone afterwards too',
+    await p.evaluate(() => getComputedStyle(document.getElementById('curtain-white')).display) === 'none');
+
   /* Going somewhere and coming back is the same visit and must not put it
      up again. Session storage is per tab, which is exactly the shape
      wanted: a new tab is somebody arriving, a reload is not. */
@@ -136,7 +144,8 @@ const up = p => p.evaluate(() => {
   await p.goto(BASE + '/index.html');
   await p.waitForTimeout(400);
   check('without javascript it is never in the way',
-    await p.evaluate(() => getComputedStyle(document.getElementById('curtain')).display) === 'none');
+    await p.evaluate(() => getComputedStyle(document.getElementById('curtain')).display) === 'none' &&
+    await p.evaluate(() => getComputedStyle(document.getElementById('curtain-white')).display) === 'none');
   await p.close();
   await c.close();
 

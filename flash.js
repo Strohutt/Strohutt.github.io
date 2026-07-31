@@ -6,19 +6,31 @@
 
 const stillPlease = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-/* ─────────────────────────── 領域展開 ──────────────────────────── */
+/* ─────────────────────────── 無量空処 ──────────────────────────── */
 
 /* The barrier goes up once when you arrive, and then it is gone. Not on
    every page in a session, not for anybody who has asked their machine to
    stop moving things, and never for longer than it takes — any key, any
-   click, any scroll takes it down early, and a timer takes it down even
-   if nothing else fires at all.
+   click, any scroll takes it down early, and a timer takes it down even if
+   nothing else fires at all.
 
    A loading screen that cannot be got rid of is a loading screen that
-   somebody leaves. */
+   somebody leaves.
+
+   The white is a layer of its own above the curtain rather than a child of
+   it: the curtain is taken away while the screen is white, so the page
+   arrives out of the white instead of cross-fading with it — and nothing
+   with a changing opacity is left sitting above the drawing, which is what
+   was stopping any of it from being composited. */
+
 const curtain = document.getElementById('curtain');
+const flare = document.getElementById('curtain-white');
 
 if (curtain) {
+  const CUT = 1560;        // the white is at its peak; take the drawing away
+  const DONE = 2250;       // and the white is finished
+  const SKIPS = ['pointerdown', 'keydown', 'wheel', 'touchstart'];
+
   let seen = true;
   try {
     seen = sessionStorage.getItem('strohut-seen') === '1';
@@ -28,49 +40,71 @@ if (curtain) {
     seen = false;
   }
 
-  const SKIPS = ['pointerdown', 'keydown', 'wheel', 'touchstart'];
-  let failsafe = 0;
+  let cutTimer = 0;
+  let doneTimer = 0;
 
   const lift = () => {
-    if (curtain.classList.contains('is-done')) return;
+    if (curtain.classList.contains('is-done') && (!flare || flare.classList.contains('is-done'))) return;
     curtain.classList.add('is-done');
-    clearTimeout(failsafe);
+    if (flare) {
+      flare.classList.add('is-done');
+      flare.classList.remove('is-going');
+    }
+    document.documentElement.classList.remove('is-cast');
+    clearTimeout(cutTimer);
+    clearTimeout(doneTimer);
     for (const kind of SKIPS) removeEventListener(kind, lift);
   };
 
-  const raise = () => {
-    if (stillPlease.matches) return;
+  const run = () => {
+    clearTimeout(cutTimer);
+    clearTimeout(doneTimer);
 
-    // the animation has to be started again from nothing, or a second
-    // showing is a class change on something that already finished
-    curtain.classList.add('is-done');
-    void curtain.offsetWidth;
-    curtain.classList.remove('is-done');
+    // the drawing goes while the screen is white
+    cutTimer = setTimeout(() => {
+      curtain.classList.add('is-done');
+      document.documentElement.classList.remove('is-cast');
+    }, CUT);
 
-    clearTimeout(failsafe);
-    // the animation finishing is the ordinary way out; the rest are the
-    // ways out for when it does not
-    failsafe = setTimeout(lift, 3200);
+    // and this is the one that has to happen whatever else did not
+    doneTimer = setTimeout(lift, DONE);
     for (const kind of SKIPS) addEventListener(kind, lift, { passive: true, once: true });
   };
 
   if (seen || stillPlease.matches) {
     curtain.classList.add('is-done');
+    if (flare) flare.classList.add('is-done');
   } else {
-    failsafe = setTimeout(lift, 3200);
-    for (const kind of SKIPS) addEventListener(kind, lift, { passive: true, once: true });
+    document.documentElement.classList.add('is-cast');
+    run();
   }
 
-  curtain.addEventListener('animationend', event => {
-    if (event.animationName === 'curtain') lift();
-  });
-
-  /* Once is a loading screen. Being able to do it again is the thing he
-     asked for — so the name is the control: it already redraws the stroke
-     under itself, and pressing the biggest word on the page is about as
-     deliberate as a click gets. */
+  /* Once is a loading screen. Being able to set it off again is the thing
+     he asked for — so the name is the control: it already redraws the
+     stroke under itself, and pressing the biggest word on the page is
+     about as deliberate as a click gets. */
   const again = document.getElementById('name-hit');
-  if (again) again.addEventListener('click', raise);
+  if (again) {
+    again.addEventListener('click', () => {
+      if (stillPlease.matches) return;
+
+      // both have to be started again from nothing, or a second showing is
+      // a class change on something that already finished
+      for (const el of [curtain, flare]) {
+        if (!el) continue;
+        el.classList.add('is-done');
+        el.classList.remove('is-going');
+      }
+      void curtain.offsetWidth;
+      curtain.classList.remove('is-done');
+      if (flare) {
+        flare.classList.remove('is-done');
+        flare.classList.add('is-going');
+      }
+      document.documentElement.classList.add('is-cast');
+      run();
+    });
+  }
 }
 
 const strikes = document.getElementById('strikes');
