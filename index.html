@@ -321,9 +321,11 @@
           <div class="presence-who" role="status" aria-live="polite">
             <p class="dc-name" id="dc-name">Strohut</p>
             <p class="dc-state" id="dc-state">reaching discord</p>
+            <p class="dc-where" id="dc-where" hidden></p>
           </div>
           <div class="portrait">
             <img id="dc-avatar" width="160" height="160" alt="" hidden>
+            <img class="portrait-frame" id="dc-frame" width="160" height="160" alt="" aria-hidden="true" hidden>
             <span class="portrait-void" aria-hidden="true"></span>
           </div>
         </div>
@@ -348,12 +350,16 @@
         <div class="track-text" role="status" aria-live="polite">
           <p class="track-song" id="track-song">checking…</p>
           <p class="track-artist" id="track-artist"></p>
+          <p class="track-album" id="track-album" hidden></p>
           <p class="track-seen" id="track-seen" hidden></p>
           <a class="track-link" id="music-link" href="https://open.spotify.com" hidden>open in spotify</a>
         </div>
         <div class="track-bar" id="track-bar" hidden>
           <span id="track-fill"></span>
         </div>
+        <!-- outside the live region on purpose: read out every second it
+             would be the only thing a screen reader ever got to say -->
+        <p class="track-time" id="track-time" hidden></p>
       </div>
     </section>
     <button class="band band-2" id="cloud-hit-2" type="button" aria-label="Nudge the cloud">
@@ -381,6 +387,7 @@
         <li><b id="score-best">0</b><span>best run</span></li>
         <li><b id="score-total">0</b><span>landed</span></li>
         <li><b id="score-adapt">0</b><span>turns taken</span></li>
+        <li><b id="score-last">—</b><span>last attempt</span></li>
       </ul>
     </section>
 

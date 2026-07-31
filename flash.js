@@ -78,7 +78,8 @@ if (wheel && adapted) wheel.style.setProperty('--adapt', adapted);
 const score = {
   best: document.getElementById('score-best'),
   total: document.getElementById('score-total'),
-  adapt: document.getElementById('score-adapt')
+  adapt: document.getElementById('score-adapt'),
+  last: document.getElementById('score-last')
 };
 
 function post(cell, value, bump) {
@@ -184,15 +185,32 @@ function shutCharge(hit) {
 
 /* A miss that tells you nothing is a miss you cannot learn from, so it
    says which side of the window you were on. */
-function missed(how) {
+function missed(how, off) {
   streak = 0;
-  // a cancelled hold is not an attempt, and marking it would punish
-  // scrolling away mid-charge
-  if (how) mark(false);
-  if (!tally) return;
-  tally.classList.remove('is-hot');
-  document.getElementById('tally-streak').textContent = '0';
-  say(how);
+
+  if (tally) {
+    tally.classList.remove('is-hot');
+    document.getElementById('tally-streak').textContent = '0';
+  }
+
+  /* A cancelled hold is not an attempt. It leaves no mark, and it leaves
+     the last real reading alone — scrolling away mid-charge should not
+     wipe the number you were trying to beat. */
+  if (!how) {
+    say('');
+    return;
+  }
+
+  mark(false);
+  const said = `${Math.max(1, Math.round(off))} ms ${how}`;
+  tellLast(said);
+  say(said);
+}
+
+// the corner tally goes away after a second and a half; this is the same
+// reading, kept where it can still be read afterwards
+function tellLast(word) {
+  if (score.last) score.last.textContent = word;
 }
 
 let sayTimer = null;
@@ -217,6 +235,7 @@ function landed() {
   }
 
   say('landed');
+  tellLast('landed');
   mark(true);
 
   if (tally) {
@@ -262,7 +281,7 @@ if (!stillPlease.matches) {
         if (!charge) return;
         strikeAt(charge.x, charge.y, 'hit');
         shutCharge(false);
-        missed('too late');
+        missed('late', HOLD_LIMIT - WIND_UP * (WINDOW_AT + windowNow()));
       }, HOLD_LIMIT)
     };
   }, { passive: true });
@@ -282,8 +301,16 @@ if (!stillPlease.matches) {
     strikeAt(x, y, inside ? 'flash' : 'hit');
     shutCharge(inside);
 
-    if (inside) landed();
-    else missed(held < open ? 'too early' : 'too late');
+    if (inside) {
+      landed();
+    } else {
+      // "too early" tells you nothing you can act on. The number of
+      // milliseconds does — you find out whether you were nearly there or
+      // nowhere near, and that is the whole difference between a game you
+      // can get better at and one you cannot.
+      const off = held < open ? open - held : held - shut;
+      missed(held < open ? 'early' : 'late', off);
+    }
   };
 
   addEventListener('pointerup', release, { passive: true });

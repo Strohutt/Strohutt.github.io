@@ -325,6 +325,10 @@ const el = {
   song: document.getElementById('track-song'),
   artist: document.getElementById('track-artist'),
   seen: document.getElementById('track-seen'),
+  album: document.getElementById('track-album'),
+  clock: document.getElementById('track-time'),
+  where: document.getElementById('dc-where'),
+  frame: document.getElementById('dc-frame'),
   bar: document.getElementById('track-bar'),
   fill: document.getElementById('track-fill'),
   link: document.getElementById('music-link')
@@ -455,6 +459,28 @@ function render(data) {
 
   el.dot.className = `dot is-${status}`;
 
+  /* Which machine he is at. Discord reports the three separately and one
+     person can be on more than one at once, which is worth saying — being
+     on a phone and being at a desk mean different things about whether a
+     message gets a reply. */
+  const on = [
+    data.active_on_discord_desktop && 'desktop',
+    data.active_on_discord_mobile && 'phone',
+    data.active_on_discord_web && 'browser'
+  ].filter(Boolean);
+  el.where.textContent = status !== 'offline' && on.length ? on.join(' and ') : '';
+  el.where.hidden = !el.where.textContent;
+
+  // the frame around the avatar is its own image, sitting over the picture
+  const frame = user.avatar_decoration_data && user.avatar_decoration_data.asset;
+  el.frame.hidden = !frame;
+  if (frame) {
+    const url = `https://cdn.discordapp.com/avatar-decoration-presets/${frame}.png?size=160`;
+    if (el.frame.src !== url) el.frame.src = url;
+  } else {
+    el.frame.removeAttribute('src');
+  }
+
   // a custom status outranks everything else
   const custom = data.activities.find(a => a.type === 4);
   const customText = custom && [custom.emoji?.name, custom.state].filter(Boolean).join(' ');
@@ -468,6 +494,18 @@ function render(data) {
 
   el.quiet.hidden = doing.length > 0 || Boolean(spotify) || Boolean(customText);
 }
+
+/* Discord sends far more per activity than a name: what the game itself
+   is reporting on the second line and the third, how big the party is,
+   and which of five kinds of activity it even is. The panel was showing
+   the name and throwing the rest away. */
+const DOING_KIND = {
+  0: 'playing',
+  1: 'streaming',
+  2: 'listening to',
+  3: 'watching',
+  5: 'competing in'
+};
 
 function activityRow(activity) {
   const li = document.createElement('li');
@@ -489,10 +527,27 @@ function activityRow(activity) {
 
   const body = document.createElement('div');
 
+  const kind = DOING_KIND[activity.type];
+  if (kind) {
+    const what = document.createElement('p');
+    what.className = 'doing-what';
+    what.textContent = kind;
+    body.append(what);
+  }
+
   const name = document.createElement('p');
   name.className = 'doing-name';
   name.textContent = activity.name;
   body.append(name);
+
+  // the game's own two lines, whatever it chooses to put there
+  for (const line of [activity.details, partyLine(activity)]) {
+    if (!line) continue;
+    const p = document.createElement('p');
+    p.className = 'doing-line';
+    p.textContent = line;
+    body.append(p);
+  }
 
   const start = activity.timestamps?.start;
   if (start) {
@@ -506,6 +561,15 @@ function activityRow(activity) {
 
   li.append(body);
   return li;
+}
+
+// the second line, with the party count folded in where there is one
+function partyLine(activity) {
+  const size = activity.party && activity.party.size;
+  const crowd = Array.isArray(size) && size.length === 2 && size[1] > 1
+    ? `${size[0]} of ${size[1]}`
+    : '';
+  return [activity.state, crowd].filter(Boolean).join(' · ');
 }
 
 function artworkUrl(activity) {
@@ -534,8 +598,8 @@ function elapsed(startMs) {
 function showTrack(track) {
   if (track && track.song) {
     stash(LAST_TRACK, {
-      song: track.song, artist: track.artist, id: track.track_id,
-      art: track.album_art_url, at: Date.now()
+      song: track.song, artist: track.artist, album: track.album,
+      id: track.track_id, art: track.album_art_url, at: Date.now()
     });
   }
 
@@ -550,6 +614,10 @@ function showTrack(track) {
 
   el.seen.textContent = seen && seen.at ? ago(seen.at) : '';
   el.seen.hidden = !el.seen.textContent;
+
+  // the record it came off, which discord sends and the panel ignored
+  el.album.textContent = show && show.album && show.album !== show.song ? show.album : '';
+  el.album.hidden = !el.album.textContent;
 
   const id = show && (show.track_id || show.id);
   el.link.hidden = !id;
@@ -571,16 +639,29 @@ function showTrack(track) {
 
   if (!span || span <= 0) {
     el.bar.hidden = true;
+    el.clock.hidden = true;
     return;
   }
 
   el.bar.hidden = false;
+  el.clock.hidden = false;
+
+  // A bar says roughly how far in it is. The numbers say exactly, and they
+  // sit outside the live region — read out every second they would be the
+  // only thing a screen reader ever got to say.
   const tick = () => {
-    const gone = (Date.now() - track.timestamps.start) / span;
-    el.fill.style.width = `${Math.min(100, Math.max(0, gone * 100)).toFixed(2)}%`;
+    const gone = Date.now() - track.timestamps.start;
+    el.fill.style.width = `${Math.min(100, Math.max(0, gone / span * 100)).toFixed(2)}%`;
+    el.clock.textContent = `${clockOf(gone)} / ${clockOf(span)}`;
   };
   tick();
   liveTimers.push(setInterval(tick, 1000));
+}
+
+// minutes and seconds, the way a player shows them
+function clockOf(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
 }
 
 function fail() {
