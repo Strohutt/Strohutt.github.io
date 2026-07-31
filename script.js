@@ -182,7 +182,7 @@ const likeBox = document.getElementById('likes');
 const likeList = document.getElementById('like-list');
 
 const LIKE_FIELDS = `
-  id siteUrl format status chapters volumes
+  id siteUrl format status chapters volumes episodes genres
   title { romaji english native }
   coverImage { large }
   startDate { year }`;
@@ -195,9 +195,15 @@ if (likeBox && likeList) {
      it rather than being dropped.
 
      One request, one alias per title, rather than three round trips. */
-  const query = `{${LIKED.map(l =>
-    `${l.key}: Page(perPage: 5) { media(search: ${JSON.stringify(l.title)}, type: MANGA) {${LIKE_FIELDS}} }`
-  ).join('\n')}}`;
+  /* Each of these is two things — the book and what was made of it — and
+     anilist keeps them as separate records under separate types. Asking
+     for both costs one more alias in the same request and is the
+     difference between a card that names a title and a card that says
+     what there is of it. */
+  const query = `{${LIKED.flatMap(l => [
+    `${l.key}_book: Page(perPage: 5) { media(search: ${JSON.stringify(l.title)}, type: MANGA) {${LIKE_FIELDS}} }`,
+    `${l.key}_screen: Page(perPage: 5) { media(search: ${JSON.stringify(l.title)}, type: ANIME) {${LIKE_FIELDS}} }`
+  ]).join('\n')}}`;
 
   fetch('https://graphql.anilist.co', {
     method: 'POST',
@@ -215,17 +221,21 @@ if (likeBox && likeList) {
          that thing's format and chapter count under a heading that says
          favourites. So the entry taken is the one that answers to the
          title that was asked for, wherever it sits in the results. */
+      const hit = (alias, asked) => {
+        const page = data[alias];
+        const list = (page && Array.isArray(page.media)) ? page.media : [];
+        return list.find(m => m && m.title && answersTo(m.title, asked)) || null;
+      };
+
       const got = LIKED
-        .map(l => {
-          const page = data[l.key];
-          const list = (page && Array.isArray(page.media)) ? page.media : [];
-          return list.find(m => m && m.title && answersTo(m.title, l.title));
-        })
-        .filter(Boolean);
+        .map(l => ({ book: hit(`${l.key}_book`, l.title), screen: hit(`${l.key}_screen`, l.title) }))
+        // the book is the record the card is built on; the adaptation only
+        // ever adds a line, so one without the other is not a card
+        .filter(e => e.book);
 
       if (!got.length) return;
 
-      likeList.replaceChildren(...got.map((m, i) => likeRow(m, i)));
+      likeList.replaceChildren(...got.map((e, i) => likeRow(e, i)));
       likeBox.hidden = false;
       likeBox.classList.add('is-in');
     })
@@ -269,7 +279,8 @@ const STATE = {
   CANCELLED: 'cancelled'
 };
 
-function likeRow(media, i) {
+function likeRow(entry, i) {
+  const media = entry.book;
   const li = document.createElement('li');
   li.style.setProperty('--i', i);
 
@@ -329,6 +340,30 @@ function likeRow(media, i) {
     meta.className = 'like-meta';
     meta.textContent = bits.join(' · ');
     body.append(meta);
+  }
+
+  // and what was made of it
+  const screen = entry.screen;
+  if (screen) {
+    const shown = [
+      'anime',
+      screen.episodes ? `${screen.episodes} episodes` : '',
+      STATE[screen.status]
+    ].filter(Boolean);
+
+    const line = document.createElement('p');
+    line.className = 'like-meta';
+    line.textContent = shown.join(' · ');
+    body.append(line);
+  }
+
+  const tags = (media.genres || []).concat(screen ? screen.genres || [] : []);
+  if (tags.length) {
+    const seen = [...new Set(tags.map(t => String(t).toLowerCase()))].slice(0, 4);
+    const list = document.createElement('p');
+    list.className = 'like-tags';
+    list.textContent = seen.join(', ');
+    body.append(list);
   }
 
   li.append(body);

@@ -172,14 +172,14 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   check('anilist errors: the panel stays hidden', await p.evaluate(() => document.getElementById('likes').hidden));
   await p.close();
 
-  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: page(), gohs: page(), op: page() } }) });
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk_book: page(), gohs_book: page(), op_book: page() } }) });
   await p.waitForTimeout(1800);
   check('anilist finds none of them: the panel stays hidden',
     await p.evaluate(() => document.getElementById('likes').hidden));
   await p.close();
 
   // one of the three missing is still worth showing
-  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: page(media()), gohs: page(), op: page(media({ title: { romaji: 'One Piece', native: 'ONE PIECE' } })) } }) });
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk_book: page(media()), gohs_book: page(), op_book: page(media({ title: { romaji: 'One Piece', native: 'ONE PIECE' } })) } }) });
   await p.waitForTimeout(1800);
   check('anilist missing one: the other two still show',
     await p.evaluate(() => document.querySelectorAll('#like-list li').length) === 2,
@@ -187,7 +187,7 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   await p.close();
 
   // a record with nothing but a title, which is all the code may assume
-  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: page({ title: { romaji: 'Jujutsu Kaisen' } }) } }) });
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk_book: page({ title: { romaji: 'Jujutsu Kaisen' } }) } }) });
   await p.waitForTimeout(1800);
   check('anilist sends only a title: it still renders',
     await p.evaluate(() => document.querySelectorAll('#like-list li').length) === 1 &&
@@ -203,7 +203,7 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
      Nothing errors and nothing appears. */
   const COVER = 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 345"><rect width="230" height="345" fill="#c9c4b8"/></svg>');
-  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: page(media({ coverImage: { large: COVER } })) } }) });
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk_book: page(media({ coverImage: { large: COVER } })) } }) });
   await p.waitForTimeout(2200);
   const cover = await p.evaluate(() => {
     const img = document.querySelector('.cover img');
@@ -217,7 +217,7 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
 
   // the cover host refusing must not leave a broken image
   p = await open({
-    '**/graphql.anilist.co/**': anilist({ data: { jjk: page(media()) } }),
+    '**/graphql.anilist.co/**': anilist({ data: { jjk_book: page(media()) } }),
     '**/example.invalid/**': r => r.abort()
   });
   await p.waitForTimeout(2000);
@@ -231,8 +231,8 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
      that thing's format and chapter count under a heading saying these
      are his favourites. */
   p = await open({ '**/graphql.anilist.co/**': anilist({ data: {
-    jjk: page(media({ title: { romaji: 'Jujutsu Kaisen 0: Tokyo Metropolitan Curse Technical School' } })),
-    op: page(media({ title: { romaji: 'One Piece' } }))
+    jjk_book: page(media({ title: { romaji: 'Jujutsu Kaisen 0: Tokyo Metropolitan Curse Technical School' } })),
+    op_book: page(media({ title: { romaji: 'One Piece' } }))
   } }) });
   await p.waitForTimeout(1800);
   check('a search whose only hit is a spin-off is dropped',
@@ -243,7 +243,7 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   /* The whole reason for taking a list rather than one best guess: the
      top hit being wrong no longer costs the row. */
   p = await open({ '**/graphql.anilist.co/**': anilist({ data: {
-    op: page(
+    op_book: page(
       media({ title: { romaji: 'One Piece: Colour Walk' }, chapters: 1 }),
       media({ title: { romaji: 'One Piece Databook' }, chapters: 2 }),
       media({ title: { romaji: 'One Piece', native: 'ONE PIECE' }, chapters: null, status: 'RELEASING' })
@@ -258,9 +258,44 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
     await p.evaluate(() => document.querySelector('.like-meta').textContent));
   await p.close();
 
+  /* The adaptation only ever adds a line, so it must not be able to take
+     one away: with the book found and the anime search landing on a
+     recap film, the card is still the book's. */
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: {
+    op_book: page(media({ title: { romaji: 'One Piece' }, chapters: null })),
+    op_screen: page(media({ title: { romaji: 'One Piece Film: Red' }, episodes: 1 }))
+  } }) });
+  await p.waitForTimeout(1800);
+  check('an adaptation that does not match is left off',
+    await p.evaluate(() => document.querySelectorAll('#like-list li').length) === 1 &&
+    !/episodes/i.test(await p.evaluate(() => document.querySelector('.like-text').textContent)),
+    await p.evaluate(() => document.querySelector('.like-text').textContent.replace(/\s+/g, ' ')));
+  await p.close();
+
+  // and one that does match adds its own line
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: {
+    op_book: page(media({ title: { romaji: 'One Piece' }, chapters: null })),
+    op_screen: page(media({ title: { romaji: 'One Piece' }, episodes: 1140, status: 'RELEASING' }))
+  } }) });
+  await p.waitForTimeout(1800);
+  check('an adaptation that matches says how much of it there is',
+    /1140 episodes/i.test(await p.evaluate(() => document.querySelector('.like-text').textContent)),
+    await p.evaluate(() => document.querySelector('.like-text').textContent.replace(/\s+/g, ' ')));
+  check('a card without the book is not a card',
+    await (async () => {
+      const q = await open({ '**/graphql.anilist.co/**': anilist({ data: {
+        op_screen: page(media({ title: { romaji: 'One Piece' }, episodes: 1140 }))
+      } }) });
+      await q.waitForTimeout(1600);
+      const hidden = await q.evaluate(() => document.getElementById('likes').hidden);
+      await q.close();
+      return hidden;
+    })());
+  await p.close();
+
   // the same work under a name with an article and different punctuation
   p = await open({ '**/graphql.anilist.co/**': anilist({ data: {
-    gohs: page(media({ title: { romaji: 'God of High School', native: '갓 오브 하이스쿨' }, format: 'MANHWA' }))
+    gohs_book: page(media({ title: { romaji: 'God of High School', native: '갓 오브 하이스쿨' }, format: 'MANHWA' }))
   } }) });
   await p.waitForTimeout(1800);
   check('a leading "the" and punctuation do not lose a match',
@@ -271,7 +306,7 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   await p.close();
 
   // a title long enough to be a paragraph
-  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: page(media({ title: { romaji: 'Jujutsu Kaisen', native: LONG } })) } }) });
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk_book: page(media({ title: { romaji: 'Jujutsu Kaisen', native: LONG } })) } }) });
   await p.waitForTimeout(1800);
   check('a 220-char title does not overflow', !(await overflows(p)));
   await p.close();

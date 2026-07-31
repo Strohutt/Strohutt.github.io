@@ -106,15 +106,14 @@ check('the braces balance', opens === closes, `${opens} open, ${closes} close`);
 {
   const block = js.slice(js.indexOf('const LIKE_FIELDS'));
   const fields = block.match(/const LIKE_FIELDS = `([^`]+)`/);
-  const shape = block.match(/`\$\{l\.key\}: ([^`]+)`/);
-  check('the anilist query is still built here', Boolean(fields && shape));
+  const shapes = [...block.matchAll(/`\$\{l\.key\}_\w+: ([^`]+)`/g)].map(m => m[1]);
+  check('the anilist query is still built here', Boolean(fields && shapes.length));
 
-  if (fields && shape) {
+  if (fields && shapes.length) {
     // the same join the page does, with the templating filled in
-    const one = shape[1]
+    const query = `{${['a', 'b', 'c'].flatMap(k => shapes.map((sh, n) => `${k}${n}: ` + sh
       .replace('${JSON.stringify(l.title)}', '"One Piece"')
-      .replace('${LIKE_FIELDS}', fields[1]);
-    const query = `{${['a', 'b', 'c'].map(k => `${k}: ${one}`).join('\n')}}`;
+      .replace('${LIKE_FIELDS}', fields[1]))).join('\n')}}`;
 
     let why = '';
     try {

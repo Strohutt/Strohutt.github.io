@@ -54,7 +54,7 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   await p.route('**/graphql.anilist.co/**', async r => {
     await new Promise(res => setTimeout(res, 4000));
     r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: {
-      op: { media: [{ id: 1, siteUrl: 'https://example.invalid', format: 'MANGA', status: 'RELEASING',
+      op_book: { media: [{ id: 1, siteUrl: 'https://example.invalid', format: 'MANGA', status: 'RELEASING',
         title: { romaji: 'One Piece', native: 'ONE PIECE' }, coverImage: { large: '' }, startDate: { year: 1997 } }] }
     } }) });
   });

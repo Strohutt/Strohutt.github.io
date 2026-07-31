@@ -36,18 +36,25 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   const one = (romaji, native) => ({
     id: 1, siteUrl: 'https://example.invalid', format: 'MANHWA', status: 'FINISHED',
     chapters: 570, title: { romaji, english: romaji, native },
-    coverImage: { large: '' }, startDate: { year: 2011 }
+    coverImage: { large: '' }, startDate: { year: 2011 },
+    genres: ['Action', 'Adventure', 'Supernatural']
   });
   await p.route('**/graphql.anilist.co/**', r => r.fulfill(json({ data: {
-    jjk: { media: [one('Jujutsu Kaisen', '呪術廻戦')] },
-    gohs: { media: [one('The God of High School', '갓 오브 하이스쿨')] },
-    op: { media: [one('One Piece', 'ONE PIECE')] }
+    jjk_book: { media: [one('Jujutsu Kaisen', '呪術廻戦')] },
+    jjk_screen: { media: [{ title: { romaji: 'Jujutsu Kaisen' }, episodes: 47, status: 'RELEASING', genres: ['Action'] }] },
+    gohs_book: { media: [one('The God of High School', '갓 오브 하이스쿨')] },
+    gohs_screen: { media: [{ title: { romaji: 'The God of High School' }, episodes: 13, status: 'FINISHED', genres: ['Action'] }] },
+    op_book: { media: [one('One Piece', 'ONE PIECE')] },
+    op_screen: { media: [{ title: { romaji: 'One Piece' }, episodes: 1140, status: 'RELEASING', genres: ['Adventure'] }] }
   } })));
 
   await p.goto(BASE + '/index.html');
   await p.waitForTimeout(1800);
   check('the favourites fill', await p.evaluate(() => document.querySelectorAll('#like-list li').length) === 3,
     String(await p.evaluate(() => document.querySelectorAll('#like-list li').length)));
+  check('each card says what was made of it too',
+    await p.evaluate(() => document.querySelectorAll('#like-list li').length) ===
+    await p.evaluate(() => [...document.querySelectorAll('#like-list li')].filter(l => /episodes/i.test(l.textContent)).length));
 
   const overflow = [];
   for (const w of [1600, 1340, 1100, 900, 700, 500, 380, 320]) {
