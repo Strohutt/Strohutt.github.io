@@ -119,9 +119,22 @@ const rings = p => p.evaluate(() => document.querySelectorAll('.charge').length)
     await p.waitForTimeout(ms); await p.mouse.up(); await p.waitForTimeout(120);
     return hint();
   };
-  check('early miss is named', await hold(120) === 'too early');
+  /* "too early" tells you nothing you can act on; the number of
+     milliseconds does. Both the side and the size have to be there. */
+  const early = await hold(120);
+  check('an early miss says how early', /^\d+ ms early$/.test(early), early);
   check('a landing is named', await hold(520) === 'landed');
-  check('late miss is named', await hold(1000) === 'too late');
+  const late = await hold(1000);
+  check('a late miss says how late', /^\d+ ms late$/.test(late), late);
+
+  // and the panel keeps the reading after the corner tally has gone
+  await p.waitForTimeout(1800);
+  const kept2 = await p.evaluate(() => ({
+    corner: document.getElementById('tally-hint').hidden,
+    panel: document.getElementById('score-last').textContent
+  }));
+  check('the corner reading goes away', kept2.corner);
+  check('the panel keeps the last reading', /ms late$/.test(kept2.panel), kept2.panel);
   await p.close();
 
   // ── the wheel keeps what it adapted to

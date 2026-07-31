@@ -118,6 +118,54 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
     .filter(x => x.w && (x.h < 44 || x.w < 44)));
   check('every target clears 44px', !small.length, JSON.stringify(small));
 
+  /* A rule can go missing without anything failing: splice a comment into
+     the middle of a selector and the two rules either side quietly become
+     one descendant selector that matches nothing. Valid css, no warning,
+     and the element just renders unstyled. Every paragraph in this design
+     is given its own margins, so one still carrying the browser's default
+     — a full em above and below, matched to its own font size — is one
+     whose rule never landed. */
+  await p.evaluate(() => render({
+    discord_user: { id: '1', username: 'u', display_name: 'Strohut', avatar: null },
+    discord_status: 'online', active_on_discord_desktop: true, active_on_discord_mobile: true,
+    activities: [
+      { type: 4, state: 'a custom status' },
+      { type: 0, name: 'A Game', details: 'a detail line', state: 'a state line',
+        party: { size: [2, 5] }, timestamps: { start: Date.now() - 6e4 } }
+    ],
+    listening_to_spotify: true,
+    spotify: { song: 'a song', artist: 'an artist', album: 'an album', track_id: 'abc',
+      album_art_url: '', timestamps: { start: Date.now() - 1e4, end: Date.now() + 1e5 } }
+  }));
+  await p.waitForTimeout(300);
+
+  const unstyled = await p.evaluate(() => [...document.querySelectorAll('p')]
+    .filter(e => e.offsetParent !== null)
+    .filter(e => {
+      const c = getComputedStyle(e);
+      const em = parseFloat(c.fontSize);
+      return Math.abs(parseFloat(c.marginTop) - em) < 0.5 && Math.abs(parseFloat(c.marginBottom) - em) < 0.5;
+    })
+    .map(e => e.className || e.id || e.tagName));
+  check('every paragraph got the margins the design gives it', !unstyled.length, unstyled.join(', '));
+
+  // and the presence panel really is showing what discord sends, not just
+  // the name it used to stop at
+  const rich = await p.evaluate(() => ({
+    kind: document.querySelector('.doing-what')?.textContent,
+    lines: [...document.querySelectorAll('.doing-line')].map(e => e.textContent),
+    where: document.getElementById('dc-where').textContent,
+    album: document.getElementById('track-album').textContent,
+    clock: document.getElementById('track-time').textContent
+  }));
+  check('an activity says what kind it is', rich.kind === 'playing', rich.kind);
+  check("an activity shows the game's own two lines",
+    rich.lines.includes('a detail line') && rich.lines.some(l => l.includes('a state line')), rich.lines.join(' | '));
+  check('the party size is folded in', rich.lines.some(l => l.includes('2 of 5')), rich.lines.join(' | '));
+  check('the readout says which machine he is at', rich.where === 'desktop and phone', rich.where);
+  check('the track names its album', rich.album === 'an album', rich.album);
+  check('the track counts in minutes and seconds', /^\d+:\d\d \/ \d+:\d\d$/.test(rich.clock), rich.clock);
+
   // what a screen reader is told, and what it is spared
   const a11y = await p.evaluate(() => ({
     lang: document.documentElement.lang,

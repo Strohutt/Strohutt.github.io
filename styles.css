@@ -687,16 +687,42 @@ svg.band {
   color: var(--paper-3);
 }
 
+/* which machine he is at */
+.dc-where {
+  margin: .2rem 0 0;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--paper-3);
+}
+
+.dc-where[hidden] {
+  display: none;
+}
+
 @keyframes breathe {
   0%, 100% { opacity: 1; }
   50% { opacity: .45; }
 }
 
+/* The mark belongs beside the name, not halfway down the block. Centred,
+   it drifted lower every time the readout grew a line — and it grew two
+   when the device and the game's own lines went in. */
 .presence {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
+  align-items: start;
   gap: .8rem;
+}
+
+.presence .dot {
+  /* sits on the cap height of the name rather than the top of its box */
+  margin-top: .42rem;
+}
+
+.portrait {
+  align-self: center;
 }
 
 .presence-who {
@@ -753,6 +779,19 @@ svg.band {
   height: 100%;
   object-fit: cover;
   box-shadow: 0 0 0 var(--rule) var(--paper);
+}
+
+/* Discord's avatar frames are their own image, meant to sit over the
+   picture and overhang it — so it takes no space in the grid and carries
+   no outline of its own. */
+.portrait-frame {
+  position: absolute;
+  inset: -14%;
+  width: 128%;
+  height: 128%;
+  object-fit: contain;
+  box-shadow: none;
+  pointer-events: none;
 }
 
 .portrait img[hidden] {
@@ -840,9 +879,28 @@ svg.band {
   clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
 }
 
+/* what kind of activity it is — discord distinguishes playing, streaming,
+   watching and competing, and the row used to flatten all four to a name */
+.doing-what {
+  margin: 0 0 .1rem;
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--paper-3);
+}
+
 .doing-name {
   margin: 0;
   font-weight: 700;
+}
+
+/* the two lines the game itself is reporting */
+.doing-line {
+  margin: .12rem 0 0;
+  font-size: .84rem;
+  color: var(--paper-2);
+  overflow-wrap: anywhere;
 }
 
 
@@ -999,6 +1057,29 @@ svg.band {
   transition: width 1s linear;
 }
 
+/* the bar says roughly, these say exactly */
+.track-time {
+  grid-column: 1 / -1;
+  margin: .3rem 0 0;
+  font-size: .7rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .1em;
+  color: var(--paper-3);
+}
+
+.track-album {
+  margin: 0 0 .45rem;
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--paper-3);
+  overflow-wrap: anywhere;
+}
+
+.track-album[hidden],
+.track-time[hidden] {
+  display: none;
+}
+
 /* ══ lately ═════════════════════════════════════════════════
    What has actually been pushed. Hidden until it has something, so a
    failed request leaves no empty heading behind. */
@@ -1126,7 +1207,7 @@ svg.band {
 .score-list {
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
   gap: 1rem;
   margin: 1.1rem 0 0;
   padding: 0;
@@ -1136,6 +1217,13 @@ svg.band {
   min-width: 0;
   padding-top: .7rem;
   border-top: 1px solid var(--ink-3);
+}
+
+/* the reading is a sentence, not a count, so it does not get the display
+   face at two and a half rem alongside the numbers */
+#score-last {
+  font-size: clamp(1rem, 2.4vw, 1.3rem);
+  line-height: 1.25;
 }
 
 .score-list b {

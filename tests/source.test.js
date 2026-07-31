@@ -75,6 +75,10 @@ for (const [name, src] of [['index', html], ['404', lost]]) {
   check(`${name}: every mote starts mid-flight`, !late.length, late[0] || '');
 }
 
+const opens = (css.match(/{/g) || []).length;
+const closes = (css.match(/}/g) || []).length;
+check('the braces balance', opens === closes, `${opens} open, ${closes} close`);
+
 // ── motion nobody asked for has to be switchable off
 const still = css.slice(css.indexOf('prefers-reduced-motion'));
 check('reduced motion drops the field', /\.field\s*{\s*display:\s*none/.test(still));
