@@ -860,7 +860,10 @@ svg.band {
 }
 
 /* ══ 音楽 ═══════════════════════════════════════════════════ */
+/* empty until the socket answers, and holding its line so the panel does
+   not jump when it fills */
 .kicker {
+  min-height: 1em;
   margin: 0 0 .9rem;
   font-size: .78rem;
   font-weight: 700;
@@ -1282,17 +1285,6 @@ svg.flag {
 
 .foot-text a:hover {
   color: var(--paper);
-}
-
-.hint {
-  margin: 0 0 0 auto;
-  display: grid;
-  gap: .1rem;
-  text-align: right;
-  font-size: .68rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--paper-3);
 }
 
 /* ══ the 404 ════════════════════════════════════════════════ */

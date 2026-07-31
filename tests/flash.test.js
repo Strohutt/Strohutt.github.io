@@ -1,7 +1,20 @@
 const BASE = `http://localhost:${process.env.PORT || 8899}`;
 const { chromium, devices } = require('playwright');
 
-const AT = [710, 610];                       // a spot that is not a control
+/* A hardcoded point is a point that quietly starts landing on a control
+   the moment anything reflows — and then every timing check fails at once
+   for a reason that has nothing to do with timing. It is looked up on the
+   page in front of us instead. */
+let AT = [710, 610];
+
+const openGround = p => p.evaluate(() => {
+  for (let y = 200; y < innerHeight - 40; y += 20)
+    for (let x = 40; x < innerWidth - 40; x += 30) {
+      const el = document.elementFromPoint(x, y);
+      if (el && !el.closest('a, button, input, iframe, .tally')) return [x, y];
+    }
+  throw new Error('the whole viewport is controls');
+});
 const streak = p => p.evaluate(() => document.getElementById('tally-streak').textContent);
 const rings = p => p.evaluate(() => document.querySelectorAll('.charge').length);
 
@@ -15,6 +28,7 @@ const rings = p => p.evaluate(() => document.querySelectorAll('.charge').length)
     p.on('pageerror', e => fails.push('pageerror: ' + e.message));
     await p.goto(BASE + '/index.html');
     await p.waitForTimeout(700);
+    AT = await openGround(p);
     return p;
   };
 
@@ -61,13 +75,7 @@ const rings = p => p.evaluate(() => document.querySelectorAll('.charge').length)
   p.on('pageerror', e => fails.push('touch pageerror: ' + e.message));
   await p.goto(BASE + '/index.html');
   await p.waitForTimeout(1200);
-  const spot = await p.evaluate(() => {
-    for (let y = 520; y < 780; y += 20) for (let x = 60; x < 330; x += 40) {
-      const el = document.elementFromPoint(x, y);
-      if (el && !el.closest('a,button,input,iframe,.tally')) return [x, y];
-    }
-    return null;
-  });
+  const spot = await openGround(p);
   const cdp = await phone.newCDPSession(p);
   const touch = (type, x, y) => cdp.send('Input.dispatchTouchEvent', {
     type, touchPoints: type === 'touchEnd' ? [] : [{ x, y, radiusX: 12, radiusY: 12, force: 1, id: 1 }]
@@ -95,7 +103,7 @@ const rings = p => p.evaluate(() => document.querySelectorAll('.charge').length)
   const rm = await b.newContext({ reducedMotion: 'reduce' });
   p = await rm.newPage({ viewport: { width: 900, height: 700 } });
   await p.goto(BASE + '/index.html'); await p.waitForTimeout(600);
-  await p.mouse.move(...AT); await p.mouse.down(); await p.waitForTimeout(520); await p.mouse.up();
+  await p.mouse.move(...(await openGround(p))); await p.mouse.down(); await p.waitForTimeout(520); await p.mouse.up();
   await p.waitForTimeout(150);
   check('reduced motion stays still', await rings(p) === 0 && await p.evaluate(() => document.querySelectorAll('.strike').length) === 0);
   await rm.close();
