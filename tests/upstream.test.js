@@ -53,6 +53,17 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   });
   check('all upstreams dead: the readout takes the row it is left alone in',
     alone.now > alone.spread * .9, JSON.stringify(alone));
+
+  /* Left alone is only half of it: the region it was left alone by has to
+     actually be gone. The attribute that takes it away is a display of
+     the weakest kind there is, and the day the region was given a display
+     of its own it stayed on the page — a heading and a sleeve saying
+     "checking…" for as long as the tab was open. Measured, not asked. */
+  const gone = await p.evaluate(() => {
+    const m = document.querySelector('.music');
+    return !m || (m.getBoundingClientRect().height === 0 && m.offsetParent === null);
+  });
+  check('all upstreams dead: and the music region is off the page', gone);
   await p.close();
 
   // ── twenty activities, all with very long names
@@ -188,7 +199,12 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   p = await open({ '**/api.lanyard.rest/**': r => r.fulfill(SONG(false)) });
   await p.waitForTimeout(1600);
   check('cold and quiet: the panel says nothing is playing',
-    await p.evaluate(() => document.getElementById('track-song').textContent) === 'nothing playing');
+    await p.evaluate(() => document.getElementById('music-kicker').textContent) === 'nothing playing');
+  /* and does not say it twice — the kicker and the line under it both
+     read "nothing playing", one above the other, in the state a first
+     visitor with nothing stored is most likely to arrive in */
+  check('cold and quiet: and does not say it twice',
+    await p.evaluate(() => document.getElementById('track-song').textContent) === 'nothing caught yet');
   check('cold and quiet: no link to a track nobody picked',
     await p.evaluate(() => document.getElementById('music-link').hidden));
   await p.close();

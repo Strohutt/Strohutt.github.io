@@ -693,6 +693,15 @@ a {
   grid-template-rows: auto minmax(0, 1fr);
 }
 
+/* A display of its own beats the one the hidden attribute carries, and
+   this is the region that takes itself away when the socket never opens.
+   Without this it stayed — a heading and a sleeve reading "checking…"
+   for as long as the tab was left open, beside a readout that had
+   already taken the whole row for itself. */
+.music[hidden] {
+  display: none;
+}
+
 /* centred in whatever height the column beside it is taller by, rather
    than at the top of it with the whole difference hanging underneath.
    A flex column would do this with two auto margins and shrink its own
@@ -1586,9 +1595,13 @@ svg.band {
   color: var(--blood-lit);
 }
 
+/* Nothing open is a state, not an absence: it keeps the panel it would
+   have filled rather than leaving a caption under a heading. */
 .quiet {
-  margin: 1.1rem 0 0;
+  margin: .5rem 0 0;
+  padding: .9rem 1rem 1rem;
   color: var(--paper-3);
+  background: var(--ruled) 0 0 / 44rem 3.5px repeat-x, var(--ink-2);
 }
 
 /* ══ 音楽 ═══════════════════════════════════════════════════ */
@@ -1631,7 +1644,9 @@ svg.band {
   right: clamp(3rem, 8vw, 5.4rem);
   width: clamp(4.4rem, 14vw, 9.4rem);
   z-index: -1;
-  translate: 4% -50%;
+  /* far enough out of the sleeve to be a record even when nothing is
+     playing — at four percent the drawing was a line down one edge */
+  translate: 17% -50%;
   transition: translate .7s cubic-bezier(.3, .8, .3, 1);
 }
 
@@ -1644,7 +1659,7 @@ svg.band {
 }
 
 .track.is-playing .disc {
-  translate: 52% -50%;
+  translate: 62% -50%;
 }
 
 .track.is-playing .disc svg {
@@ -1881,8 +1896,10 @@ svg.band {
   gap: 1rem;
   align-items: start;
   min-width: 0;
-  padding-top: .8rem;
-  background: var(--ruled) 0 0 / 44rem 3.5px repeat-x;
+  /* the same panel the readout's rows are drawn as, so the two regions
+     that carry rows carry them the same way */
+  padding: .8rem .9rem 1rem;
+  background: var(--ruled) 0 0 / 44rem 3.5px repeat-x, var(--ink-2);
 }
 
 /* the only real pictures on the page, so they are allowed to be a size */
@@ -2451,6 +2468,14 @@ svg.flag {
   margin: 0;
 }
 
+.colophon {
+  font-size: .68rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--paper-3);
+  opacity: .8;
+}
+
 .foot-text a {
   display: inline-flex;
   align-items: center;
@@ -2830,6 +2855,12 @@ body.is-flashing::after {
   display: none;
   pointer-events: none;
   overflow: hidden;
+}
+
+/* the field itself, which is the part that settles back */
+.domain-field {
+  position: absolute;
+  inset: 0;
   background: radial-gradient(circle at 50% 50%, transparent 34%, rgba(224, 27, 46, .26) 100%);
 }
 
@@ -2844,6 +2875,15 @@ body.is-flashing::after {
    place either of them is written down. */
 body.is-domain .domain {
   display: block;
+}
+
+/* The animation is on the field and not on the whole layer, so what the
+   layer says keeps its own opacity. It ran on the parent, and for six of
+   the seven seconds the seconds left were drawn at a quarter — the one
+   reading on the screen that has to stay legible was the one thing
+   fading with the drawing. The name of the animation is what tells the
+   script the field has come down, so exactly one element carries it. */
+body.is-domain .domain-field {
   animation: domain var(--domain-for, 7s) ease-out forwards;
 }
 
@@ -2858,7 +2898,7 @@ body.is-domain .domain {
   100% { opacity: 0; scale: 1.03; }
 }
 
-/* what it does, and how long it has left */
+/* what it is, what it does, and how long it has left */
 .domain-say {
   position: absolute;
   left: 50%;
@@ -2867,26 +2907,83 @@ body.is-domain .domain {
   translate: -50% 0;
   display: grid;
   justify-items: center;
-  gap: .2rem;
+  gap: .1rem;
   text-align: center;
   white-space: nowrap;
 }
 
-.domain-what {
-  font-size: .74rem;
-  font-weight: 700;
-  letter-spacing: .34em;
-  text-indent: .34em;
-  text-transform: uppercase;
+body.is-domain .domain-say {
+  animation: domain-said var(--domain-for, 7s) ease-out forwards;
+}
+
+/* On a phone the corner tally is as wide as a third of the screen and
+   sits in the same corner of it, and the two ran into each other. The
+   reading goes up above it rather than beside it. */
+@media (max-width: 34rem) {
+  .domain-say {
+    bottom: 10rem;
+  }
+}
+
+/* It lands wherever the page happens to be, and where the page happens
+   to be is often a cloud drawn in white line. The same backing the
+   barrier's own words are given, so the reading holds against whatever
+   is behind it without a box being drawn round it. */
+.domain-say::before {
+  content: "";
+  position: absolute;
+  inset: -2rem -7rem -1.6rem;
+  z-index: -1;
+  background: radial-gradient(52% 56% at 50% 50%, rgb(8 8 11 / .97) 40%, rgb(8 8 11 / 0) 82%);
+}
+
+/* up with the field, then held while it settles, and away with it */
+@keyframes domain-said {
+  0% { opacity: 0; translate: -50% .7rem; }
+  7% { opacity: 1; translate: -50% 0; }
+  92% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* the technique, drawn — the same four characters the barrier casts on
+   the way in, so the page names it the same way both times */
+.domain-kanji {
+  display: flex;
+  gap: .1em;
+  font-size: clamp(1.5rem, 4.4vw, 2.4rem);
+}
+
+.domain-kanji svg {
+  display: block;
+  width: 1em;
+  height: 1em;
+  fill: var(--blood-lit);
+}
+
+.domain-say .says {
+  margin-top: .3rem;
   color: var(--blood-lit);
 }
 
+.domain-what {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .3em;
+  text-indent: .3em;
+  text-transform: uppercase;
+  color: var(--blood-lit);
+  opacity: .85;
+}
+
 #domain-left {
+  margin-top: .45rem;
   font-family: "Shippori Mincho B1", Georgia, serif;
-  font-size: clamp(1.6rem, 5vw, 2.6rem);
+  font-size: clamp(1.9rem, 5.6vw, 3rem);
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  color: var(--paper);
+  /* the layer sets the paper to red so the drawing comes out red; the
+     one number that has to be read at a glance takes it back */
+  color: #f3efe6;
 }
 
 body.is-domain .wheel {
