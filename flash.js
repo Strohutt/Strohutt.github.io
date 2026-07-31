@@ -156,13 +156,21 @@ const WIND_MIN = 520;       // ms for the ring to close — drawn per attempt,
 const WIND_MAX = 820;       // so there is nothing to memorise
 const WINDOW_AT = 0.80;     // where in the wind-up the window opens
 const WINDOW_BASE = 0.15;   // how much of the wind-up it stays open
-const WINDOW_STEP = 0.014;  // taken off it per landed flash
 const WINDOW_FLOOR = 0.06;  // and it never gets tighter than this
+const LEARNS = 8;           // one per orb on the wheel
+const WINDOW_STEP = (WINDOW_BASE - WINDOW_FLOOR) / LEARNS;
 const HOLD_LIMIT = 2200;    // holding past this is a miss, not a pause
-const DOMAIN_AT = 5;
+const DOMAIN_AT = 5;        // in a row, and the field is yours
+const DOMAIN_FOR = 7000;    // for this long
 
 let streak = 0;
 let charge = null;
+let domainUntil = 0;
+/* One domain per run. Without this, a streak that has been past five once
+   re-opens it on every hit after that — the run never comes down and the
+   thing you paid for is free from then on. Broken by a miss, like the run
+   itself, so a second one has to be built rather than waited for. */
+let spent = false;
 
 /* Storage is not always there to be written to — private windows and a
    full quota both throw — and none of this is worth losing the page over,
@@ -183,12 +191,24 @@ function write(key, value) {
   }
 }
 
-/* the wheel keeps what it has already adapted to — that is the whole
-   point of the thing */
+/* The wheel keeps what it has adapted to. That is the whole point of the
+   thing it is drawn from, and it is what makes this more than one trick
+   repeated: the window does not narrow because you are on a run, it
+   narrows because the wheel has seen you land one, and it does not give
+   that back when you miss. Mahoraga does not unlearn.
+
+   Eight orbs, eight adaptations, and the eighth puts the window on its
+   floor. So the drawing is the difficulty curve — there is nothing else
+   to read it off, and nothing to explain. */
 let adapted = readNum('strohut-adapt');   // where it points, either way
 let turns = readNum('strohut-turns');     // how far it has been moved, ever
+let learned = Math.min(LEARNS, readNum('strohut-learned'));
 let best = readNum('strohut-flash');
 let total = readNum('strohut-landed');
+/* The closest anybody has come to the middle of the window, ever. A
+   streak says how many; this says how well, and it is the only number
+   here that does not go up. */
+let closest = readNum('strohut-closest');
 
 /* Every turn goes through here — a landed flash, a press, a throw running
    down — so there is one place that knows where the wheel is. */
@@ -200,8 +220,23 @@ function turn(by) {
   if (wheel) wheel.style.setProperty('--adapt', adapted);
 }
 
+/* One more thing the wheel now knows. Only a landed flash teaches it —
+   pressing it or throwing it moves it without it learning anything, which
+   is the difference between turning a wheel and being hit by something. */
+function learn() {
+  if (learned >= LEARNS) return;
+  learned += 1;
+  write('strohut-learned', learned);
+  show();
+}
+
+function show() {
+  if (wheel) wheel.style.setProperty('--learned', learned);
+}
+
 if (tally) document.getElementById('tally-best').textContent = best;
 if (wheel && adapted) wheel.style.setProperty('--adapt', adapted);
+show();
 
 /* The score panel. The corner tally comes and goes with a run; this is
    what is left over afterwards, and it is the only part of the page that
@@ -211,6 +246,7 @@ const score = {
   total: document.getElementById('score-total'),
   adapt: document.getElementById('score-adapt'),
   last: document.getElementById('score-last'),
+  close: document.getElementById('score-close'),
   window: document.getElementById('score-window')
 };
 
@@ -235,7 +271,8 @@ function heat() {
 function tell(bump) {
   post(score.best, best, bump);
   post(score.total, total, bump);
-  post(score.adapt, turns, bump);
+  post(score.adapt, `${learned} of ${LEARNS}`, bump);
+  post(score.close, closest ? `${closest} ms` : '—', bump);
   heat();
   said();
 }
@@ -288,9 +325,15 @@ function mark(hit) {
 // of every link and button press
 const OFF_LIMITS = 'a, button, input, iframe, .tally';
 
+/* How much of the wind-up the window stays open for. It follows the wheel
+   rather than the run: a streak resetting the difficulty meant the game
+   was only ever hard at the end of a good run and easy again the moment
+   it broke, which is the opposite of getting better at something. */
 function windowNow() {
-  return Math.max(WINDOW_FLOOR, WINDOW_BASE - streak * WINDOW_STEP);
+  return Math.max(WINDOW_FLOOR, WINDOW_BASE - learned * WINDOW_STEP);
 }
+
+const inDomain = () => performance.now() < domainUntil;
 
 // a fresh wind-up per attempt is the whole reason the ring has to be
 // watched rather than counted through
@@ -344,8 +387,9 @@ function shutCharge(hit) {
 
 /* A miss that tells you nothing is a miss you cannot learn from, so it
    says which side of the window you were on. */
-function missed(how, off) {
+function missed(how, off, dev) {
   streak = 0;
+  spent = false;
   heat();
 
   if (tally) {
@@ -362,9 +406,21 @@ function missed(how, off) {
   }
 
   mark(false);
+  // a miss is still a reading, so it counts toward the closest you have been
+  keep(dev === undefined ? off : dev);
   const said = `${Math.max(1, Math.round(off))} ms ${how}`;
   tellLast(said);
   say(said);
+}
+
+/* The best anybody has done at this, kept whether the attempt landed or
+   not — being two milliseconds out on a miss is a better piece of timing
+   than being twenty out on a hit, and the number should say so. */
+function keep(dev) {
+  const off = Math.abs(Math.round(dev));
+  if (closest && off >= closest) return;
+  closest = Math.max(1, off);
+  write('strohut-closest', closest);
 }
 
 // the corner tally goes away after a second and a half; this is the same
@@ -384,7 +440,7 @@ function say(word) {
   if (word) sayTimer = setTimeout(() => { hint.hidden = true; }, 1600);
 }
 
-function landed() {
+function landed(dev, sure) {
   streak += 1;
   total += 1;
   write('strohut-landed', total);
@@ -394,8 +450,15 @@ function landed() {
     write('strohut-flash', best);
   }
 
-  say('landed');
-  tellLast('landed');
+  /* How far off the middle you were. Inside a domain the hit was given to
+     you, so the timing behind it is not a reading anybody earned and it
+     does not go in the record. */
+  if (!sure) keep(dev);
+  const off = Math.abs(Math.round(dev));
+  const word = sure ? 'sure hit' : off <= 1 ? 'dead on' : `${off} ms ${dev < 0 ? 'early' : 'late'}`;
+
+  say(word);
+  tellLast(word);
   mark(true);
 
   if (tally) {
@@ -405,8 +468,9 @@ function landed() {
     document.getElementById('tally-best').textContent = best;
   }
 
-  // the wheel takes the hit and turns
+  // the wheel takes the hit, turns, and keeps what it learned from it
   turn(1);
+  learn();
   tell(true);
   if (sigil) sigil.classList.add('is-adapted');
 
@@ -422,23 +486,57 @@ function landed() {
   void document.body.offsetWidth;
   document.body.classList.add('is-flashing');
 
-  // a long streak stops being a counter and takes the room
-  if (streak >= DOMAIN_AT) {
-    document.body.classList.remove('is-domain');
-    void document.body.offsetWidth;
-    document.body.classList.add('is-domain');
+  // five in a row and the field is yours for a while
+  if (streak >= DOMAIN_AT && !spent) cast();
+}
 
-    /* It is normally taken down by its own animationend. On a machine
-       asked to hold still every animation is cut to a hundredth of a
-       millisecond, and there is nothing to rely on in that — leave it and
-       what is left is a full-screen layer over the page for as long as
-       the tab is open. */
-    clearTimeout(domainTimer);
-    domainTimer = setTimeout(() => document.body.classList.remove('is-domain'), 1500);
-  }
+/* 領域展開. A flash over the page was the whole of it before, which is a
+   thing that happens to you rather than a thing you did — and it left the
+   one technique on the page that everybody knows the name of doing less
+   than the wheel does.
+
+   It is a state now. For seven seconds the space is yours and a release
+   lands whatever the timing was, which is what a domain is for. The wheel
+   learns from every one of those, so the seven seconds are bought with
+   however much harder the rest of it gets afterwards. That trade is the
+   only reason to think about whether to spend them. */
+function cast() {
+  spent = true;
+  domainUntil = performance.now() + DOMAIN_FOR;
+
+  // the drawing stands for exactly as long as the rule does, and the
+  // length is written down once
+  document.body.style.setProperty('--domain-for', `${DOMAIN_FOR}ms`);
+  say('domain — sure hit');
+  document.body.classList.remove('is-domain');
+  void document.body.offsetWidth;
+  document.body.classList.add('is-domain');
+
+  clearTimeout(domainTimer);
+  domainTimer = setTimeout(shut, DOMAIN_FOR);
+  count();
+}
+
+function shut() {
+  domainUntil = 0;
+  clearTimeout(domainTimer);
+  clearTimeout(countTimer);
+  document.body.classList.remove('is-domain');
+  if (domainLeft) domainLeft.textContent = '';
+}
+
+/* A domain nobody can see the end of is a domain nobody spends. */
+function count() {
+  clearTimeout(countTimer);
+  if (!inDomain()) return;
+  const left = (domainUntil - performance.now()) / 1000;
+  if (domainLeft) domainLeft.textContent = `${left.toFixed(1)}s`;
+  countTimer = setTimeout(count, 100);
 }
 
 let domainTimer = 0;
+let countTimer = 0;
+const domainLeft = document.getElementById('domain-left');
 
 if (!stillPlease.matches) {
   addEventListener('pointerdown', event => {
@@ -477,8 +575,23 @@ if (!stillPlease.matches) {
 
     const held = performance.now() - charge.at;
     const open = charge.wind * WINDOW_AT;
-    const shut = charge.wind * (WINDOW_AT + windowNow());
-    const inside = held >= open && held <= shut;
+    const span = charge.wind * windowNow();
+    const shut = open + span;
+
+    /* A domain is a guaranteed hit inside the space it encloses. That is
+       what the technique is for, and it is the only reason anybody pays
+       what it costs to open one — so inside it, a release lands whatever
+       the timing was. The wheel still learns from every one of them, which
+       is the price. */
+    const sure = inDomain();
+    const inside = sure || (held >= open && held <= shut);
+
+    /* How far off the middle of the window you actually were. The old
+       reading was the distance outside it, which is nothing at all when
+       you are inside — so a landed flash said "landed" and told you
+       nothing about how well. This one is the same number whether you
+       made it or not, and it is the number worth chasing. */
+    const dev = Math.round(held - (open + span / 2));
 
     // the pointer may have travelled since it went down
     const x = event && event.clientX != null ? event.clientX : charge.x;
@@ -487,16 +600,8 @@ if (!stillPlease.matches) {
     strikeAt(x, y, inside ? 'flash' : 'hit');
     shutCharge(inside);
 
-    if (inside) {
-      landed();
-    } else {
-      // "too early" tells you nothing you can act on. The number of
-      // milliseconds does — you find out whether you were nearly there or
-      // nowhere near, and that is the whole difference between a game you
-      // can get better at and one you cannot.
-      const off = held < open ? open - held : held - shut;
-      missed(held < open ? 'early' : 'late', off);
-    }
+    if (inside) landed(dev, sure);
+    else missed(held < open ? 'early' : 'late', Math.abs(dev), dev);
   };
 
   addEventListener('pointerup', release, { passive: true });

@@ -755,6 +755,32 @@ a {
 }
 
 /* the gloss highlight is the thing that made this read as a game asset */
+/* What the wheel has adapted to, one orb at a time. Eight of them, and
+   the eighth is the window on its floor — so the drawing is the whole
+   difficulty curve and there is nothing to explain in words.
+
+   The comparison is arithmetic rather than a class per step: clamp of
+   (learned − n) is nought until learned passes n and one after, which is
+   a threshold without eight rules to keep in step. Custom properties are
+   one of the two things that cross a <use> shadow boundary; a descendant
+   selector is not, which is why the count is a number and not a class on
+   an ancestor. */
+.mg-woke {
+  stroke: none;
+  fill: var(--blood);
+  opacity: 0;
+  transition: opacity .7s ease-out;
+}
+
+.mg-w0 { opacity: clamp(0, calc(var(--learned, 0) - 0), 1); }
+.mg-w1 { opacity: clamp(0, calc(var(--learned, 0) - 1), 1); }
+.mg-w2 { opacity: clamp(0, calc(var(--learned, 0) - 2), 1); }
+.mg-w3 { opacity: clamp(0, calc(var(--learned, 0) - 3), 1); }
+.mg-w4 { opacity: clamp(0, calc(var(--learned, 0) - 4), 1); }
+.mg-w5 { opacity: clamp(0, calc(var(--learned, 0) - 5), 1); }
+.mg-w6 { opacity: clamp(0, calc(var(--learned, 0) - 6), 1); }
+.mg-w7 { opacity: clamp(0, calc(var(--learned, 0) - 7), 1); }
+
 .mg-lit {
   display: none;
 }
@@ -1877,7 +1903,8 @@ svg.band {
   }
 
   .score > .head,
-  .score > .kicker {
+  .score > .kicker,
+  .score > .score-line {
     grid-column: 1 / -1;
   }
 
@@ -1934,6 +1961,24 @@ svg.band {
   100% { scale: 1; }
 }
 
+/* What the game actually is, in a sentence, in a size somebody can read.
+   It was in the kicker — which is uppercase at a quarter-em of tracking,
+   fine for three words and a wall for three lines. */
+@media (min-width: 60rem) {
+  /* under the counts, level with the readings beside it */
+  .score > .score-line {
+    grid-column: 1;
+    grid-row: 4;
+  }
+}
+
+.score-line {
+  margin-block: -.4rem 1.1rem;
+  margin-inline: 0;
+  max-width: 54ch;
+  font-size: .92rem;
+}
+
 .score-list {
   list-style: none;
   display: grid;
@@ -1943,8 +1988,11 @@ svg.band {
   padding: 0;
 }
 
+/* Three counts above, three readings below — they line up, and the row
+   of marks sits beside both. Two readings under three counts was a
+   half-empty line. */
 .score-read {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .score-list li {
@@ -2595,15 +2643,54 @@ body.is-flashing::after {
   height: 100%;
 }
 
+/* It stands for as long as the domain does. The length comes from the
+   script that opens it — two numbers that have to agree and only one
+   place either of them is written down. */
 body.is-domain .domain {
   display: block;
-  animation: domain 1.15s ease-out forwards;
+  animation: domain var(--domain-for, 7s) ease-out forwards;
 }
 
+/* Open hard, then settle to something you can read the page through, then
+   go. The middle is most of it: a domain that only flares is an effect,
+   and this one has to be a place you are in for a while. */
 @keyframes domain {
   0% { opacity: 0; scale: 1.3; }
-  16% { opacity: 1; scale: 1; }
-  100% { opacity: 0; scale: 1.04; }
+  4% { opacity: 1; scale: 1; }
+  13% { opacity: .26; }
+  90% { opacity: .26; }
+  100% { opacity: 0; scale: 1.03; }
+}
+
+/* what it does, and how long it has left */
+.domain-say {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(1.1rem, 5vh, 2.6rem);
+  margin: 0;
+  translate: -50% 0;
+  display: grid;
+  justify-items: center;
+  gap: .2rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.domain-what {
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .34em;
+  text-indent: .34em;
+  text-transform: uppercase;
+  color: var(--blood-lit);
+}
+
+#domain-left {
+  font-family: "Shippori Mincho B1", Georgia, serif;
+  font-size: clamp(1.6rem, 5vw, 2.6rem);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--paper);
 }
 
 body.is-domain .wheel {
@@ -2611,6 +2698,10 @@ body.is-domain .wheel {
 }
 
 /* ── the tally ──────────────────────────────────────────────── */
+/* A readout, not a control — and it floats over the bottom right corner,
+   which at the end of the page is where the one link in the footer is.
+   Taking no clicks means it can sit on top of that link without being in
+   front of it. */
 .tally {
   position: fixed;
   right: clamp(.7rem, 2vw, 1.4rem);
@@ -2618,6 +2709,7 @@ body.is-domain .wheel {
   z-index: 42;
   padding: .6rem .8rem;
   text-align: right;
+  pointer-events: none;
   background: var(--ink);
   border-left: var(--rule) solid var(--blood);
 }
