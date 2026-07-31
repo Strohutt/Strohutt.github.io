@@ -789,6 +789,39 @@ a {
   opacity: .55;
 }
 
+/* ══ 第一話 ═══════════════════════════════════════════════════
+   The regions are chapters, numbered in the corner of their own
+   heading the way a volume numbers them — which is also what the log
+   pose is counting off as it goes down the page. Drawn as outlines
+   rather than set in the font: six characters would otherwise pull
+   both japanese subsets of Shippori back onto the wire, and they were
+   taken off it for exactly this reason. */
+.chapter {
+  display: grid;
+  justify-items: end;
+  gap: .1rem;
+  margin-top: .3rem;
+  text-align: right;
+}
+
+.chapter .glyphs {
+  display: flex;
+  gap: .05em;
+  align-items: baseline;
+  font-size: 1.05rem;
+  color: var(--paper-3);
+}
+
+.chapter .says {
+  margin-top: 0;
+  font-size: .46rem;
+  letter-spacing: .26em;
+  text-indent: .26em;
+  text-align: right;
+  color: var(--paper-3);
+  opacity: .8;
+}
+
 /* ══ ログポース ═══════════════════════════════════════════════
    A log pose records the magnetic wave of the island it is on and
    points at the next one. The regions of this page are the islands, so
@@ -3447,6 +3480,45 @@ body.is-domain .domain-say {
   /* the layer sets the paper to red so the drawing comes out red; the
      one number that has to be read at a glance takes it back */
   color: #f3efe6;
+}
+
+/* ── and the page it is opened on ────────────────────────────────
+   A domain is a place, not a light over one. For the seven seconds it
+   stands, everything on the page is inside it: the paper it is all
+   drawn on goes over to the colour of the field, the ink under it goes
+   with it, and every stroke on the page follows without a single rule
+   having to name them — the drawings ask for var(--paper) and the
+   answer is different for as long as this is up.
+
+   Not a filter over the top. A filter costs a full-page composite on
+   every frame of the seven seconds and turns the text to mush; moving
+   two custom properties costs one repaint at each end. */
+body.is-domain {
+  --paper: #f6dcdf;
+  --paper-2: #d3a7ad;
+  --paper-3: #a97b83;
+  --ink: #0b0507;
+  --ink-2: #150a0d;
+  --ink-3: #1d0e12;
+}
+
+/* the field of motes turns over and runs — it is the information
+   pouring in, and inside the field there is a great deal more of it */
+body.is-domain .mote {
+  animation-duration: calc(var(--dur, 30s) * .32);
+  animation-direction: reverse;
+}
+
+/* nothing drifts inside it. The clouds hold still, which is the one
+   thing on this page that never otherwise happens. */
+body.is-domain .band svg,
+body.is-domain svg.band {
+  animation-play-state: paused;
+}
+
+/* and the sea comes up */
+body.is-domain .sea {
+  --band: clamp(11rem, 26vw, 20rem);
 }
 
 body.is-domain .wheel {

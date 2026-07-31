@@ -522,6 +522,16 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
   check('the field settles back and what it says does not',
     Number(lit.field) < .5 && Number(lit.say) > .95, JSON.stringify(lit));
 
+  /* A domain is a place, not a light over one: while it stands, the
+     paper the whole page is drawn on is a different colour, so every
+     stroke on it follows without a rule having to name any of them. */
+  const paper = () => q.evaluate(() => ({
+    paper: getComputedStyle(document.body).getPropertyValue('--paper').trim(),
+    name: getComputedStyle(document.querySelector('.name i')).color
+  }));
+  const inside = await paper();
+  check('the page itself is inside it', inside.paper !== '#efece4', JSON.stringify(inside));
+
   await wild();
   await q.waitForTimeout(240);
   const sure = await reading();
@@ -536,6 +546,8 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
   await q.waitForTimeout(7400);
   const done = await reading();
   check('the domain closes on its own', !done.on && done.left === '', JSON.stringify(done));
+  check('and the page comes back out of it',
+    (await paper()).paper === '#efece4', JSON.stringify(await paper()));
 
   /* One per run, and the run is still going here — six in a row and
      climbing. Without this a streak that has been past five once re-opens

@@ -64,7 +64,12 @@ check('appearance is prefixed', !/[^-]appearance: none/.test(bare) || bare.inclu
 // ── a descendant selector cannot reach inside a <use> shadow tree
 const shadowClasses = ['mg-body', 'mg-lit', 'cb-body', 'cb-curl', 'jr-bone', 'jr-straw',
   'jr-band', 'jr-hole', 'jr-teeth', 'bf-bolt', 'bf-spark', 'bf-void', 'bf-core', 'bf-hole', 'bf-hot', 'bf-warp',
-  'cw-body', 'cw-vein'];
+  'cw-body', 'cw-vein',
+  // the staff and the log pose are cloned symbols too
+  'ye-fill', 'ye-edge', 'ye-lit', 'ye-spec', 'ye-dark', 'ye-shade', 'ye-grain',
+  'ye-gold', 'ye-gold-line', 'ye-gold-lit', 'ye-gold-dark',
+  'lp-strap', 'lp-stitch', 'lp-brass', 'lp-brass-lit', 'lp-brass-dark', 'lp-tick',
+  'lp-glass', 'lp-shine', 'lp-under', 'lp-wire', 'lp-tail', 'lp-point', 'lp-pin'];
 const reached = shadowClasses.filter(c => new RegExp(`[.\\w\\]]\\s+\\.${c}\\b`).test(bare));
 check('nothing styles a cloned symbol through a descendant selector', !reached.length, reached.join(','));
 
