@@ -11,6 +11,12 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
 const html = read('index.html');
 const lost = read('404.html');
 const css = read('styles.css');
+/* The stylesheet with its comments taken out. Every check below is about
+   what the browser is handed, and this file explains itself at length —
+   so a rule that reads "no :has() anywhere" was failing on the sentence
+   saying why. Line-based stripping only caught lines that open a comment
+   or continue one with a star; the prose in here does neither. */
+const bare = css.replace(/\/\*[\s\S]*?\*\//g, '');
 const js = read('script.js');
 const flash = read('flash.js');
 
@@ -50,17 +56,16 @@ for (const [name, src] of [['index', html], ['404', lost]]) {
 }
 
 // ── features with a floor worth keeping
-check('no :has() outside comments',
-  !css.split('\n').filter(l => !l.trim().startsWith('/*') && !l.trim().startsWith('*')).join('\n').includes(':has('));
+check('nothing leans on :has()', !bare.includes(':has('));
 check('overflow: clip always has a fallback',
-  !/overflow-x: clip/.test(css) || /overflow-x: hidden;[\s\S]{0,80}overflow-x: clip/.test(css));
-check('appearance is prefixed', !/[^-]appearance: none/.test(css) || css.includes('-webkit-appearance: none'));
+  !/overflow-x: clip/.test(bare) || /overflow-x: hidden;[\s\S]{0,80}overflow-x: clip/.test(bare));
+check('appearance is prefixed', !/[^-]appearance: none/.test(bare) || bare.includes('-webkit-appearance: none'));
 
 // ── a descendant selector cannot reach inside a <use> shadow tree
 const shadowClasses = ['mg-body', 'mg-lit', 'cb-body', 'cb-curl', 'jr-bone', 'jr-straw',
   'jr-band', 'jr-hole', 'jr-teeth', 'bf-bolt', 'bf-spark', 'bf-void', 'bf-core', 'bf-hole', 'bf-hot', 'bf-warp',
   'cw-body', 'cw-vein'];
-const reached = shadowClasses.filter(c => new RegExp(`[.\\w\\]]\\s+\\.${c}\\b`).test(css));
+const reached = shadowClasses.filter(c => new RegExp(`[.\\w\\]]\\s+\\.${c}\\b`).test(bare));
 check('nothing styles a cloned symbol through a descendant selector', !reached.length, reached.join(','));
 
 // ── every id javascript reaches for has to exist in the markup

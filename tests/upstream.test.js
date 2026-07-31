@@ -41,6 +41,18 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   check('all upstreams dead: readout says so',
     /reach|can't|offline/i.test(await p.evaluate(() => document.getElementById('dc-state').textContent)),
     await p.evaluate(() => document.getElementById('dc-state').textContent));
+
+  /* The music region takes itself away when the socket will not open and
+     this page has never caught a track. What it leaves behind is the
+     readout holding seven of twelve columns with five columns of black
+     beside it — which reads as something that failed to load rather than
+     as a region that is not there. */
+  const alone = await p.evaluate(() => {
+    const now = document.querySelector('.now').getBoundingClientRect();
+    return { now: Math.round(now.width), spread: Math.round(document.querySelector('.spread').getBoundingClientRect().width) };
+  });
+  check('all upstreams dead: the readout takes the row it is left alone in',
+    alone.now > alone.spread * .9, JSON.stringify(alone));
   await p.close();
 
   // ── twenty activities, all with very long names

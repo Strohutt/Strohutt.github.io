@@ -1057,6 +1057,12 @@ function fail() {
      something before, that still stands. If it never has, the region goes,
      which is the same rule the github ones follow. */
   const music = document.querySelector('.music');
-  if (unstash(LAST_TRACK)) showTrack(null);
-  else if (music) music.hidden = true;
+  if (unstash(LAST_TRACK)) {
+    showTrack(null);
+  } else if (music) {
+    music.hidden = true;
+    // and the readout takes the row it has been left alone in, rather
+    // than holding half of it with the other half black
+    el.slab.closest('.now')?.classList.add('is-alone');
+  }
 }

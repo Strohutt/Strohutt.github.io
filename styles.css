@@ -603,6 +603,20 @@ a {
 .now { grid-column: 1 / 8; align-content: start; }
 .music { grid-column: 8 / -1; align-content: start; }
 
+/* The music region takes itself away when there is nothing to say and
+   nothing remembered — a socket that will not open and no track this page
+   has ever caught. The readout was left holding seven of twelve columns
+   with five columns of black beside it, which reads as something failing
+   to load rather than as a region that is not there.
+
+   Set by the code that takes the other one away, rather than read off the
+   dom with :has(). A browser without :has() does not warn, it just leaves
+   the layout as it was — and this is the one layout nobody looking at the
+   page in normal conditions would ever see. */
+.now.is-alone {
+  grid-column: 1 / -1;
+}
+
 .likes { grid-column: 1 / -1; }
 .score { grid-column: 1 / -1; }
 
