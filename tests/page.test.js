@@ -28,31 +28,26 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   p.on('pageerror', e => errs.push('page: ' + e.message));
   p.on('console', m => m.type() === 'error' && /attribute|Uncaught/.test(m.text()) && errs.push('con: ' + m.text()));
 
-  /* The regions fed by github stay hidden when it cannot be reached, and a
-     hidden region has no box — so a layout checked against a dead network
-     is a layout nobody checked. Both are answered here. */
+  /* A region that only exists when its upstream answers has no box while
+     it does not — so a layout checked against a dead network is a layout
+     nobody checked. The favourites are filled here, with titles longer
+     than anything anilist would really send. */
   const json = body => ({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
-  const when = i => new Date(Date.now() - i * 9e6).toISOString();
-  await p.route('**/api.github.com/**/repos**', r => r.fulfill(json(
-    Array.from({ length: 6 }, (_, i) => ({
-      name: `a-repository-with-a-fairly-long-name-${i}`, html_url: 'https://example.invalid',
-      description: 'A description of the sort github lets people write, which is to say a long one.',
-      language: 'TypeScript', stargazers_count: i * 3, pushed_at: when(i), fork: false, archived: false
-    })))));
-  await p.route('**/api.github.com/**/events/**', r => r.fulfill(json(
-    Array.from({ length: 5 }, (_, i) => ({
-      type: 'PushEvent', repo: { name: `Strohutt/a-repository-with-a-fairly-long-name-${i}` },
-      created_at: when(i), payload: { size: i + 1, commits: [{ message: 'A commit message of an ordinary length' }] }
-    })))));
+  const one = (romaji, native) => ({
+    id: 1, siteUrl: 'https://example.invalid', format: 'MANHWA', status: 'FINISHED',
+    chapters: 570, title: { romaji, english: romaji, native },
+    coverImage: { large: '' }, startDate: { year: 2011 }
+  });
+  await p.route('**/graphql.anilist.co/**', r => r.fulfill(json({ data: {
+    jjk: { media: [one('Jujutsu Kaisen', '呪術廻戦')] },
+    gohs: { media: [one('The God of High School', '갓 오브 하이스쿨')] },
+    op: { media: [one('One Piece', 'ONE PIECE')] }
+  } })));
 
   await p.goto(BASE + '/index.html');
   await p.waitForTimeout(1800);
-  check('the repository list fills', await p.evaluate(() => document.querySelectorAll('#work-list li').length) === 6);
-  // the two regions were one list printed twice; the commit line has to
-  // arrive on the repository's own row now
-  check('each repo carries what was last pushed to it',
-    await p.evaluate(() => document.querySelectorAll('.work-last').length) >= 5,
-    String(await p.evaluate(() => document.querySelectorAll('.work-last').length)));
+  check('the favourites fill', await p.evaluate(() => document.querySelectorAll('#like-list li').length) === 3,
+    String(await p.evaluate(() => document.querySelectorAll('#like-list li').length)));
 
   const overflow = [];
   for (const w of [1600, 1340, 1100, 900, 700, 500, 380, 320]) {

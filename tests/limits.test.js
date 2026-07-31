@@ -51,15 +51,17 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   // ── a very slow upstream that answers after the visitor has moved on
   p = await b.newPage({ viewport: { width: 1340, height: 900 } });
   p.on('pageerror', e => fails.push('slow pageerror: ' + e.message));
-  await p.route('**/api.github.com/**', async r => {
+  await p.route('**/graphql.anilist.co/**', async r => {
     await new Promise(res => setTimeout(res, 4000));
-    r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([
-      { type: 'PushEvent', repo: { name: 'a/b' }, created_at: new Date().toISOString(), payload: { size: 1, commits: [{ message: 'late' }] } }]) });
+    r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: {
+      op: { media: [{ id: 1, siteUrl: 'https://example.invalid', format: 'MANGA', status: 'RELEASING',
+        title: { romaji: 'One Piece', native: 'ONE PIECE' }, coverImage: { large: '' }, startDate: { year: 1997 } }] }
+    } }) });
   });
   await p.goto(BASE + '/index.html');
   await p.evaluate(() => scrollTo(0, 2000));
   await p.waitForTimeout(5000);
-  check('late response still lands', await p.evaluate(() => !document.getElementById('work').hidden));
+  check('late response still lands', await p.evaluate(() => !document.getElementById('likes').hidden));
   check('late response does not shove the page', !(await over(p)));
   await p.close();
 
