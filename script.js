@@ -4,12 +4,11 @@
 
    1. Sections arriving, and the layers that lean and drift
    2. Things you can hit
-   3. The clock, and what he has pushed
+   3. The clock, what he has pushed, and what he keeps poking at
    4. Discord presence, via Lanyard
    ════════════════════════════════════════════════════════════════ */
 
 const DISCORD_ID = '402858450926829568';
-const root = document.documentElement;
 /* stillPlease, strikes and the wheel come from flash.js */
 
 /* ───────────────────────── Arriving ────────────────────────────── */
@@ -182,34 +181,48 @@ function ago(iso) {
   return `${v} ${unit}${v === 1 ? '' : 's'} ago`;
 }
 
-if (pushBox && pushList) {
-  fetch(`https://api.github.com/users/${GH_USER}/events/public?per_page=60`)
+/* Sixty unauthenticated calls an hour are shared by everyone behind one
+   address, so being refused is ordinary rather than exceptional — and two
+   of the five regions on this page came from here. Whatever last came back
+   is kept, and stands in when the next call is turned away. Every row
+   carries its own timestamp, so a stale list ages honestly instead of
+   claiming to be current. */
+function fromGithub(key, url, shape) {
+  return fetch(url)
     .then(r => (r.ok ? r.json() : null))
-    .then(events => {
-      if (!Array.isArray(events)) return;
-
-      // one row per repo, carrying its most recent push
-      const seen = new Map();
-      for (const e of events) {
-        if (e.type !== 'PushEvent' || !e.repo || seen.has(e.repo.name)) continue;
-        const commits = (e.payload && e.payload.commits) || [];
-        seen.set(e.repo.name, {
-          repo: e.repo.name,
-          when: e.created_at,
-          count: (e.payload && e.payload.size) || commits.length,
-          last: commits.length ? commits[commits.length - 1].message.split('\n')[0] : ''
-        });
-        if (seen.size >= 5) break;
+    .then(body => {
+      const rows = Array.isArray(body) ? shape(body) : null;
+      if (rows && rows.length) {
+        stash(key, rows);
+        return rows;
       }
-      if (!seen.size) return;
-
-      pushList.replaceChildren(...[...seen.values()].map((p, i) => pushRow(p, i)));
-      pushBox.hidden = false;
-      pushBox.classList.add('is-in');
+      return unstash(key);
     })
-    .catch(() => {
-      /* stays hidden */
-    });
+    .catch(() => unstash(key));
+}
+
+if (pushBox && pushList) {
+  fromGithub('strohut-pushes', `https://api.github.com/users/${GH_USER}/events/public?per_page=60`, events => {
+    // one row per repo, carrying its most recent push
+    const seen = new Map();
+    for (const e of events) {
+      if (!e || e.type !== 'PushEvent' || !e.repo || seen.has(e.repo.name)) continue;
+      const commits = (e.payload && e.payload.commits) || [];
+      seen.set(e.repo.name, {
+        repo: e.repo.name,
+        when: e.created_at,
+        count: (e.payload && e.payload.size) || commits.length,
+        last: commits.length ? String(commits[commits.length - 1].message).split('\n')[0] : ''
+      });
+      if (seen.size >= 5) break;
+    }
+    return [...seen.values()];
+  }).then(rows => {
+    if (!Array.isArray(rows) || !rows.length) return;
+    pushList.replaceChildren(...rows.map((p, i) => pushRow(p, i)));
+    pushBox.hidden = false;
+    pushBox.classList.add('is-in');
+  });
 }
 
 function pushRow(p, i) {
@@ -247,28 +260,24 @@ const workBox = document.getElementById('work');
 const workList = document.getElementById('work-list');
 
 if (workBox && workList) {
-  fetch(`https://api.github.com/users/${GH_USER}/repos?sort=pushed&per_page=100`)
-    .then(r => (r.ok ? r.json() : null))
-    .then(repos => {
-      if (!Array.isArray(repos)) return;
-
-      // github answering with the right shape is not the same as github
-      // answering with what was asked for, so the name is checked before
-      // it is read rather than after it throws
-      const mine = repos
-        .filter(r => r && typeof r.name === 'string' && !r.fork && !r.archived
-          && r.name.toLowerCase() !== `${GH_USER.toLowerCase()}.github.io`)
-        .slice(0, 6);
-
-      if (!mine.length) return;
-
-      workList.replaceChildren(...mine.map((repo, i) => workRow(repo, i)));
-      workBox.hidden = false;
-      workBox.classList.add('is-in');
-    })
-    .catch(() => {
-      /* stays hidden */
-    });
+  fromGithub('strohut-repos', `https://api.github.com/users/${GH_USER}/repos?sort=pushed&per_page=100`, repos =>
+    // github answering with the right shape is not the same as github
+    // answering with what was asked for, so the name is checked before it
+    // is read rather than after it throws
+    repos
+      .filter(r => r && typeof r.name === 'string' && !r.fork && !r.archived
+        && r.name.toLowerCase() !== `${GH_USER.toLowerCase()}.github.io`)
+      .slice(0, 6)
+      .map(r => ({
+        name: r.name, url: r.html_url, what: r.description,
+        lang: r.language, stars: r.stargazers_count, when: r.pushed_at
+      }))
+  ).then(rows => {
+    if (!Array.isArray(rows) || !rows.length) return;
+    workList.replaceChildren(...rows.map((repo, i) => workRow(repo, i)));
+    workBox.hidden = false;
+    workBox.classList.add('is-in');
+  });
 }
 
 function workRow(repo, i) {
@@ -277,36 +286,36 @@ function workRow(repo, i) {
 
   const link = document.createElement('a');
   link.className = 'work-name';
-  link.href = repo.html_url;
+  link.href = repo.url;
   link.textContent = repo.name;
   li.append(link);
 
-  if (repo.description) {
+  if (repo.what) {
     const what = document.createElement('p');
     what.className = 'work-what';
-    what.textContent = repo.description;
+    what.textContent = repo.what;
     li.append(what);
   }
 
   const meta = document.createElement('p');
   meta.className = 'work-meta';
 
-  if (repo.language) {
+  if (repo.lang) {
     const lang = document.createElement('span');
     lang.className = 'work-lang';
-    lang.textContent = repo.language;
+    lang.textContent = repo.lang;
     meta.append(lang);
   }
 
-  if (repo.stargazers_count) {
+  if (repo.stars) {
     const stars = document.createElement('span');
-    stars.textContent = `${repo.stargazers_count} star${repo.stargazers_count === 1 ? '' : 's'}`;
+    stars.textContent = `${repo.stars} star${repo.stars === 1 ? '' : 's'}`;
     meta.append(stars);
   }
 
-  if (repo.pushed_at) {
+  if (repo.when) {
     const when = document.createElement('span');
-    when.textContent = ago(repo.pushed_at);
+    when.textContent = ago(repo.when);
     meta.append(when);
   }
 
@@ -328,33 +337,34 @@ const el = {
   art: document.getElementById('track-art'),
   song: document.getElementById('track-song'),
   artist: document.getElementById('track-artist'),
+  seen: document.getElementById('track-seen'),
   bar: document.getElementById('track-bar'),
   fill: document.getElementById('track-fill'),
   link: document.getElementById('music-link')
 };
 
-const PINNED = {
-  song: 'nothing playing',
-  artist: '',
-  url: el.link ? el.link.href : ''
-};
+/* The quiet state used to point at one track id that had been carried
+   over from an older design — a favourite nobody had picked, sitting there
+   claiming to be one. What the panel shows instead when nothing is playing
+   is the last thing it actually caught him listening to, which is a true
+   statement about a real song, and gets truer the more often you visit. */
+const LAST_TRACK = 'strohut-track';
 
-/* The pinned track is a bare id in the markup, so the quiet state had
-   nothing to call it. Spotify's oembed endpoint needs no key and no auth
-   and hands back the title; if it is blocked or slow the panel keeps the
-   wording it already had. */
-if (PINNED.url) {
-  fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(PINNED.url)}`)
-    .then(r => (r.ok ? r.json() : null))
-    .then(data => {
-      if (!data || !data.title) return;
-      PINNED.artist = data.title;
-      // only take effect if nothing has started playing in the meantime
-      if (!lastPresence || !lastPresence.listening_to_spotify) showTrack(null);
-    })
-    .catch(() => {
-      /* the wording it already has is true either way */
-    });
+function stash(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* it just won't be there next time */
+  }
+}
+
+function unstash(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
 }
 
 el.art.addEventListener('load', () => { el.art.hidden = false; });
@@ -535,18 +545,35 @@ function elapsed(startMs) {
 /* Drawn here rather than dropped in as Spotify's own player, which was
    the one thing on the page in somebody else's visual language. */
 function showTrack(track) {
-  el.kicker.textContent = track ? 'playing right now' : 'stuck in my head';
-  el.song.textContent = track ? track.song : PINNED.song;
-  el.artist.textContent = track ? track.artist : PINNED.artist;
-  el.artist.hidden = !el.artist.textContent;
-  el.link.href = track ? `https://open.spotify.com/track/${track.track_id}` : PINNED.url;
-  el.link.textContent = 'open in spotify';
+  if (track && track.song) {
+    stash(LAST_TRACK, {
+      song: track.song, artist: track.artist, id: track.track_id,
+      art: track.album_art_url, at: Date.now()
+    });
+  }
 
-  if (track && track.album_art_url) {
+  // nothing playing: fall back to the last one this page saw
+  const seen = track ? null : unstash(LAST_TRACK);
+  const show = track || seen;
+
+  el.kicker.textContent = track ? 'playing right now' : seen ? 'last thing I caught' : 'nothing playing';
+  el.song.textContent = show ? show.song : 'nothing playing';
+  el.artist.textContent = show ? show.artist || '' : '';
+  el.artist.hidden = !el.artist.textContent;
+
+  el.seen.textContent = seen && seen.at ? ago(seen.at) : '';
+  el.seen.hidden = !el.seen.textContent;
+
+  const id = show && (show.track_id || show.id);
+  el.link.hidden = !id;
+  if (id) el.link.href = `https://open.spotify.com/track/${id}`;
+
+  const art = show && (show.album_art_url || show.art);
+  if (art) {
     // re-assigning the same src restarts the fade, and presence updates
     // arrive far more often than the song changes
-    if (el.art.src !== track.album_art_url) el.art.src = track.album_art_url;
-    el.art.alt = `${track.album || track.song} cover`;
+    if (el.art.src !== art) el.art.src = art;
+    el.art.alt = `${(track && track.album) || show.song} cover`;
   } else {
     el.art.hidden = true;
     el.art.removeAttribute('src');

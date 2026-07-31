@@ -214,6 +214,38 @@ const rings = p => p.evaluate(() => document.querySelectorAll('.charge').length)
   check('a press still moves one tooth', (await adapt()) === held + 1, `${held} → ${await adapt()}`);
   await p.close();
 
+  // ── the same throw under a finger. touch-action leaves vertical panning
+  // to the browser, so the gesture has to work without taking scrolling
+  // away from the rest of the page.
+  const pad = await b.newContext({ viewport: { width: 1024, height: 1180 }, hasTouch: true, isMobile: true });
+  p = await pad.newPage();
+  p.on('pageerror', e => fails.push('touch throw pageerror: ' + e.message));
+  await p.goto(BASE + '/index.html');
+  await p.waitForTimeout(1200);
+
+  const grip = await p.locator('#wheel-hit').boundingBox();
+  const cdp2 = await pad.newCDPSession(p);
+  const drag = (type, x, y) => cdp2.send('Input.dispatchTouchEvent', {
+    type, touchPoints: type === 'touchEnd' ? [] : [{ x, y, radiusX: 12, radiusY: 12, force: 1, id: 1 }]
+  });
+  const gx = grip.x + grip.width / 2, gy = grip.y + grip.height / 2;
+  const rad = Math.min(grip.width, grip.height) / 2 - 14;
+
+  await drag('touchStart', gx, gy - rad);
+  for (let i = 1; i <= 14; i++) {
+    const a = -Math.PI / 2 + i * 0.2;
+    await drag('touchMove', gx + Math.cos(a) * rad, gy + Math.sin(a) * rad);
+    await p.waitForTimeout(14);
+  }
+  await drag('touchEnd', 0, 0);
+  await p.waitForTimeout(2500);
+
+  const byFinger = await p.evaluate(() =>
+    parseInt(getComputedStyle(document.querySelector('.wheel')).getPropertyValue('--adapt'), 10));
+  check('a finger can throw the wheel too', byFinger > 1, String(byFinger));
+  check('throwing it does not scroll the page', await p.evaluate(() => scrollY) === 0);
+  await pad.close();
+
   await b.close();
   console.log(fails.length ? '\n' + fails.length + ' FAILING: ' + fails.join(', ') : '\nall flash checks pass');
   process.exit(fails.length ? 1 : 0);
