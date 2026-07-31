@@ -48,7 +48,11 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   await p.goto(BASE + '/index.html');
   await p.waitForTimeout(1800);
   check('the repository list fills', await p.evaluate(() => document.querySelectorAll('#work-list li').length) === 6);
-  check('the push list fills', await p.evaluate(() => document.querySelectorAll('#push-list li').length) === 5);
+  // the two regions were one list printed twice; the commit line has to
+  // arrive on the repository's own row now
+  check('each repo carries what was last pushed to it',
+    await p.evaluate(() => document.querySelectorAll('.work-last').length) >= 5,
+    String(await p.evaluate(() => document.querySelectorAll('.work-last').length)));
 
   const overflow = [];
   for (const w of [1600, 1340, 1100, 900, 700, 500, 380, 320]) {

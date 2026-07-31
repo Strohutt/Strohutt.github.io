@@ -59,7 +59,7 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   await p.goto(BASE + '/index.html');
   await p.evaluate(() => scrollTo(0, 2000));
   await p.waitForTimeout(5000);
-  check('late response still lands', await p.evaluate(() => !document.getElementById('pushes').hidden));
+  check('late response still lands', await p.evaluate(() => !document.getElementById('work').hidden));
   check('late response does not shove the page', !(await over(p)));
   await p.close();
 

@@ -32,6 +32,16 @@ const ringPlan = p => p.evaluate(() => {
 });
 const rings = p => p.evaluate(() => document.querySelectorAll('.charge').length);
 
+/* A throw runs down over however many frames it takes, so how long it
+   lasts in wall-clock depends entirely on the frame rate — which under
+   load here is nothing like sixty. Waiting a fixed two and a half seconds
+   was reading the wheel mid-spin and calling it a failure. */
+const settled = p => p.waitForFunction(() => {
+  const w = document.querySelector('.wheel');
+  return !w.classList.contains('is-spinning') &&
+    parseFloat(w.style.getPropertyValue('--drag') || '0') === 0;
+}, null, { timeout: 15000 });
+
 /* Landing one has to be driven from inside the page. Every press and
    release from out here is a round trip over the debugging protocol, and
    in this container that jitters by well over a hundred milliseconds —
@@ -286,7 +296,7 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
     await p.waitForTimeout(12);
   }
   await p.mouse.up();
-  await p.waitForTimeout(2500);
+  await settled(p);
   const thrown = await adapt();
   check('a throw carries the wheel past one tooth', thrown > 1, String(thrown));
   check('a throw settles on a tooth',
@@ -325,7 +335,7 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
     await p.waitForTimeout(14);
   }
   await drag('touchEnd', 0, 0);
-  await p.waitForTimeout(2500);
+  await settled(p);
 
   const byFinger = await p.evaluate(() =>
     parseInt(getComputedStyle(document.querySelector('.wheel')).getPropertyValue('--adapt'), 10));
