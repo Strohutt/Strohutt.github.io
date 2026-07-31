@@ -3,9 +3,10 @@
    Loaded after flash.js, which carries 黒閃 and the wheel.
 
    1. Sections arriving, and the layers that lean and drift
-   2. Things you can hit
-   3. The clock, what he has pushed, and what he is building
-   4. Discord presence, via Lanyard
+   2. What the pointer stirs up
+   3. Things you can hit
+   4. The clock, and what he likes
+   5. Discord presence, via Lanyard
    ════════════════════════════════════════════════════════════════ */
 
 const DISCORD_ID = '402858450926829568';
@@ -33,35 +34,127 @@ if (stillPlease.matches || !('IntersectionObserver' in window)) {
 
 /* ───────────────────────── Lean and drift ──────────────────────── */
 
-/* A page that only moves when it is clicked reads as a screenshot. The
-   layers behind the header lean away from the pointer and lag behind the
-   scroll, at different rates, so there is depth to look at while nothing
-   is happening. Both are written to custom properties and let css do the
-   easing — setting transforms per frame fights the transitions. */
+/* A page that only moves when it is clicked reads as a screenshot. So
+   everything here is on all the time and answers to something: the layers
+   behind the header lean away from the pointer, the word leans toward it,
+   the cards turn under it, the drawings lag behind the scroll at
+   different rates, the speed lines stretch with how hard the page is
+   being thrown about, and every region knows how centred it is.
+
+   All of it is written to custom properties and left to css to ease.
+   Setting transforms per frame fights the transitions, and a reading that
+   is only a number can be used by three rules at once without any of them
+   knowing about the others. */
 
 const hero = document.querySelector('.hero');
+const letters = [...document.querySelectorAll('.name i')];
+const cards = document.querySelector('.like-list');
+const still = stillPlease.matches;
 
-if (hero && !stillPlease.matches && matchMedia('(pointer: fine)').matches) {
+/* One listener and one frame for everything the pointer drives. Four
+   listeners each with their own requestAnimationFrame is four write
+   passes and four chances to read a layout somebody else just dirtied. */
+if (!still && matchMedia('(pointer: fine)').matches) {
   let queued = false;
-  let lx = 0;
-  let ly = 0;
+  let px = 0;
+  let py = 0;
+
+  /* Where each letter sits inside the word, as a fraction of it. Measured
+     once rather than every frame — they only shift by the hundredth of an
+     em their own idle animation moves them, and the word itself is read
+     fresh each time, so scrolling and resizing are both covered. */
+  const name = document.querySelector('.name');
+  let spots = [];
+  const measure = () => {
+    if (!name || !letters.length) return;
+    const box = name.getBoundingClientRect();
+    spots = letters.map(i => {
+      const r = i.getBoundingClientRect();
+      return box.width ? (r.left + r.width / 2 - box.left) / box.width : 0;
+    });
+  };
+  measure();
+  addEventListener('resize', measure, { passive: true });
+  if (document.fonts) document.fonts.ready.then(measure).catch(() => { /* keep what was measured */ });
+
+  /* Whether the two things that answer the pointer are even on the screen.
+     Without this the word is measured and the cards are hit-tested on
+     every frame of every pointer move anywhere on the page, most of which
+     happens with both of them scrolled well out of sight. */
+  const onScreen = new Set();
+  if ('IntersectionObserver' in window) {
+    const eyes = new IntersectionObserver(entries => entries.forEach(e => {
+      if (e.isIntersecting) onScreen.add(e.target); else onScreen.delete(e.target);
+    }), { rootMargin: '20% 0px' });
+    [name, cards].forEach(target => target && eyes.observe(target));
+  } else {
+    [name, cards].forEach(target => target && onScreen.add(target));
+  }
+
+  const write = () => {
+    queued = false;
+
+    if (hero) {
+      hero.style.setProperty('--lean-x', ((px / innerWidth - .5) * 2).toFixed(3));
+      hero.style.setProperty('--lean-y', ((py / innerHeight - .5) * 2).toFixed(3));
+    }
+
+    /* The word answers to the pointer going past it, letter by letter, so
+       the biggest thing on the page is not also the deadest. Falls away
+       over about a letter and a half in each direction. */
+    if (name && spots.length && onScreen.has(name)) {
+      const box = name.getBoundingClientRect();
+      const reach = Math.max(90, box.height * .9);
+      letters.forEach((glyph, i) => {
+        const dx = (box.left + spots[i] * box.width - px) / reach;
+        const dy = (box.top + box.height / 2 - py) / reach;
+        const pull = Math.max(0, 1 - Math.hypot(dx, dy));
+        glyph.style.setProperty('--pull', pull.toFixed(3));
+      });
+    }
+
+    /* The card under the pointer turns toward it. Read off the card's own
+       box, so it works whatever the grid has done with the columns. */
+    if (cards && onScreen.has(cards)) {
+      const card = document.elementFromPoint(px, py)?.closest?.('.like-list li');
+      cards.querySelectorAll('li').forEach(li => {
+        if (li === card) return;
+        li.style.removeProperty('--tilt-x');
+        li.style.removeProperty('--tilt-y');
+      });
+      if (card) {
+        const r = card.getBoundingClientRect();
+        card.style.setProperty('--tilt-x', (((px - r.left) / r.width - .5) * 2).toFixed(3));
+        card.style.setProperty('--tilt-y', (((py - r.top) / r.height - .5) * 2).toFixed(3));
+      }
+    }
+  };
+
+  /* The travel is worked out from the last position rather than read off
+     movementX. That field is not filled in by a synthesised event at all,
+     and it is a late arrival in more than one engine — so a wake that
+     leans on it is a wake that is simply missing on some machines, with
+     nothing anywhere to say why. Two subtractions cost nothing. */
+  let wasX = 0;
+  let wasY = 0;
 
   addEventListener('pointermove', event => {
-    lx = (event.clientX / innerWidth - .5) * 2;
-    ly = (event.clientY / innerHeight - .5) * 2;
+    px = event.clientX;
+    py = event.clientY;
+    const dx = wasX ? px - wasX : 0;
+    const dy = wasY ? py - wasY : 0;
+    wasX = px;
+    wasY = py;
+    trail(px, py, dx, dy);
     if (queued) return;
     queued = true;
-    requestAnimationFrame(() => {
-      hero.style.setProperty('--lean-x', lx.toFixed(3));
-      hero.style.setProperty('--lean-y', ly.toFixed(3));
-      queued = false;
-    });
+    requestAnimationFrame(write);
   }, { passive: true });
 }
 
 const drifters = document.querySelectorAll('.band svg, svg.band, .flag svg, svg.flag');
 
-if (drifters.length && !stillPlease.matches) {
+if (!still) {
   // one rate per drifter, none of them a multiple of another, so no two
   // ever move together for long enough to look like one layer
   const RATE = [.07, -.05, .04];
@@ -72,12 +165,68 @@ if (drifters.length && !stillPlease.matches) {
      is what a wheel does when something rolls past it — on top of its own
      slow ratchet, so the two never line up into one obvious loop. */
   const wheelArt = document.querySelector('.wheel');
+  const root = document.documentElement;
+
+  /* How hard the page is being thrown about, nought to one. The speed
+     lines are drawn for exactly one reason and they were sitting still
+     while the page was being scrolled past them.
+
+     It climbs the moment you move and falls off slowly, because a reading
+     that dropped to nothing between two scroll events would flicker. And
+     it has to keep falling after the last event — nothing else is going
+     to come along and set it back to nought. */
+  let vel = 0;
+  let lastY = scrollY;
+  let lastT = performance.now();
+  let easeT = 0;
+
+  /* The fall-off is measured against the clock, not counted in frames. A
+     per-frame multiplier decays four times slower on a machine dropping to
+     fifteen frames a second than on one holding sixty, which is exactly
+     backwards — the slower machine is the one that must not be left with a
+     stuck reading. */
+  const ease = now => {
+    const dt = Math.min(200, now - easeT);
+    easeT = now;
+    vel *= Math.pow(.02, dt / 1000);
+    if (vel < .01) { vel = 0; easeT = 0; } else requestAnimationFrame(ease);
+    root.style.setProperty('--vel', vel.toFixed(3));
+  };
+
+  /* How centred each region is, nought at the edge of the screen and one
+     in the middle of it. The mark under a heading grows as its region
+     comes up and falls back as it goes, so the page answers to being
+     scrolled rather than only to being arrived at. */
+  const regions = [...document.querySelectorAll('.panel')];
 
   const shift = () => {
     const y = scrollY;
+    const t = performance.now();
+    // a hard fling is about two and a half pixels a millisecond
+    const raw = Math.min(1, Math.abs(y - lastY) / Math.max(16, t - lastT) / 2.5);
+    /* Only ever raised here, and only ever lowered by the fall-off. Doing
+       both in this one place made it flicker: scroll events and frames do
+       not line up, so a frame with two of them in it reads twice as fast
+       as the one after it with none, and the lines flashed at whatever
+       rate that happened to alternate. */
+    vel = Math.max(raw, vel);
+    lastY = y;
+    lastT = t;
+
+    root.style.setProperty('--vel', vel.toFixed(3));
     drifters.forEach((el, i) => el.style.setProperty('--drift', `${(y * RATE[i % RATE.length]).toFixed(1)}px`));
     if (wheelArt) wheelArt.style.setProperty('--roll', `${(y * .06).toFixed(2)}deg`);
+
+    const mid = innerHeight / 2;
+    regions.forEach(panel => {
+      const r = panel.getBoundingClientRect();
+      if (r.bottom < -80 || r.top > innerHeight + 80) return;
+      const off = Math.abs(r.top + r.height / 2 - mid) / (mid + r.height / 2);
+      panel.style.setProperty('--near', Math.max(0, 1 - off).toFixed(3));
+    });
+
     waiting = false;
+    if (!easeT) { easeT = t; requestAnimationFrame(ease); }
   };
 
   addEventListener('scroll', () => {
@@ -87,6 +236,114 @@ if (drifters.length && !stillPlease.matches) {
   }, { passive: true });
 
   shift();
+}
+
+
+/* ────────────────── What the pointer stirs up ──────────────────── */
+
+/* The field behind the page goes whether anybody is there or not. This is
+   the half that only exists because somebody is.
+
+   Dragging through it tears pieces off. Holding — which is how a black
+   flash is charged — pulls them in instead, and letting go throws them
+   out again, so the layer that is always running and the one thing on the
+   page you actually play are the same energy.
+
+   A fixed pool, recycled oldest first. Making and dropping elements at
+   pointer rate is the one way to make a wake cost more than it is worth. */
+const POOL = 24;
+const FLECKS = ['#fleck-1', '#fleck-2', '#fleck-3', '#fleck-4'];
+
+let wake = null;
+let pool = [];
+let next = 0;
+let flown = 0;      // px of travel since the last one was let go
+let gathering = 0;  // interval id while a strike is being held
+
+if (!still) {
+  wake = document.createElement('div');
+  wake.className = 'wake';
+  wake.setAttribute('aria-hidden', 'true');
+
+  for (let i = 0; i < POOL; i++) {
+    const bit = document.createElement('span');
+    bit.className = 'spark';
+    bit.innerHTML = `<svg viewBox="0 0 32 32"><use href="${FLECKS[i % FLECKS.length]}" /></svg>`;
+    pool.push(bit);
+    wake.append(bit);
+  }
+  document.body.append(wake);
+}
+
+/* One piece of it, thrown from (x, y) to (x + dx, y + dy). The web
+   animations api rather than a class and a reflow: a recycled element
+   would otherwise have to have its animation removed, its layout flushed
+   and the class put back, three times a second. */
+function spark(x, y, dx, dy, life) {
+  if (!wake) return;
+  const bit = pool[next++ % POOL];
+  const size = 10 + Math.random() * 20;
+  const spin = (Math.random() - .5) * 220;
+
+  bit.style.setProperty('--sz', `${size.toFixed(1)}px`);
+  bit.animate([
+    { transform: `translate3d(${x}px, ${y}px, 0) rotate(0deg) scale(.4)`, opacity: 0 },
+    { transform: `translate3d(${x + dx * .3}px, ${y + dy * .3}px, 0) rotate(${(spin * .3).toFixed(0)}deg) scale(1)`, opacity: .9, offset: .18 },
+    { transform: `translate3d(${x + dx}px, ${y + dy}px, 0) rotate(${spin.toFixed(0)}deg) scale(.5)`, opacity: 0 }
+  ], { duration: life, easing: 'cubic-bezier(.15,.7,.3,1)' });
+}
+
+/* Every so many pixels of travel, not every event — pointer events arrive
+   at whatever rate the mouse reports, and a wake tied to that is a solid
+   ribbon on one machine and a dotted line on another. */
+function trail(x, y, mx, my) {
+  if (!wake || gathering) return;
+  flown += Math.hypot(mx, my);
+  if (flown < 34) return;
+  flown = 0;
+  // thrown back along the way you came, then carried up, the way anything
+  // coming off something moving does
+  spark(x, y,
+    -mx * 1.2 + (Math.random() - .5) * 60,
+    -my * 1.2 - 30 - Math.random() * 70,
+    800 + Math.random() * 600);
+}
+
+if (wake) {
+  addEventListener('pointerdown', event => {
+    if (event.button) return;
+    wake.classList.add('is-hot');
+    const { clientX: x, clientY: y } = event;
+
+    // pulled in from a ring rather than thrown out of a point: this is the
+    // charge going in, and it has to read as the opposite of the wake
+    const draw = () => {
+      for (let i = 0; i < 2; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const r = 80 + Math.random() * 110;
+        spark(x + Math.cos(a) * r, y + Math.sin(a) * r,
+          -Math.cos(a) * r, -Math.sin(a) * r, 460 + Math.random() * 240);
+      }
+    };
+    draw();
+    gathering = setInterval(draw, 80);
+  }, { passive: true });
+
+  const let_go = event => {
+    if (!gathering) return;
+    clearInterval(gathering);
+    gathering = 0;
+    wake.classList.remove('is-hot');
+    // and out again, which is the release whether or not it landed
+    for (let i = 0; i < 7; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = 90 + Math.random() * 120;
+      spark(event.clientX, event.clientY, Math.cos(a) * r, Math.sin(a) * r - 20, 520 + Math.random() * 300);
+    }
+  };
+
+  addEventListener('pointerup', let_go, { passive: true });
+  addEventListener('pointercancel', let_go, { passive: true });
 }
 
 /* ─────────────────────── Things you can hit ────────────────────── */
@@ -140,10 +397,22 @@ if (clock) {
     timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit', hour12: false
   });
 
-  const tick = () => { clock.textContent = face.format(new Date()); };
+  /* Checked often, redrawn rarely. It is the only number on the page that
+     changes on its own, and when it does it turns over rather than being
+     swapped out — a digit that changes with no motion at all is a digit
+     nobody ever notices changing. */
+  const tick = () => {
+    const now = face.format(new Date());
+    if (clock.textContent === now) return;
+    clock.textContent = now;
+    if (still) return;
+    clock.classList.remove('is-turned');
+    void clock.offsetWidth;
+    clock.classList.add('is-turned');
+  };
 
   tick();
-  setInterval(tick, 20000);
+  setInterval(tick, 5000);
 }
 
 
@@ -398,7 +667,8 @@ const el = {
   frame: document.getElementById('dc-frame'),
   bar: document.getElementById('track-bar'),
   fill: document.getElementById('track-fill'),
-  link: document.getElementById('music-link')
+  link: document.getElementById('music-link'),
+  track: document.getElementById('music-embed')
 };
 
 /* The quiet state used to point at one track id that had been carried
@@ -574,8 +844,12 @@ const DOING_KIND = {
   5: 'competing in'
 };
 
-function activityRow(activity) {
+function activityRow(activity, i) {
   const li = document.createElement('li');
+  /* The rows are rebuilt when discord says something changed, not on a
+     clock — the elapsed counter ticks on its own element. So they can
+     arrive one after another without that replaying every second. */
+  li.style.setProperty('--i', i);
   const url = artworkUrl(activity);
 
   if (url) {
@@ -673,6 +947,11 @@ function showTrack(track) {
   // nothing playing: fall back to the last one this page saw
   const seen = track ? null : unstash(LAST_TRACK);
   const show = track || seen;
+
+  /* The record rides out of the sleeve and turns while there is something
+     playing, and only then — a drawing that turns whatever the state is
+     would be saying nothing. */
+  el.track.classList.toggle('is-playing', Boolean(track && track.song));
 
   el.kicker.textContent = track ? 'now playing' : seen ? 'last played' : 'nothing playing';
   el.song.textContent = show ? show.song : 'nothing playing';

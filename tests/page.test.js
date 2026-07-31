@@ -76,7 +76,15 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
      clips on purpose, so a region left in a half-width column at phone
      size does not scroll — it is silently cut off, which is worse than a
      scrollbar. Only the hero is allowed past the edge; the wheel and the
-     speed lines bleed by design. */
+     speed lines bleed by design.
+
+     What is hidden from a reader is not measured. Everything drawn on
+     this page runs past its box on purpose — the mark behind the score
+     bleeds off the edge the way the wheel does, and the sea is three
+     tiles wide so that sliding it by one never shows a seam. All of it
+     carries aria-hidden, which is the same statement in the markup: there
+     is nothing here to read, so there is nothing here to cut off. What
+     does have to be read has no way of claiming that exemption. */
   const cut = [];
   for (const w of [1340, 900, 700, 500, 380, 320]) {
     await p.setViewportSize({ width: w, height: 900 });
@@ -84,6 +92,7 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
     const over = await p.evaluate(() => {
       const edge = document.documentElement.clientWidth;
       return [...document.querySelectorAll('.panel:not(.hero), .panel:not(.hero) *')]
+        .filter(el => !el.closest('[aria-hidden="true"], svg'))
         .filter(el => { const r = el.getBoundingClientRect(); return r.width > 2 && r.right > edge + 1; })
         .map(el => (el.className && el.className.baseVal !== undefined ? el.className.baseVal : el.className) || el.tagName)
         .slice(0, 4);
