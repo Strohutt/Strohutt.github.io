@@ -260,6 +260,14 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
   await land(p, AT);
   s = await score();
   check('a landed flash is counted', s.best === '1' && s.total === '1', JSON.stringify(s));
+
+  /* Landing one used to move the wheel and nothing else, which left the
+     rest of the page a backdrop it happened in front of. */
+  await p.waitForTimeout(360);
+  const rippled = await p.evaluate(() => [...document.querySelectorAll('.is-struck')]
+    .map(e => (e.className.baseVal ?? e.className).split(' ')[0]));
+  check('a landed flash goes through everything drawn on the page',
+    ['brush', 'band', 'flag'].every(k => rippled.includes(k)), rippled.join(', '));
   check('a landed flash turns the wheel', s.turns === '1', s.turns);
   check('a landed flash leaves a lit mark', s.marks.length === 2 && s.marks[1].includes('is-hit'), s.marks.join(' | '));
 

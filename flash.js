@@ -344,6 +344,14 @@ function landed() {
   tell(true);
   if (sigil) sigil.classList.add('is-adapted');
 
+  /* Landing one used to move the wheel and nothing else, which made the
+     rest of the page a backdrop it happened in front of. It goes through
+     everything drawn on the page instead, one after another, so a hit is
+     something the whole thing feels. */
+  document.querySelectorAll('.band, .flag, .brush').forEach((el, i) => {
+    setTimeout(() => knock(el, 'is-struck'), 60 + i * 70);
+  });
+
   document.body.classList.remove('is-flashing');
   void document.body.offsetWidth;
   document.body.classList.add('is-flashing');
