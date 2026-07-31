@@ -149,19 +149,25 @@ const wheel = document.querySelector('.wheel');
    The wind-up was a fixed 620ms, so after five attempts you were not
    reacting to anything — you were counting, and the ring was decoration.
    It is a different length every time now, drawn fresh per attempt, and
-   the ring is the only thing that tells you where you are.
+   the ring is the only thing that tells you where you are. The spread is
+   narrow enough that the ring reads the same from one go to the next.
 
-   And landing one used to widen the next window, which meant a run got
-   easier the longer it went and topped out at trivial. It narrows now.
-   A run has somewhere to go and somewhere to end. */
+   The window sits in the middle of where it opens rather than starting
+   there, so it can grow without ever running past the ring closing —
+   which is what the old one did the moment it got any wider.
 
-const WIND_MIN = 520;       // ms for the ring to close — drawn per attempt,
-const WIND_MAX = 820;       // so there is nothing to memorise
-const WINDOW_AT = 0.80;     // where in the wind-up the window opens
-const WINDOW_BASE = 0.15;   // how much of the wind-up it stays open
-const WINDOW_FLOOR = 0.06;  // and it never gets tighter than this
+   And it grows. Landing one used to make the next one harder, which is
+   backwards: in the source, somebody who has landed one is blessed by
+   the sparks and the next come easier. That is also the kinder rule.
+   Eight of them and the window is half again what it started at. */
+
+const WIND_MIN = 560;       // ms for the ring to close — drawn per attempt,
+const WIND_MAX = 760;       // so there is nothing to memorise
+const WINDOW_AT = 0.86;     // where in the wind-up the middle of it sits
+const WINDOW_BASE = 0.18;   // how much of the wind-up it stays open at first
+const WINDOW_ROOF = 0.27;   // and it never gets wider than this
 const LEARNS = 8;           // one per orb on the wheel
-const WINDOW_STEP = (WINDOW_BASE - WINDOW_FLOOR) / LEARNS;
+const WINDOW_STEP = (WINDOW_ROOF - WINDOW_BASE) / LEARNS;
 const HOLD_LIMIT = 2200;    // holding past this is a miss, not a pause
 const DOMAIN_AT = 5;        // in a row, and the field is yours
 const DOMAIN_FOR = 7000;    // for this long
@@ -175,12 +181,19 @@ let domainUntil = 0;
    itself, so a second one has to be built rather than waited for. */
 let spent = false;
 
-/* Storage is not always there to be written to — private windows and a
+/* Kept for the visit and no longer. A record that survives the browser
+   being closed is a record somebody has to live with — come back in a
+   month and the first thing the page tells you is a number you cannot
+   remember setting. Session storage is exactly the right shelf: it holds
+   while the tab is open, through every reload and every page in it, and
+   it is gone when the tab is.
+
+   Storage is not always there to be written to — private windows and a
    full quota both throw — and none of this is worth losing the page over,
    so every read falls back to zero and every write is allowed to fail. */
 function readNum(key) {
   try {
-    return Math.max(0, parseInt(localStorage.getItem(key), 10) || 0);
+    return Math.max(0, parseInt(sessionStorage.getItem(key), 10) || 0);
   } catch {
     return 0;
   }
@@ -188,21 +201,19 @@ function readNum(key) {
 
 function write(key, value) {
   try {
-    localStorage.setItem(key, String(value));
+    sessionStorage.setItem(key, String(value));
   } catch {
     /* it just starts over next time */
   }
 }
 
-/* The wheel keeps what it has adapted to. That is the whole point of the
-   thing it is drawn from, and it is what makes this more than one trick
-   repeated: the window does not narrow because you are on a run, it
-   narrows because the wheel has seen you land one, and it does not give
-   that back when you miss. Mahoraga does not unlearn.
+/* What the sparks have blessed, kept. That is what makes this more than
+   one trick repeated: the window does not open because you are on a run,
+   it opens because one has landed, and a miss does not take it back.
 
-   Eight orbs, eight adaptations, and the eighth puts the window on its
-   floor. So the drawing is the difficulty curve — there is nothing else
-   to read it off, and nothing to explain. */
+   Eight orbs on the wheel, eight of them, and the eighth leaves the
+   window half again what it started at. So the drawing is the curve —
+   there is nothing else to read it off, and nothing to explain. */
 let adapted = readNum('strohut-adapt');   // where it points, either way
 let turns = readNum('strohut-turns');     // how far it has been moved, ever
 let learned = Math.min(LEARNS, readNum('strohut-learned'));
@@ -223,9 +234,9 @@ function turn(by) {
   if (wheel) wheel.style.setProperty('--adapt', adapted);
 }
 
-/* One more thing the wheel now knows. Only a landed flash teaches it —
-   pressing it or throwing it moves it without it learning anything, which
-   is the difference between turning a wheel and being hit by something. */
+/* One more spark in you. Only a landed flash counts — pressing the wheel
+   or throwing it moves it without anything being learned, which is the
+   difference between turning a wheel and landing something on it. */
 function learn() {
   if (learned >= LEARNS) return;
   learned += 1;
@@ -328,13 +339,16 @@ function mark(hit) {
 // of every link and button press
 const OFF_LIMITS = 'a, button, input, iframe, .tally';
 
-/* How much of the wind-up the window stays open for. It follows the wheel
-   rather than the run: a streak resetting the difficulty meant the game
-   was only ever hard at the end of a good run and easy again the moment
-   it broke, which is the opposite of getting better at something. */
+/* How much of the wind-up the window stays open for. It follows what has
+   landed rather than the run in front of you: a streak that reset the
+   difficulty meant the game was only ever different at the end of a good
+   run and back to the start the moment it broke. */
 function windowNow() {
-  return Math.max(WINDOW_FLOOR, WINDOW_BASE - learned * WINDOW_STEP);
+  return Math.min(WINDOW_ROOF, WINDOW_BASE + learned * WINDOW_STEP);
 }
+
+// where it opens and where it shuts, as fractions of the wind-up
+const opensAt = () => WINDOW_AT - windowNow() / 2;
 
 const inDomain = () => performance.now() < domainUntil;
 
@@ -342,6 +356,102 @@ const inDomain = () => performance.now() < domainUntil;
 // watched rather than counted through
 function windUp() {
   return WIND_MIN + Math.random() * (WIND_MAX - WIND_MIN);
+}
+
+/* ── what a black flash actually looks like ───────────────────────
+   It is not a bolt drawn over the page. Every account of it says the
+   same thing: cursed energy landing inside a millionth of a second of
+   the hit, and what that does is distort the space it happens in. The
+   energy flashes black — black is the whole name — and whoever lands
+   one is blessed by the sparks afterwards.
+
+   So the moment is built out of four things that arrive together and
+   leave at different speeds:
+
+     the rift    space splitting away from the point of impact, drawn
+                 on in sixty milliseconds and gone in half a second
+     the bolt    the black shape itself, red only at its edge
+     the wave    two rings leaving the point, one black, one red
+     the sparks  shards thrown outward, the ones that do the blessing
+
+   Everything is one node with a class, animated in css and removed on
+   the last animation that ends. Nothing here runs a frame in script. */
+
+// a jagged run of points walking outward from the point of impact
+function riftWalk(x, y, angle, reach) {
+  const steps = 4 + Math.floor(Math.random() * 3);
+  const pts = [[x, y]];
+  let cx = x, cy = y, a = angle;
+  for (let i = 0; i < steps; i++) {
+    // the further out it gets, the more it is allowed to wander
+    a += (Math.random() - .5) * (.45 + i * .3);
+    const len = reach / steps * (.6 + Math.random() * .9);
+    cx += Math.cos(a) * len;
+    cy += Math.sin(a) * len;
+    pts.push([cx, cy]);
+  }
+  return pts;
+}
+
+const at = p => `${Math.round(p[0])} ${Math.round(p[1])}`;
+
+/* A crack is wide where it was struck and closes to nothing at its end.
+   An even-width stroke cannot do that — it stops dead, with a round cap
+   sitting in the middle of the page — so the black is a filled shape
+   walked out and back along the same points, narrowing as it goes. It is
+   how every other drawing on this page is built for the same reason. */
+function riftShape(pts, wide) {
+  const last = pts.length - 1;
+  const left = [], right = [];
+  for (let i = 0; i <= last; i++) {
+    const t = i / last;
+    const w = wide * Math.pow(1 - t, 1.1) + .6;
+    const prev = pts[Math.max(0, i - 1)];
+    const next = pts[Math.min(last, i + 1)];
+    const a = Math.atan2(next[1] - prev[1], next[0] - prev[0]) + Math.PI / 2;
+    left.push([pts[i][0] + Math.cos(a) * w, pts[i][1] + Math.sin(a) * w]);
+    right.push([pts[i][0] - Math.cos(a) * w, pts[i][1] - Math.sin(a) * w]);
+  }
+  return `M${left.map(at).join('L')}L${right.reverse().map(at).join('L')}Z`;
+}
+
+function rift(x, y, streak) {
+  const w = innerWidth, h = innerHeight;
+  // the reach is however far the far corner is, so it always leaves the screen
+  const far = Math.max(Math.hypot(x, y), Math.hypot(w - x, y),
+    Math.hypot(x, h - y), Math.hypot(w - x, h - y));
+  const arms = 5 + Math.min(4, streak);
+  const turn = Math.random() * Math.PI * 2;
+
+  let paint = '';
+  for (let i = 0; i < arms; i++) {
+    // spread rather than scattered: an even fan, jittered, so nothing
+    // ever comes out as two cracks lying on top of each other
+    const a = turn + (i / arms) * Math.PI * 2 + (Math.random() - .5) * .7;
+    const pts = riftWalk(x, y, a, far * (.45 + Math.random() * .75));
+    const line = `M${pts.map(at).join('L')}`;
+    /* Three drawings of one crack. On a page this dark the black is
+       invisible against the paper it is on — what carries it is the
+       light coming through, so the black is the width of the gap and
+       the bright part is a hairline down the middle of it. The black
+       still does its work wherever the crack runs over something that
+       was drawn: it takes a bite out of it. */
+    paint += `<path class="rf-dark" d="${riftShape(pts, 10 + Math.random() * 8)}"/>` +
+             `<path class="rf-glow" d="${line}" pathLength="1" style="--i:${i}"/>` +
+             `<path class="rf-lit" d="${line}" pathLength="1" style="--i:${i}"/>`;
+  }
+
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'rift');
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  svg.setAttribute('aria-hidden', 'true');
+  /* the whole sheet of cracks races out of the point it was struck at,
+     which is one composited transform rather than a dash animation on
+     every arm — and it is what makes them arrive rather than appear */
+  svg.style.setProperty('--ox', `${Math.round(x)}px`);
+  svg.style.setProperty('--oy', `${Math.round(y)}px`);
+  svg.innerHTML = paint;
+  return svg;
 }
 
 function strikeAt(x, y, kind) {
@@ -353,11 +463,34 @@ function strikeAt(x, y, kind) {
 
   if (kind === 'flash') {
     const which = 1 + Math.floor(Math.random() * 2);
-    stamp.innerHTML = `<svg viewBox="0 0 400 400"><use href="#flash-${which}" /></svg>`;
+    /* every shard carries its own direction and reach, so the throw is
+       different each time without a second element having to exist */
+    let shards = '';
+    for (let i = 0; i < 14; i++) {
+      const a = (i / 14) * 360 + (Math.random() - .5) * 26;
+      shards += `<span class="shard" style="--a:${a.toFixed(0)}deg;` +
+        `--d:${(5 + Math.random() * 9).toFixed(1)}rem;` +
+        `--s:${(.4 + Math.random() * .9).toFixed(2)};` +
+        `--t:${(Math.random() * 90).toFixed(0)}ms"></span>`;
+    }
+    stamp.innerHTML =
+      `<span class="wave"></span><span class="wave wave-2"></span>` +
+      `<svg class="bolt" viewBox="0 0 400 400"><use href="#flash-${which}" /></svg>` +
+      shards;
+
+    const split = rift(x, y, streak);
+    strikes.append(split);
+    setTimeout(() => split.remove(), 1200);
   }
 
   strikes.append(stamp);
-  stamp.addEventListener('animationend', () => stamp.remove(), { once: true });
+  /* several animations end at different times inside this one node, so
+     the last one out takes it — not the first */
+  const done = () => {
+    if (!stamp.getAnimations({ subtree: true }).some(a => a.playState === 'running')) stamp.remove();
+  };
+  stamp.addEventListener('animationend', done);
+  setTimeout(() => stamp.remove(), 1400);
 }
 
 /* the ring that shows the window. it carries its own timing as custom
@@ -369,7 +502,7 @@ function openCharge(x, y, wind) {
   ring.style.left = `${x}px`;
   ring.style.top = `${y}px`;
   ring.style.setProperty('--wind', `${Math.round(wind)}ms`);
-  ring.style.setProperty('--open-at', `${Math.round(wind * WINDOW_AT)}ms`);
+  ring.style.setProperty('--open-at', `${Math.round(wind * opensAt())}ms`);
   ring.style.setProperty('--span', `${Math.round(wind * windowNow())}ms`);
   strikes.append(ring);
   return ring;
@@ -568,7 +701,7 @@ if (!stillPlease.matches) {
         const { x: hx, y: hy, wind: hw } = charge;
         strikeAt(hx, hy, 'hit');
         shutCharge(false);
-        missed('late', HOLD_LIMIT - hw * (WINDOW_AT + windowNow()));
+        missed('late', HOLD_LIMIT - hw * (WINDOW_AT + windowNow() / 2));
       }, HOLD_LIMIT)
     };
   }, { passive: true });
@@ -577,8 +710,8 @@ if (!stillPlease.matches) {
     if (!charge) return;
 
     const held = performance.now() - charge.at;
-    const open = charge.wind * WINDOW_AT;
     const span = charge.wind * windowNow();
+    const open = charge.wind * opensAt();
     const shut = open + span;
 
     /* A domain is a guaranteed hit inside the space it encloses. That is

@@ -2765,16 +2765,139 @@ svg.flag {
   to { opacity: 0; scale: 1.8; }
 }
 
+/* ══ 黒閃 ═══════════════════════════════════════════════════
+   A black flash is a distortion of space — that is what the word
+   describes, not a bolt laid over the picture. So the moment is four
+   drawings arriving together and leaving at four speeds: the space
+   splitting, the black shape, the rings leaving the point, and the
+   shards that get thrown. Nothing here is a screen filter. */
 .strike-flash {
-  width: clamp(11rem, 26vw, 17rem);
+  width: clamp(15rem, 40vw, 27rem);
   aspect-ratio: 1;
-  animation: flash .5s cubic-bezier(.15, .85, .3, 1) forwards;
 }
 
-.strike-flash svg {
+.strike-flash .bolt {
+  display: block;
   width: 100%;
   height: 100%;
   overflow: visible;
+  animation: flash .66s cubic-bezier(.15, .85, .3, 1) forwards;
+}
+
+/* ── the space, splitting ──────────────────────────────────── */
+/* Drawn on from the point of impact outwards in sixty milliseconds,
+   held while the bolt is at its brightest, and gone. pathLength makes
+   every crack one unit long however far it actually runs, so one dash
+   animation draws all of them at the same speed. */
+.rift {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  transform-origin: var(--ox, 50%) var(--oy, 50%);
+  animation: split .74s cubic-bezier(.05, .9, .25, 1) forwards;
+}
+
+/* out of the point it was struck at, not onto the page from nowhere */
+@keyframes split {
+  0% { scale: .1; opacity: 1; }
+  10% { scale: 1; opacity: 1; }
+  62% { opacity: 1; }
+  100% { scale: 1.03; opacity: 0; }
+}
+
+/* The width of the gap, tapering to nothing at the end of each crack —
+   a filled shape, because an even-width stroke stops dead in the middle
+   of the page with a round cap on it. Black, so wherever it runs over
+   something that was drawn it takes a bite out of it, which is the half
+   of this that reads as space coming apart rather than as a line. */
+.rf-dark {
+  fill: #000;
+  stroke: none;
+}
+
+/* what is coming through it. Thin — a wide even core reads as a tube of
+   light laid over the page rather than as a gap with something behind. */
+.rf-glow,
+.rf-lit {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: lit .34s cubic-bezier(.1, .9, .3, 1) forwards;
+  animation-delay: calc(var(--i, 0) * 8ms);
+}
+
+.rf-glow {
+  stroke: var(--blood-lit);
+  stroke-width: 4;
+  stroke-opacity: .55;
+}
+
+.rf-lit {
+  stroke: #fff;
+  stroke-width: 1.2;
+  stroke-opacity: .92;
+}
+
+@keyframes lit {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* ── the rings leaving the point ───────────────────────────── */
+.strike-flash .wave {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7rem;
+  height: 7rem;
+  translate: -50% -50%;
+  border-radius: 50%;
+  border: 5px solid #000;
+  animation: wave .52s cubic-bezier(.1, .85, .25, 1) forwards;
+}
+
+.strike-flash .wave-2 {
+  border-color: var(--blood);
+  border-width: 2px;
+  animation-duration: .74s;
+  animation-delay: .05s;
+}
+
+@keyframes wave {
+  from { scale: .12; opacity: 1; }
+  to { scale: 3.2; opacity: 0; }
+}
+
+/* ── the sparks, which are the part that blesses you ───────── */
+.strike-flash .shard {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: .85rem;
+  height: .85rem;
+  translate: -50% -50%;
+  background: #000;
+  box-shadow: 0 0 0 1px var(--blood);
+  clip-path: polygon(50% 0, 62% 44%, 100% 50%, 62% 58%, 50% 100%, 38% 58%, 0 50%, 38% 44%);
+  animation: shard .68s cubic-bezier(.12, .8, .3, 1) var(--t, 0ms) forwards;
+}
+
+@keyframes shard {
+  from {
+    opacity: 1;
+    scale: var(--s, .6);
+    transform: translate(0, 0);
+  }
+  to {
+    opacity: 0;
+    scale: calc(var(--s, .6) * .35);
+    transform: rotate(var(--a, 0deg)) translateX(var(--d, 7rem)) rotate(calc(var(--a, 0deg) * -1));
+  }
 }
 
 /* It is named for the black, so the hole carries the shape and the red
@@ -2814,27 +2937,46 @@ svg.flag {
 
 @keyframes flash {
   0% { opacity: 0; scale: .35; rotate: -8deg; }
-  18% { opacity: 1; scale: 1.08; }
+  14% { opacity: 1; scale: 1.08; }
   40% { scale: 1; }
+  /* held while the cracks are still open. It used to fall away from the
+     moment it arrived, which left the middle of the frame empty with the
+     split still standing round it. */
+  62% { opacity: 1; }
   100% { opacity: 0; scale: 1.14; rotate: 4deg; }
 }
 
-/* the room reacts for a moment */
+/* The room reacts. Not a red wash fading out — the light goes first and
+   comes back through red, which is the order it happens in: the space
+   gives out, and then what is left of the energy bleeds off it. */
 body.is-flashing::after {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 39;
   pointer-events: none;
-  background: var(--blood);
-  opacity: .12;
-  animation: room .42s ease-out forwards;
+  background: #000;
+  animation: room .62s cubic-bezier(.2, .8, .3, 1) forwards;
 }
 
+/* The black frame is two frames and no more. It has to be short because
+   the shape it is there to set up is itself black — hold the black and
+   the flash is a black drawing on a black page, which is nothing at all.
+   Red comes up underneath almost at once and the black reads against it. */
 @keyframes room {
-  from { opacity: .16; }
-  to { opacity: 0; }
+  0% { background: #000; opacity: .9; }
+  7% { background: #000; opacity: .62; }
+  15% { background: var(--blood); opacity: .5; }
+  40% { background: var(--blood); opacity: .34; }
+  100% { background: var(--blood); opacity: 0; }
 }
+
+/* The page itself used to take the hit as well — three frames, four
+   pixels of shake on the sheet. It is gone, and for a better reason than
+   taste: the sheet is what every link and every button on the page is
+   in, so shaking it moves what somebody is aiming at out from under
+   them for a third of a second. An impact is not worth a misclick, and
+   the split and the room already say it landed. */
 
 /* 領域展開 — five in a row and the field belongs to whoever is hitting.
 

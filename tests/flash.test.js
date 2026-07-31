@@ -274,6 +274,28 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
   await p.reload(); await p.waitForTimeout(700);
   const kept = await p.evaluate(() => document.getElementById('tally-best').textContent);
   check('best survives reload', kept === got, `streak ${got} → best ${kept}`);
+
+  /* ── and nothing survives the visit.
+     A record that outlives the browser being closed is a record somebody
+     has to live with: come back in a month and the first thing the page
+     says is a number you cannot remember setting. It is kept in session
+     storage, which is exactly the shelf that holds through a reload and
+     is gone with the tab — so a second tab has to start at nothing, and
+     that is the only way to tell the two shelves apart from out here. */
+  const later = await b.newPage({ viewport: { width: 900, height: 700 } });
+  await later.addInitScript(seen);
+  await later.goto(BASE + '/index.html');
+  await later.waitForTimeout(700);
+  const carried = await later.evaluate(() => ({
+    best: document.getElementById('score-best').textContent,
+    total: document.getElementById('score-total').textContent,
+    blessed: document.getElementById('score-adapt').textContent,
+    close: document.getElementById('score-close').textContent
+  }));
+  check('and nothing is carried into the next visit',
+    carried.best === '0' && carried.total === '0' && carried.blessed === '0 of 8' && carried.close === '—',
+    JSON.stringify(carried));
+  await later.close();
   await p.close();
 
   // ── the score panel, which is what is left over after a run
@@ -416,20 +438,22 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
   check('throwing it does not scroll the page', await p.evaluate(() => scrollY) === 0);
   await pad.close();
 
-  /* ── what the wheel learns, and what a domain is for ─────────────
+  /* ── what a landed one is worth, and what a domain is for ────────
      The three drawings on this page that carry the game are one system
-     now, and none of it is visible in a screenshot: the wheel learns
-     from every landed flash and never unlearns, the window narrows
-     because of that rather than because of the run, and five in a row
-     opens a domain in which a release lands whatever the timing was.
+     now, and none of it is visible in a screenshot: every landed flash
+     leaves a spark, the window opens because of that rather than
+     because of the run in front of you, and five in a row opens a
+     domain in which a release lands whatever the timing was.
 
      Landing five by hand is unreliable under load, so the run is set to
      four and only the fifth is landed for real. Everything after that is
      the rule under test. */
   const own = await b.newContext({ viewport: { width: 1200, height: 800 } });
   const q = await own.newPage();
+  /* the record lives in session storage, so the clear has to happen
+     before the barrier is marked as seen — the barrier lives there too */
+  await q.addInitScript(() => { try { sessionStorage.clear(); } catch { /* fine */ } });
   await q.addInitScript(seen);
-  await q.addInitScript(() => { try { localStorage.clear(); } catch { /* fine */ } });
   q.on('pageerror', e => fails.push('game pageerror: ' + e.message));
   await q.goto(BASE + '/index.html');
   await q.waitForTimeout(900);
@@ -453,16 +477,22 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
   }), ground);
 
   const cold = await reading();
-  check('the wheel starts having learned nothing', cold.adapt === '0 of 8', cold.adapt);
+  check('nothing has blessed it yet', cold.adapt === '0 of 8', cold.adapt);
+
+  const msOf = s => Number(String(s).match(/^(\d+)/)?.[1] || 0);
 
   await land(q, ground);
   await q.waitForTimeout(220);
   const one = await reading();
-  check('a landed flash teaches the wheel', one.learned === '1', JSON.stringify(one));
-  check('and that is what narrows the window', one.window !== cold.window, `${cold.window} → ${one.window}`);
+  check('a landed flash leaves a spark', one.learned === '1', JSON.stringify(one));
+  /* and it opens the window rather than closing it. In the source,
+     somebody who has landed one is blessed by the sparks and the next
+     come easier — it used to work the other way round here. */
+  check('and that is what opens the window', msOf(one.window) > msOf(cold.window),
+    `${cold.window} → ${one.window}`);
   check('and a landed flash says how close it was, not just that it landed',
     /ms|dead on/.test(one.last), one.last);
-  check('and the closest ever is kept', /ms/.test(one.close), one.close);
+  check('and the closest yet is kept', /ms/.test(one.close), one.close);
 
   await wild();
   await q.waitForTimeout(220);
