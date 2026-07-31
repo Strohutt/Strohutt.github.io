@@ -132,6 +132,154 @@ body {
   mix-blend-mode: overlay;
 }
 
+/* ── 領域展開 ───────────────────────────────────────────────── */
+
+/* A barrier closes around whoever is standing there, and what is inside
+   belongs to whoever cast it. So: a ring that shuts, information pouring
+   inward, four characters struck one after another, and then nothing but
+   white before the page is underneath it.
+
+   Unlimited Void is blue on television. Blue here would be the one thing
+   on this page wearing somebody else's palette, so it is ink, paper and
+   the one red — the same three as everything else.
+
+   It is display:none by default and only exists once javascript has said
+   so. A curtain that a browser without javascript cannot lift is a
+   curtain that never lifts. */
+.curtain {
+  display: none;
+}
+
+[data-js] .curtain {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  overflow: hidden;
+  background: var(--ink);
+  animation: curtain 1.75s cubic-bezier(.3, .1, .2, 1) forwards;
+}
+
+/* Nothing under it is reachable while it is up, and the moment it is
+   done it stops existing rather than sitting there invisible and
+   swallowing clicks. */
+[data-js] .curtain.is-done {
+  display: none;
+}
+
+@keyframes curtain {
+  0%, 84% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+.curtain svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* The boundary, coming toward you and then holding. Thrown past the edge
+   of the screen it is over inside four hundred milliseconds and the rest
+   of the sequence has nothing framing it; stopping just wide of the
+   corners leaves you standing inside something. */
+.curtain-ring {
+  animation: shut 1.02s cubic-bezier(.16, .86, .3, 1) both;
+}
+
+@keyframes shut {
+  0% { transform: scale(.05) rotate(-14deg); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: scale(1.32) rotate(0deg); opacity: .92; }
+}
+
+.dm-rim {
+  fill: none;
+  stroke: var(--paper);
+  stroke-width: 3.4;
+  stroke-linejoin: round;
+}
+
+.dm-thin {
+  stroke-width: 1.6;
+  stroke-opacity: .5;
+}
+
+.dm-seam {
+  fill: none;
+  stroke: var(--paper);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+/* more than a mind can take, which here is what the speed lines already
+   do, turned to point inward */
+.curtain-influx {
+  animation: influx 1.25s cubic-bezier(.2, .7, .2, 1) both;
+}
+
+@keyframes influx {
+  0% { transform: scale(2.1) rotate(-7deg); opacity: 0; }
+  26% { opacity: .85; }
+  100% { transform: scale(.5) rotate(5deg); opacity: 0; }
+}
+
+.dm-line {
+  fill: var(--paper);
+}
+
+/* struck one after another, the way the characters go up on a title card */
+.curtain-say {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(.2rem, 1.4vw, .9rem);
+}
+
+.curtain-say span {
+  display: block;
+  width: clamp(3.2rem, 12vw, 8rem);
+  animation: strike-in .42s cubic-bezier(.2, .9, .2, 1) calc(.42s + var(--n) * .085s) both;
+}
+
+.curtain-say svg {
+  position: static;
+  width: 100%;
+  height: auto;
+  fill: var(--paper);
+}
+
+/* the third one lands in red, because on this page exactly one mark does */
+.curtain-say span:nth-child(3) svg {
+  fill: var(--blood);
+}
+
+@keyframes strike-in {
+  0% { opacity: 0; transform: translateY(.22em) scale(1.35); filter: blur(6px); }
+  100% { opacity: 1; transform: none; filter: blur(0); }
+}
+
+/* And then nothing. One rise and one fall rather than a switch — a hard
+   cut to white and back is a strobe, and this is somebody's homepage. */
+.curtain-void {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: var(--paper);
+  opacity: 0;
+  animation: void-out .82s ease-in-out .93s both;
+}
+
+@keyframes void-out {
+  0% { opacity: 0; }
+  46% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 /* ── the layer that never stops ─────────────────────────────── */
 
 /* Everything else on the page moves because it was clicked, or on a cycle

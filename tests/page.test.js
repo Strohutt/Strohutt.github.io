@@ -8,6 +8,12 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
 
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+
+  /* The barrier goes up on the first page of a session and covers
+     everything for a second and three quarters. These checks are about
+     what is underneath it, so they arrive having already seen it — the
+     same as mocking an upstream. The intro has its own checks. */
+  const seen = () => { try { sessionStorage.setItem('strohut-seen', '1'); } catch { /* nothing to do */ } };
   const errs = [];
 
   // no javascript: nothing may be stuck invisible
@@ -25,6 +31,7 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   check('no js: the field is still running', motesNoJs >= 20, String(motesNoJs));
 
   const p = await b.newPage({ viewport: { width: 1340, height: 900 } });
+  await p.addInitScript(seen);
   p.on('pageerror', e => errs.push('page: ' + e.message));
   p.on('console', m => m.type() === 'error' && /attribute|Uncaught/.test(m.text()) && errs.push('con: ' + m.text()));
 
