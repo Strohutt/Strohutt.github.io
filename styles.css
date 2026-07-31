@@ -2553,23 +2553,43 @@ body.is-flashing::after {
   to { opacity: 0; }
 }
 
-/* 領域展開 — five in a row and the field belongs to whoever is hitting */
-body.is-domain::before {
-  content: "";
+/* 領域展開 — five in a row and the field belongs to whoever is hitting.
+
+   This used to be a hatch of red gradient lines, which is a screen effect
+   and not a drawing; the page already has its screentone and it is a dot
+   grid. What opens instead is the same information pouring in that
+   無量空処 opens the page with, in red rather than paper.
+
+   The colour is set by moving --paper. Custom properties are the only
+   thing besides inheritance that crosses a <use> shadow boundary, so a
+   descendant selector could never reach these strokes — but the value
+   they are already asking for can be answered differently here. */
+.domain {
+  --paper: var(--blood-lit);
   position: fixed;
   inset: 0;
   z-index: 38;
+  display: none;
   pointer-events: none;
-  background:
-    repeating-linear-gradient(115deg, rgba(224, 27, 46, .22) 0 2px, transparent 2px 9px),
-    radial-gradient(circle at 50% 50%, transparent 30%, rgba(224, 27, 46, .3) 100%);
-  animation: domain 1.1s ease-out forwards;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 50%, transparent 34%, rgba(224, 27, 46, .26) 100%);
+}
+
+.domain svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+body.is-domain .domain {
+  display: block;
+  animation: domain 1.15s ease-out forwards;
 }
 
 @keyframes domain {
-  0% { opacity: 0; scale: 1.25; }
-  18% { opacity: 1; scale: 1; }
-  100% { opacity: 0; scale: 1.03; }
+  0% { opacity: 0; scale: 1.3; }
+  16% { opacity: 1; scale: 1; }
+  100% { opacity: 0; scale: 1.04; }
 }
 
 body.is-domain .wheel {

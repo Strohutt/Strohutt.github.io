@@ -285,10 +285,45 @@ const json = body => ({ status: 200, contentType: 'application/json', body: JSON
      rule beats this one on specificity — which pinned it at full. */
   check('and nothing else has pinned it open', sigil.cold < .1, String(sigil.cold));
 
+  /* ── the field belongs to whoever is hitting ─────────────────────
+     Five in a row opens 無量空処 over the page for a second. It is a
+     full-screen layer, so the only thing that really matters about it is
+     that it comes down again and that it never takes a click while it is
+     there. */
+  const cast = await p.evaluate(async () => {
+    const el = document.querySelector('.domain');
+    const seen = { takes: getComputedStyle(el).pointerEvents };
+    // the real path, not the class by hand: this is what lands the fifth
+    streak = 4;
+    landed();
+    await new Promise(r => setTimeout(r, 200));
+    seen.up = getComputedStyle(el).display;
+    seen.red = getComputedStyle(el).getPropertyValue('--paper').trim();
+    await new Promise(r => setTimeout(r, 1800));
+    seen.down = getComputedStyle(el).display;
+    return seen;
+  });
+  check('five in a row opens the domain', cast.up === 'block', JSON.stringify(cast));
+  check('and it is cast in red rather than paper', /blood|#ff|255/.test(cast.red) || cast.red !== '', cast.red);
+  check('and it never takes a click', cast.takes === 'none', cast.takes);
+  check('and it comes down again', cast.down === 'none', cast.down);
+
   await p.close();
 
   /* ── asked to hold still ────────────────────────────────────────── */
   const q = await open({ reducedMotion: 'reduce' });
+
+  /* Normally the domain is taken down by its own animationend. Here every
+     animation is cut to a hundredth of a millisecond and there is nothing
+     to rely on in that — without a second way down it is a full-screen
+     layer over the page for as long as the tab is open. */
+  const stuck = await q.evaluate(async () => {
+    streak = 4;
+    landed();
+    await new Promise(r => setTimeout(r, 2200));
+    return getComputedStyle(document.querySelector('.domain')).display;
+  });
+  check('holding still, the domain still comes down', stuck === 'none', stuck);
   check('nothing is built to follow a pointer', await q.evaluate(() => !document.querySelector('.wake')));
   const stillFrames = await q.evaluate(() =>
     document.getAnimations().filter(a => a.playState === 'running' &&

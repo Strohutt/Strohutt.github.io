@@ -427,8 +427,18 @@ function landed() {
     document.body.classList.remove('is-domain');
     void document.body.offsetWidth;
     document.body.classList.add('is-domain');
+
+    /* It is normally taken down by its own animationend. On a machine
+       asked to hold still every animation is cut to a hundredth of a
+       millisecond, and there is nothing to rely on in that — leave it and
+       what is left is a full-screen layer over the page for as long as
+       the tab is open. */
+    clearTimeout(domainTimer);
+    domainTimer = setTimeout(() => document.body.classList.remove('is-domain'), 1500);
   }
 }
+
+let domainTimer = 0;
 
 if (!stillPlease.matches) {
   addEventListener('pointerdown', event => {
