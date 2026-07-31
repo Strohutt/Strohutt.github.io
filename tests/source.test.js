@@ -34,6 +34,21 @@ for (const [name, src] of [['index', html], ['404', lost]]) {
   check(`${name}: no symbol is unused`, !dead.length, dead.join(','));
 }
 
+/* A shape that exists only to be <use>d has to sit in <defs>. Left loose
+   in a symbol it renders itself as well, at its own coordinates — which
+   for a template are usually nowhere near the viewBox. It stays invisible
+   for exactly as long as the drawing is small. */
+for (const [name, src] of [['index', html], ['404', lost]]) {
+  const used = new Set([...src.matchAll(/href="#([^"]+)"/g)].map(m => m[1]));
+  const loose = [...used].filter(id => {
+    const at = src.indexOf(`<path id="${id}"`);
+    if (at < 0) return false;                      // a symbol, not a template
+    const before = src.slice(0, at);
+    return before.lastIndexOf('<defs>') <= before.lastIndexOf('</defs>');
+  });
+  check(`${name}: every <use> template sits in defs`, !loose.length, loose.join(','));
+}
+
 // ── features with a floor worth keeping
 check('no :has() outside comments',
   !css.split('\n').filter(l => !l.trim().startsWith('/*') && !l.trim().startsWith('*')).join('\n').includes(':has('));

@@ -19,14 +19,23 @@ const wheel = document.querySelector('.wheel');
    it is inside the window and it lands. The window opens late and stays
    open briefly, so early is a miss and so is waiting.
 
-   Landing one widens the next window a little, which is the one thing
-   the dice version had right: people who land one tend to land another. */
+   Two things were wrong with the first pass at it.
 
-const WIND_UP = 620;        // ms for the ring to close
+   The wind-up was a fixed 620ms, so after five attempts you were not
+   reacting to anything — you were counting, and the ring was decoration.
+   It is a different length every time now, drawn fresh per attempt, and
+   the ring is the only thing that tells you where you are.
+
+   And landing one used to widen the next window, which meant a run got
+   easier the longer it went and topped out at trivial. It narrows now.
+   A run has somewhere to go and somewhere to end. */
+
+const WIND_MIN = 520;       // ms for the ring to close — drawn per attempt,
+const WIND_MAX = 820;       // so there is nothing to memorise
 const WINDOW_AT = 0.80;     // where in the wind-up the window opens
-const WINDOW_BASE = 0.13;   // how much of the wind-up it stays open
-const WINDOW_STEP = 0.022;  // widened per landed flash
-const WINDOW_CAP = 0.26;
+const WINDOW_BASE = 0.15;   // how much of the wind-up it stays open
+const WINDOW_STEP = 0.014;  // taken off it per landed flash
+const WINDOW_FLOOR = 0.06;  // and it never gets tighter than this
 const HOLD_LIMIT = 2200;    // holding past this is a miss, not a pause
 const DOMAIN_AT = 5;
 
@@ -79,7 +88,8 @@ const score = {
   best: document.getElementById('score-best'),
   total: document.getElementById('score-total'),
   adapt: document.getElementById('score-adapt'),
-  last: document.getElementById('score-last')
+  last: document.getElementById('score-last'),
+  window: document.getElementById('score-window')
 };
 
 function post(cell, value, bump) {
@@ -95,6 +105,17 @@ function tell(bump) {
   post(score.best, best, bump);
   post(score.total, total, bump);
   post(score.adapt, turns, bump);
+  said();
+}
+
+/* How long the window is open for, right now. It is a fraction of the
+   wind-up and the wind-up is drawn fresh each time, so the honest answer
+   is a range rather than a number. Watching it close is the only way the
+   run getting harder is visible anywhere but in the ring itself. */
+function said() {
+  if (!score.window) return;
+  const w = windowNow();
+  score.window.textContent = `${Math.round(WIND_MIN * w)}–${Math.round(WIND_MAX * w)} ms`;
 }
 
 tell(false);
@@ -136,7 +157,13 @@ function mark(hit) {
 const OFF_LIMITS = 'a, button, input, iframe, .tally';
 
 function windowNow() {
-  return Math.min(WINDOW_CAP, WINDOW_BASE + streak * WINDOW_STEP);
+  return Math.max(WINDOW_FLOOR, WINDOW_BASE - streak * WINDOW_STEP);
+}
+
+// a fresh wind-up per attempt is the whole reason the ring has to be
+// watched rather than counted through
+function windUp() {
+  return WIND_MIN + Math.random() * (WIND_MAX - WIND_MIN);
 }
 
 function strikeAt(x, y, kind) {
@@ -157,15 +184,15 @@ function strikeAt(x, y, kind) {
 
 /* the ring that shows the window. it carries its own timing as custom
    properties so css runs the animation and js never touches a frame. */
-function openCharge(x, y) {
+function openCharge(x, y, wind) {
   if (!strikes) return null;
   const ring = document.createElement('div');
   ring.className = 'charge';
   ring.style.left = `${x}px`;
   ring.style.top = `${y}px`;
-  ring.style.setProperty('--wind', `${WIND_UP}ms`);
-  ring.style.setProperty('--open-at', `${Math.round(WIND_UP * WINDOW_AT)}ms`);
-  ring.style.setProperty('--span', `${Math.round(WIND_UP * windowNow())}ms`);
+  ring.style.setProperty('--wind', `${Math.round(wind)}ms`);
+  ring.style.setProperty('--open-at', `${Math.round(wind * WINDOW_AT)}ms`);
+  ring.style.setProperty('--span', `${Math.round(wind * windowNow())}ms`);
   strikes.append(ring);
   return ring;
 }
@@ -268,20 +295,25 @@ if (!stillPlease.matches) {
     if (event.target.closest(OFF_LIMITS)) return;
 
     const at = performance.now();
-    const ring = openCharge(event.clientX, event.clientY);
+    const wind = windUp();
+    const ring = openCharge(event.clientX, event.clientY, wind);
     document.body.classList.add('is-charging');
 
     charge = {
       ring,
       at,
+      wind,
       x: event.clientX,
       y: event.clientY,
       // holding forever is not a pause, it is a miss
       timer: setTimeout(() => {
         if (!charge) return;
-        strikeAt(charge.x, charge.y, 'hit');
+        // shutCharge clears the charge, so anything still needed off it
+        // has to come off it first
+        const { x: hx, y: hy, wind: hw } = charge;
+        strikeAt(hx, hy, 'hit');
         shutCharge(false);
-        missed('late', HOLD_LIMIT - WIND_UP * (WINDOW_AT + windowNow()));
+        missed('late', HOLD_LIMIT - hw * (WINDOW_AT + windowNow()));
       }, HOLD_LIMIT)
     };
   }, { passive: true });
@@ -290,8 +322,8 @@ if (!stillPlease.matches) {
     if (!charge) return;
 
     const held = performance.now() - charge.at;
-    const open = WIND_UP * WINDOW_AT;
-    const shut = WIND_UP * (WINDOW_AT + windowNow());
+    const open = charge.wind * WINDOW_AT;
+    const shut = charge.wind * (WINDOW_AT + windowNow());
     const inside = held >= open && held <= shut;
 
     // the pointer may have travelled since it went down
