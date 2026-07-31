@@ -232,6 +232,30 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   check('there is exactly one h1', a11y.headings.filter(h => h === 'H1').length === 1, a11y.headings.join(','));
   check('the split name still names itself', /strohut/i.test(a11y.nameSaid || ''), a11y.nameSaid);
 
+  /* Every rule on the page is a drawn line carried as a data uri. A url
+     that does not parse is not an error anywhere — the background simply
+     does not paint, and what is left is a page with no rules on it at
+     all. Twice while this was being written: once the hash was escaped
+     twice, once the data: scheme was missing. Both looked identical to
+     working, which was nothing. So it is loaded and measured. */
+  const inked = await p.evaluate(() => {
+    const read = name => getComputedStyle(document.documentElement)
+      .getPropertyValue(name).trim().replace(/^url\(["']?|["']?\)$/g, '');
+    const load = src => new Promise(done => {
+      const im = new Image();
+      im.onload = () => done(im.naturalWidth > 0 && im.naturalHeight > 0);
+      im.onerror = () => done(false);
+      im.src = src;
+    });
+    return Promise.all(['--ruled', '--ruled-mark'].map(n => load(read(n))));
+  });
+  check('the drawn rules are real images', inked.every(Boolean), JSON.stringify(inked));
+
+  // and they are what the rules on the page are actually made of
+  const uses = await p.evaluate(() => [...document.querySelectorAll('.head, .doing li, .like-list li, .score-list li, .foot')]
+    .filter(el => !/data:image/.test(getComputedStyle(el).backgroundImage)).length);
+  check('and every rule is drawn rather than ruled', uses === 0, String(uses));
+
   check('no errors on the console', !errs.length, errs.join(' | '));
 
   console.log(fails.length ? `\n${fails.length} FAILING: ${fails.join(' | ')}` : '\npage checks pass');
