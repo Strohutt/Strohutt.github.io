@@ -47,6 +47,38 @@
   box-sizing: border-box;
 }
 
+/* Off screen until it is tabbed to. The sprite and the whole header sit
+   before the content, which is a long way to tab past. */
+.skip {
+  position: absolute;
+  top: .6rem;
+  left: .6rem;
+  z-index: 60;
+  padding: .7rem 1rem;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--paper);
+  text-decoration: none;
+  translate: 0 -180%;
+  transition: translate .18s ease;
+}
+
+.skip:focus-visible {
+  translate: 0 0;
+}
+
+/* Only while a charge is being held. Holding for half a second is exactly
+   what raises the selection callout on iOS, and that lands on top of the
+   thing being aimed at. Selection works normally the rest of the time,
+   because copying a song title is a reasonable thing to want. */
+body.is-charging,
+body.is-charging * {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
 ::selection {
   background: var(--blood);
   color: var(--paper);
@@ -76,6 +108,9 @@ html {
 
 body {
   margin: 0;
+  /* kills the double-tap zoom and the tap delay without taking scrolling
+     away, which a finger still needs */
+  touch-action: manipulation;
   background: var(--ink);
   color: var(--paper);
   font-family: "Zen Kaku Gothic New", ui-sans-serif, system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif;
@@ -96,6 +131,85 @@ body {
   background-size: 4px 4px;
   mix-blend-mode: overlay;
 }
+
+/* ── the layer that never stops ─────────────────────────────── */
+
+/* Everything else on the page moves because it was clicked, or on a cycle
+   slow enough that you have to be told it is moving. This is the one thing
+   that is always going: cursed energy coming off the page as ragged smoke,
+   with pieces tearing off it on the way up.
+
+   Fixed rather than in the flow, so it keeps going while you scroll and is
+   not a strip that has to be scrolled past. Every mote carries its own
+   lane, size and timing in the markup, and every delay is negative, so the
+   field is already mid-flight on the first frame. */
+.field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  contain: layout paint style;
+}
+
+.mote {
+  position: absolute;
+  left: var(--x);
+  bottom: -34vh;
+  display: block;
+  width: var(--w);
+  animation: rise var(--dur) linear var(--delay) infinite;
+}
+
+/* the rise is on the box and the sway is on the drawing, so the two can
+   run at unrelated periods — one transform could only carry both if they
+   shared a duration, and then every mote wanders in step */
+.mote svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  opacity: var(--fade);
+  animation: sway calc(var(--dur) / 3) ease-in-out var(--delay) infinite alternate;
+}
+
+@keyframes rise {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  14% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translate3d(0, -168vh, 0); opacity: 0; }
+}
+
+@keyframes sway {
+  from { transform: translateX(calc(var(--sway) * -.5)) rotate(calc(var(--spin, 0deg) * -.2)); }
+  to { transform: translateX(calc(var(--sway) * .5)) rotate(var(--spin, 0deg)); }
+}
+
+/* Blown up to a third of the screen, a drawn edge stops reading as smoke
+   and starts reading as a stain on the page. Blurred, and with both ends
+   taken off by the mask, what is left is a shape with no border — which
+   is the only way a silhouette this large can sit behind text. */
+.mote-wisp svg {
+  filter: blur(9px);
+  mask-image: linear-gradient(to top, transparent, #000 22%, #000 62%, transparent);
+}
+
+/* the smoke is paper at a few percent; the flecks are what you actually
+   catch out of the corner of your eye, and some of them are lit */
+.cw-body {
+  fill: var(--paper);
+  stroke: none;
+}
+
+.cw-vein {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 3.4;
+  stroke-linecap: round;
+}
+
+/* fill is inherited, and inheritance is the only thing that crosses a
+   <use> shadow boundary — the flecks carry no class of their own */
+.mote-fleck svg { fill: var(--paper); }
+.mote-fleck.is-hot svg { fill: var(--blood); }
 
 .sprite {
   position: absolute;
@@ -120,12 +234,6 @@ a {
   color: inherit;
 }
 
-/* Vertical japanese down a panel edge. Stacked as separate elements
-   rather than writing-mode, because that needs vertical metrics the
-   fallback font may not have — and without them every glyph lands on
-   top of the last one. */
-
-
 /* ── the spread ─────────────────────────────────────────────── */
 
 /* The wheel runs past the right margin on purpose. Clipping on the grid
@@ -135,7 +243,8 @@ a {
 .sheet {
   position: relative;
   z-index: 1;
-  overflow-x: clip;
+  overflow-x: hidden;    /* the floor */
+  overflow-x: clip;      /* better where it exists: makes no scroll container */
 }
 
 .spread {
@@ -162,8 +271,15 @@ a {
 .now { grid-column: 1 / 7; align-content: start; }
 .music { grid-column: 7 / -1; align-content: start; }
 
+.work { grid-column: 1 / -1; }
+.score { grid-column: 1 / 7; align-content: start; }
+
+/* The list of pushes is the one region that can vanish — github hands out
+   sixty unauthenticated calls an hour to a whole address, so a busy
+   network can leave it empty. It shares the row with the score, which is
+   always there, so its absence leaves a margin rather than a hole. */
 .pushes {
-  grid-column: 1 / -1;
+  grid-column: 7 / -1;
 }
 
 .foot {
@@ -193,46 +309,101 @@ a {
   pointer-events: none;
 }
 
+/* the layers behind never sit still, and they move at different rates,
+   so the header has depth without anything obviously animating */
+.sp {
+  animation: rush 19s ease-in-out infinite alternate;
+  transform-origin: 100% 40%;
+}
+
+@keyframes rush {
+  from { transform: translate3d(-1.4%, 0, 0) scaleX(1); opacity: .75; }
+  to { transform: translate3d(1.8%, -.6%, 0) scaleX(1.05); opacity: 1; }
+}
+
 .sp path {
   fill: var(--paper);
 }
 
 /* The wheel is cropped by the panel edge. That is what a panel is for —
    it is not a sticker placed inside the frame. */
-.sigil {
+/* The drawing. Not a control — its box is enormous and reaches down over
+   the cloud, so anything aiming at the wheel's middle hit the cloud
+   instead. It bleeds off the page and takes no clicks. */
+.wheel {
   position: absolute;
   top: 44%;
   right: -15%;
   width: min(36rem, 50%);
   aspect-ratio: 1;
+  /* translate and rotate are their own properties, so the offset that
+     centres it and the roll that comes from scrolling do not have to
+     share one transform and fight over it */
   translate: 0 -50%;
+  rotate: var(--roll, 0deg);
   pointer-events: none;
   opacity: .55;
 }
 
+/* The control: a defined circle over the hub, where the wheel actually
+   looks like something you would press. */
+.sigil {
+  position: absolute;
+  top: 44%;
+  right: calc(-15% + min(36rem, 50%) * .5 - 5.5rem);
+  width: 11rem;
+  height: 11rem;
+  translate: 0 -50%;
+  border-radius: 50%;
+  cursor: grab;
+  /* the browser keeps vertical scrolling, we take the rest — taking the
+     lot would make an eleven-rem circle a dead spot on a phone */
+  touch-action: pan-y;
+}
+
+.sigil:active {
+  cursor: grabbing;
+}
+
 .wheel {
-  width: 100%;
-  height: 100%;
   --adapt: 0;
 }
 
 /* Adaptation lands, it does not ease. steps() makes it click round
-   instead of sweeping. */
+   instead of sweeping.
+
+   --drag is the free rotation while the wheel is being thrown. It has to
+   appear in the keyframes as well as the base transform, or the animation
+   simply overwrites it and the wheel refuses to be moved. */
 .wheel-turn {
   transform-origin: 200px 200px;
-  transform: rotate(calc(var(--adapt) * 45deg));
-  animation: turn 288s steps(24, end) infinite;
+  transform: rotate(calc(var(--adapt) * 45deg + var(--drag, 0deg)));
+  animation: turn 96s steps(24, end) infinite;
 }
 
 @keyframes turn {
-  to { transform: rotate(calc(var(--adapt) * 45deg + 360deg)); }
+  from { transform: rotate(calc(var(--adapt) * 45deg + var(--drag, 0deg))); }
+  to { transform: rotate(calc(var(--adapt) * 45deg + var(--drag, 0deg) + 360deg)); }
 }
 
-/* ink fill, not none — the spokes have to be occluded by the rim */
-.mg-body {
-  fill: var(--ink);
+/* while it is in hand, it goes where it is put and nowhere else */
+.wheel.is-spinning .wheel-turn {
+  animation-play-state: paused;
+}
+
+/* ink fill, not none — the spokes have to be occluded by the rim.
+   stroke and stroke-width are inherited, and inheritance is the only
+   thing that crosses a <use> shadow boundary, so they are set on the svg
+   and the animation can reach the paths. */
+.wheel {
   stroke: var(--paper);
   stroke-width: 2.4;
+}
+
+.mg-body {
+  fill: var(--ink);
+  stroke: inherit;
+  stroke-width: inherit;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
@@ -243,10 +414,31 @@ a {
 }
 
 /* each adaptation burns a little hotter */
-.hero.is-adapted .mg-body { stroke: var(--blood); }
+.hero.is-adapted .wheel { stroke: var(--blood); }
 
 /* Sized to its own content. Left as a full-width block it lies across the
    wheel, and every click meant for the wheel lands on the text instead. */
+/* the pointer nudges the layers behind; the amounts come from js */
+.hero {
+  --lean-x: 0;
+  --lean-y: 0;
+}
+
+.speed {
+  will-change: transform;
+}
+
+/* The wheel moves by turning, which leaves its hub — and therefore the
+   control sitting on it — exactly where it was. Drifting the drawing
+   sideways either drags the control with it, in which case it cannot be
+   aimed at, or leaves it behind, in which case the drawing lies about
+   where to press. */
+
+.speed {
+  transform: translate3d(calc(var(--lean-x) * 14px), calc(var(--lean-y) * 9px), 0);
+  transition: transform 1.1s cubic-bezier(.2, .8, .2, 1);
+}
+
 .hero-text {
   position: relative;
   z-index: 2;
@@ -268,6 +460,10 @@ a {
   fill: var(--blood);
 }
 
+[data-js] .brush {
+  animation: pull .8s .25s cubic-bezier(.2, .9, .2, 1) backwards;
+}
+
 .bs-skip {
   stroke: var(--ink-2);
   stroke-linecap: round;
@@ -281,6 +477,27 @@ a {
   letter-spacing: .02em;
   margin: 0 0 .5rem;
   text-shadow: 0 0 26px var(--ink), 0 0 12px var(--ink);
+}
+
+/* Each letter breathes on its own clock. Set as one animation on the word
+   it is a logo sliding up and down; staggered by --n it is ink that has
+   not quite settled, which is the difference between a header that moves
+   and a header that is animated. */
+.name i {
+  display: inline-block;
+  font-style: normal;
+  animation: settle 5.2s ease-in-out calc(var(--n) * -.62s) infinite alternate;
+}
+
+@keyframes settle {
+  from { transform: translateY(.018em) rotate(-.5deg); }
+  to { transform: translateY(-.018em) rotate(.5deg); }
+}
+
+/* reaching for it wakes the whole word up */
+.name button:hover i,
+.name button:focus-visible i {
+  animation-duration: 1.5s;
 }
 
 .who {
@@ -376,6 +593,37 @@ a {
   margin-block: clamp(-1rem, -2vw, -.4rem);
 }
 
+/* the drawing drifts; the button holding it does not, or it cannot be
+   aimed at — same reason the wheel only turns.
+
+   31 seconds and two percent was a cycle you had to be told about. The
+   travel is now wide enough to read as a cloud crossing rather than a
+   drawing that has been nudged. */
+.band svg,
+svg.band {
+  --drift: 0px;
+  animation: adrift 22s ease-in-out infinite alternate;
+}
+
+@keyframes adrift {
+  from { transform: translate3d(-6%, calc(.7rem + var(--drift)), 0) scale(.985); }
+  to { transform: translate3d(6%, calc(-.7rem + var(--drift)), 0) scale(1.015); }
+}
+
+/* The second one runs the other way at a different period, so the two are
+   never in step and the page never has a moment where everything is
+   holding still at once. */
+.band-2 {
+  width: min(100%, 54rem);
+  opacity: .8;
+}
+
+.band-2 svg {
+  animation-duration: 29s;
+  animation-direction: alternate-reverse;
+  scale: -1 1;
+}
+
 .cb-body {
   fill: var(--ink);
   stroke: var(--paper);
@@ -421,10 +669,6 @@ a {
   font-size: clamp(1.4rem, 3.4vw, 2rem);
 }
 
-.head .vert {
-  flex: none;
-}
-
 /* ══ 現在 — the live readout ════════════════════════════════ */
 
 /* While the socket is still on its way the panel is showing placeholder
@@ -443,16 +687,42 @@ a {
   color: var(--paper-3);
 }
 
+/* which machine he is at */
+.dc-where {
+  margin: .2rem 0 0;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--paper-3);
+}
+
+.dc-where[hidden] {
+  display: none;
+}
+
 @keyframes breathe {
   0%, 100% { opacity: 1; }
   50% { opacity: .45; }
 }
 
+/* The mark belongs beside the name, not halfway down the block. Centred,
+   it drifted lower every time the readout grew a line — and it grew two
+   when the device and the game's own lines went in. */
 .presence {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
+  align-items: start;
   gap: .8rem;
+}
+
+.presence .dot {
+  /* sits on the cap height of the name rather than the top of its box */
+  margin-top: .42rem;
+}
+
+.portrait {
+  align-self: center;
 }
 
 .presence-who {
@@ -470,6 +740,20 @@ a {
 .dot.is-idle { background: var(--paper-2); }
 .dot.is-dnd { background: var(--blood); opacity: .55; }
 .dot.is-offline { background: var(--paper-3); }
+
+/* only while he is actually there. a light that beats whatever the answer
+   is has stopped being an indicator */
+.dot.is-online {
+  animation: beat 2.6s ease-in-out infinite;
+}
+
+@keyframes beat {
+  0%, 100% { transform: scale(1); }
+  12% { transform: scale(1.5); }
+  24% { transform: scale(1); }
+  36% { transform: scale(1.28); }
+  48% { transform: scale(1); }
+}
 
 .dc-name {
   font-size: 1.22rem;
@@ -497,15 +781,29 @@ a {
   box-shadow: 0 0 0 var(--rule) var(--paper);
 }
 
+/* Discord's avatar frames are their own image, meant to sit over the
+   picture and overhang it — so it takes no space in the grid and carries
+   no outline of its own. */
+.portrait-frame {
+  position: absolute;
+  inset: -14%;
+  width: 128%;
+  height: 128%;
+  object-fit: contain;
+  box-shadow: none;
+  pointer-events: none;
+}
+
 .portrait img[hidden] {
   display: none;
 }
 
-.portrait:has(img[hidden]) {
+/* set from js rather than with :has(), which is a 2023 selector and this
+   is the difference between a portrait and an empty box */
+.portrait.is-empty {
   display: none;
 }
 
-/* only reached where :has() is not supported */
 .portrait-void {
   position: absolute;
   inset: 30%;
@@ -581,9 +879,28 @@ a {
   clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
 }
 
+/* what kind of activity it is — discord distinguishes playing, streaming,
+   watching and competing, and the row used to flatten all four to a name */
+.doing-what {
+  margin: 0 0 .1rem;
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--paper-3);
+}
+
 .doing-name {
   margin: 0;
   font-weight: 700;
+}
+
+/* the two lines the game itself is reporting */
+.doing-line {
+  margin: .12rem 0 0;
+  font-size: .84rem;
+  color: var(--paper-2);
+  overflow-wrap: anywhere;
 }
 
 
@@ -601,7 +918,10 @@ a {
 }
 
 /* ══ 音楽 ═══════════════════════════════════════════════════ */
+/* empty until the socket answers, and holding its line so the panel does
+   not jump when it fills */
 .kicker {
+  min-height: 1em;
   margin: 0 0 .9rem;
   font-size: .78rem;
   font-weight: 700;
@@ -683,6 +1003,20 @@ a {
   overflow-wrap: anywhere;
 }
 
+/* only on the last one it caught, never on what is playing now */
+.track-seen {
+  margin: 0 0 .5rem;
+  font-size: .7rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--paper-3);
+}
+
+.track-seen[hidden],
+.track-link[hidden] {
+  display: none;
+}
+
 .track-link {
   display: inline-flex;
   align-items: center;
@@ -721,6 +1055,29 @@ a {
   width: 0;
   background: var(--blood);
   transition: width 1s linear;
+}
+
+/* the bar says roughly, these say exactly */
+.track-time {
+  grid-column: 1 / -1;
+  margin: .3rem 0 0;
+  font-size: .7rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .1em;
+  color: var(--paper-3);
+}
+
+.track-album {
+  margin: 0 0 .45rem;
+  font-size: .78rem;
+  letter-spacing: .04em;
+  color: var(--paper-3);
+  overflow-wrap: anywhere;
+}
+
+.track-album[hidden],
+.track-time[hidden] {
+  display: none;
 }
 
 /* ══ lately ═════════════════════════════════════════════════
@@ -773,6 +1130,177 @@ a {
   color: var(--paper-3);
 }
 
+/* ══ what I keep poking at ══════════════════════════════════
+   The repositories themselves, which say more about what someone is
+   actually doing than a list of commit messages does. Same rule as
+   lately: no data, no heading. */
+.work-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1.4rem clamp(1.6rem, 4vw, 3rem);
+}
+
+.work-list li {
+  min-width: 0;
+  padding-top: .7rem;
+  border-top: 1px solid var(--ink-3);
+  transition: border-color .2s;
+}
+
+.work-list li:hover {
+  border-top-color: var(--blood);
+}
+
+.work-name {
+  display: inline-block;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--blood);
+  text-decoration-thickness: var(--rule);
+  text-underline-offset: .3em;
+  overflow-wrap: anywhere;
+}
+
+.work-name:hover,
+.work-name:focus-visible {
+  color: var(--blood-lit);
+}
+
+.work-what {
+  margin: .45rem 0 0;
+  font-size: .92rem;
+  color: var(--paper-2);
+  overflow-wrap: anywhere;
+}
+
+.work-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25rem .8rem;
+  margin: .5rem 0 0;
+  font-size: .72rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--paper-3);
+}
+
+/* the language gets the one coloured mark, so the row has an anchor the
+   eye can find without reading it */
+.work-lang::before {
+  content: "";
+  display: inline-block;
+  width: .45rem;
+  height: .45rem;
+  margin-right: .45rem;
+  background: var(--blood);
+  rotate: 45deg;
+}
+
+/* ══ 黒閃, kept ═════════════════════════════════════════════
+   The counter used to live only in the corner tally, which appears after
+   a landed hit and goes away again — so the one thing on the page you can
+   get better at left no trace. This is the trace. */
+.score-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: 1rem;
+  margin: 1.1rem 0 0;
+  padding: 0;
+}
+
+.score-list li {
+  min-width: 0;
+  padding-top: .7rem;
+  border-top: 1px solid var(--ink-3);
+}
+
+/* the reading is a sentence, not a count, so it does not get the display
+   face at two and a half rem alongside the numbers */
+#score-last {
+  font-size: clamp(1rem, 2.4vw, 1.3rem);
+  line-height: 1.25;
+}
+
+.score-list b {
+  display: block;
+  font-family: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", Georgia, serif;
+  font-size: clamp(1.9rem, 5vw, 2.7rem);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.score-list span {
+  display: block;
+  margin-top: .4rem;
+  font-size: .7rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--paper-3);
+}
+
+/* The last dozen attempts, newest on the right. Numbers say how it has
+   gone overall; the marks say how the last two minutes went, which is the
+   thing you are actually trying to change while you are playing. */
+.score-marks {
+  display: flex;
+  align-items: flex-end;
+  gap: .42rem;
+  min-height: 2.2rem;
+  margin: 1rem 0 0;
+}
+
+.mark {
+  display: block;
+  width: .75rem;
+}
+
+/* the ones already in the row were not struck, they were laid out */
+.mark:not(.is-ghost) {
+  animation: struck .45s cubic-bezier(.2, .9, .2, 1) backwards;
+}
+
+.mark svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  fill: var(--paper-3);
+}
+
+.mark.is-ghost svg {
+  fill: var(--paper-3);
+  opacity: .22;
+}
+
+.mark.is-hit svg {
+  fill: var(--blood);
+}
+
+@keyframes struck {
+  from { opacity: 0; transform: translateY(-.5rem) rotate(-9deg); }
+}
+
+/* a number that has just moved says so, once */
+.score-list b.is-up {
+  animation: count .5s ease-out;
+}
+
+@keyframes count {
+  0% { color: var(--blood-lit); transform: translateY(-.12em); }
+  100% { color: inherit; transform: none; }
+}
+
+/* the two characters stacked, the way the tally carries them */
+.score .head h2 {
+  display: flex;
+  gap: .1em;
+}
+
 /* ══ 海賊旗 ═════════════════════════════════════════════════ */
 .foot {
   display: flex;
@@ -785,6 +1313,21 @@ a {
 .flag {
   width: clamp(3.6rem, 7vw, 5.2rem);
   flex: none;
+}
+
+.flag svg,
+svg.flag {
+  --drift: 0px;
+  translate: 0 var(--drift);
+  transform-origin: 50% 0;
+  animation: hang 7.5s ease-in-out infinite alternate;
+}
+
+/* A flag on a pole is never still. Hung from the top edge so it swings
+   from where it would actually be tied. */
+@keyframes hang {
+  from { transform: rotate(-2.6deg); }
+  to { transform: rotate(2.6deg); }
 }
 
 .jr-ink {
@@ -832,15 +1375,32 @@ a {
   color: var(--paper);
 }
 
-.hint {
-  margin: 0 0 0 auto;
-  display: grid;
-  gap: .1rem;
-  text-align: right;
-  font-size: .68rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--paper-3);
+/* ══ the 404 ════════════════════════════════════════════════ */
+.code {
+  margin: 0 0 .2rem;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .34em;
+  color: var(--blood-lit);
+}
+
+.lost .name {
+  font-size: clamp(2.2rem, 7vw, 4.6rem);
+  text-transform: lowercase;
+}
+
+.lost-line {
+  margin: .2rem 0 1.4rem;
+  max-width: 40ch;
+  color: var(--paper-2);
+}
+
+.lost .hero {
+  min-height: min(56vh, 26rem);
+}
+
+.lost .foot {
+  justify-content: space-between;
 }
 
 /* ══ things you can hit ═════════════════════════════════════
@@ -874,8 +1434,16 @@ a {
   transition: opacity .2s ease, filter .2s ease;
 }
 
-.sigil:hover,
-.sigil:focus-visible { opacity: .85; }
+/* A target that keeps drifting under the pointer is hard to hit. Reaching
+   for one settles it. */
+/* reaching for a target settles the drawing inside it */
+.band:hover svg,
+.band:focus-visible svg {
+  animation-play-state: paused;
+}
+
+.sigil:hover ~ .wheel,
+.sigil:focus-visible ~ .wheel { opacity: .85; }
 
 .band:hover svg,
 .band:focus-visible svg { filter: drop-shadow(0 0 10px rgba(239, 236, 228, .35)); }
@@ -891,12 +1459,12 @@ a {
   pointer-events: auto;
 }
 
-.sigil.is-struck .mg-body {
+.wheel.is-struck {
   animation: adapt .5s ease-out;
 }
 
 @keyframes adapt {
-  0% { stroke: var(--blood); stroke-width: 4; }
+  0% { stroke: var(--blood); stroke-width: 4.4; }
   100% { stroke: var(--paper); stroke-width: 2.4; }
 }
 
@@ -964,6 +1532,68 @@ a {
   z-index: 41;
   pointer-events: none;
   overflow: hidden;
+}
+
+/* The ring that shows the window. It closes over --wind; the red arc is
+   a second animation that is simply delayed until the window opens and
+   lasts exactly as long as it. Keyframe selectors cannot take var(), so
+   the timing has to live in delay and duration, not in percentages. */
+.charge {
+  position: absolute;
+  translate: -50% -50%;
+  width: 7.5rem;
+  height: 7.5rem;
+  pointer-events: none;
+}
+
+.charge::before,
+.charge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.charge::before {
+  border: var(--rule) solid var(--paper-3);
+  animation: close var(--wind, 620ms) linear forwards;
+}
+
+.charge::after {
+  border: 3px solid var(--blood);
+  opacity: 0;
+  animation:
+    close var(--wind, 620ms) linear forwards,
+    window var(--span, 80ms) var(--open-at, 496ms) linear;
+}
+
+@keyframes close {
+  from { scale: 1; }
+  to { scale: .17; }
+}
+
+/* on for exactly the length of the window, off either side of it */
+@keyframes window {
+  from, to { opacity: 1; }
+}
+
+.charge.is-landed::before,
+.charge.is-landed::after {
+  animation: burst .34s ease-out forwards;
+}
+
+.charge.is-spent::before,
+.charge.is-spent::after {
+  animation: fizzle .24s ease-out forwards;
+}
+
+@keyframes burst {
+  from { scale: .17; opacity: 1; }
+  to { scale: 1.6; opacity: 0; }
+}
+
+@keyframes fizzle {
+  to { opacity: 0; scale: .1; }
 }
 
 .strike {
@@ -1076,7 +1706,7 @@ body.is-domain::before {
   100% { opacity: 0; scale: 1.03; }
 }
 
-body.is-domain .mg-body {
+body.is-domain .wheel {
   animation: adapt .9s ease-out;
 }
 
@@ -1129,20 +1759,63 @@ body.is-domain .mg-body {
   color: var(--paper-3);
 }
 
+/* which side of the window you were on. a miss you cannot read is a miss
+   you cannot learn from. */
+.tally-hint {
+  margin-top: .25rem;
+  font-size: .66rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--paper-2);
+}
+
+.tally-hint[hidden] {
+  display: none;
+}
+
 .tally.is-hot .tally-now b {
   color: var(--blood-lit);
 }
 
 /* ── panels arriving ────────────────────────────────────────── */
+
+/* The panel used to arrive in one piece, which is a slide. Its parts come
+   in one after another instead — heading, then rule, then contents — so a
+   region assembles itself rather than sliding into place. */
 [data-js] .reveal {
   opacity: 0;
-  transform: translateY(16px);
 }
 
 [data-js] .reveal.is-in {
   opacity: 1;
+  transition: opacity .5s ease;
+}
+
+[data-js] .reveal > * {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+[data-js] .reveal.is-in > * {
+  opacity: 1;
   transform: none;
-  transition: opacity .55s ease, transform .55s cubic-bezier(.22, .8, .3, 1);
+  transition: opacity .5s ease var(--in, 0s),
+              transform .6s cubic-bezier(.22, .8, .3, 1) var(--in, 0s);
+}
+
+[data-js] .reveal.is-in > :nth-child(2) { --in: .09s; }
+[data-js] .reveal.is-in > :nth-child(3) { --in: .18s; }
+[data-js] .reveal.is-in > :nth-child(4) { --in: .27s; }
+
+/* rows that arrive with the data they came for, rather than with the
+   panel that will hold them */
+.work-list li,
+.push-list li {
+  animation: arrive .55s cubic-bezier(.22, .8, .3, 1) calc(var(--i, 0) * 70ms) backwards;
+}
+
+@keyframes arrive {
+  from { opacity: 0; transform: translateY(14px); }
 }
 
 :focus-visible {
@@ -1152,8 +1825,15 @@ body.is-domain .mg-body {
 
 /* ── narrower ───────────────────────────────────────────────── */
 @media (max-width: 60rem) {
+  /* Every region that shares a row with another one goes full width. A
+     half-width column left in place here does not scroll — the sheet
+     clips it — so what is missed here is not visibly broken, it is
+     silently cut off. */
   .now,
   .music,
+  .work,
+  .score,
+  .pushes,
   .hero,
   .foot {
     grid-column: 1 / -1;
@@ -1162,14 +1842,6 @@ body.is-domain .mg-body {
   .hero {
     min-height: 0;
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  /* stacked, the label has nowhere to sit beside the text, so it goes
-     above it and runs across instead of down */
-  .hero > .vert {
-    flex-direction: row;
-    gap: .5em;
-    margin-bottom: .8rem;
   }
 
   /* on a narrow screen the wheel sits right behind the running text, so
@@ -1210,7 +1882,11 @@ body.is-domain .mg-body {
 
   .strikes { display: none; }
 
-  .sigil.is-struck .mg-body,
+  /* the field is nothing but motion — frozen it is a row of grey smudges
+     sitting behind the text, which is worse than not being there */
+  .field { display: none; }
+
+  .wheel.is-struck,
   .band.is-struck svg,
   .flag.is-struck svg,
   .brush.is-struck {
