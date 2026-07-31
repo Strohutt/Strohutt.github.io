@@ -149,6 +149,14 @@ body {
   display: none;
 }
 
+/* No animation on the curtain itself. An ancestor whose opacity is
+   changing cannot have its children composited separately — the whole
+   subtree is drawn again every frame, and that is what took a sequence of
+   nine paths and a sphere down to half the frame rate.
+
+   It does not fade out either. The white rises, the curtain is taken away
+   underneath it, and the page comes out of the white — which is a better
+   cut than a cross-fade anyway. */
 [data-js] .curtain {
   display: block;
   position: fixed;
@@ -156,7 +164,6 @@ body {
   z-index: 90;
   overflow: hidden;
   background: var(--ink);
-  animation: curtain 2s cubic-bezier(.3, .1, .2, 1) forwards;
 }
 
 /* the moment it is done it stops existing, rather than sitting there
@@ -165,9 +172,12 @@ body {
   display: none;
 }
 
-@keyframes curtain {
-  0%, 86% { opacity: 1; }
-  100% { opacity: 0; visibility: hidden; }
+/* Everything underneath is covered, so painting it is work nobody sees —
+   and the field is twenty-three moving parts with blurs on five of them.
+   Both are decoration and both are already hidden from the tree. */
+.is-cast .field,
+.is-cast .tone {
+  display: none;
 }
 
 .curtain svg {
@@ -180,6 +190,16 @@ body {
 /* The void it is all standing in. A hundred and fifty drawn circles is a
    starfield nobody can tell from two tiled dot patterns, and the page
    already shades itself with one of those. */
+/* Scaling an svg or a tiled background makes the browser draw it again at
+   the new size every frame. Saying up front that the transform is what
+   changes gets each of these rasterised once and moved as a texture, which
+   is the difference between the sequence running at thirty and at sixty. */
+.curtain-void,
+.curtain-streams,
+.curtain-sphere {
+  will-change: transform, opacity;
+}
+
 .curtain-void {
   position: absolute;
   inset: 0;
@@ -335,20 +355,40 @@ body {
   fill: var(--blood);
 }
 
+/* No blur here. Animating filter re-rasterises the element every frame,
+   and eight of them at once took the sequence from sixty frames a second
+   to twenty — which is a strange thing for the one part of the page whose
+   whole job is to look good. Opacity and scale composite. */
 @keyframes strike-in {
-  0% { opacity: 0; transform: translateY(.18em) scale(1.3); filter: blur(7px); }
-  100% { opacity: 1; transform: none; filter: blur(0); }
+  0% { opacity: 0; transform: translateY(.18em) scale(1.28); }
+  100% { opacity: 1; transform: none; }
 }
 
-/* And then nothing. One rise and one fall rather than a switch — a hard
-   cut to white and back is a strobe, and this is somebody's homepage. */
+/* And then nothing. It sits above the curtain rather than inside it, so
+   it is still there once the curtain has gone and the page arrives out of
+   the white. One rise and one fall rather than a switch — a hard cut to
+   white and back is a strobe, and this is somebody's homepage. */
 .curtain-white {
-  position: absolute;
+  display: none;
+}
+
+[data-js] .curtain-white {
+  display: block;
+  position: fixed;
   inset: 0;
-  z-index: 4;
+  z-index: 95;
+  pointer-events: none;
   background: var(--paper);
   opacity: 0;
-  animation: white-out .8s ease-in-out 1.24s both;
+}
+
+.is-cast .curtain-white,
+.curtain-white.is-going {
+  animation: white-out .92s ease-in-out 1.2s both;
+}
+
+.curtain-white.is-done {
+  display: none;
 }
 
 @keyframes white-out {
