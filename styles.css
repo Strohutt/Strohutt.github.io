@@ -134,14 +134,19 @@ body {
 
 /* ── 無量空処 ───────────────────────────────────────────────── */
 
-/* Unlimited Void. The first pass at this was a ragged circle with radial
-   lines behind a title, which is a generic barrier and not this domain.
-   What makes it recognisable is a sphere with rings running round it at
-   angles and more information pouring off it than anything could read.
+/* Unlimited Void, checked rather than remembered. Twice I drew it from
+   memory and twice it was wrong: first a ragged barrier that could have
+   been anybody's domain, then a sphere with rings running round it, which
+   is an orrery and is not in it at all.
 
-   In the anime it is blue; in the manga it is black and white. This page
-   is a manga spread, so for once accuracy and the palette want the same
-   thing.
+   What it actually is, per the wiki: an endless void "resembling outer
+   space in appearance, with a large black hole, distant galaxies and
+   numerous white patches". So that is what is here — a hole at a distance
+   with the light bent round it, galaxies, patches, a sky, and information
+   pouring through all of it.
+
+   In the anime it is blue. In the manga it is black and white, which is
+   what this page is, so for once accuracy and the palette agree.
 
    It is display:none by default and only exists once javascript has said
    so. A curtain a browser cannot lift is a curtain that never lifts. */
@@ -151,12 +156,9 @@ body {
 
 /* No animation on the curtain itself. An ancestor whose opacity is
    changing cannot have its children composited separately — the whole
-   subtree is drawn again every frame, and that is what took a sequence of
-   nine paths and a sphere down to half the frame rate.
-
-   It does not fade out either. The white rises, the curtain is taken away
-   underneath it, and the page comes out of the white — which is a better
-   cut than a cross-fade anyway. */
+   subtree is drawn again every frame. It does not fade out either: the
+   white rises, the curtain is taken away underneath it, and the page comes
+   out of the white, which is a better cut than a cross-fade. */
 [data-js] .curtain {
   display: block;
   position: fixed;
@@ -166,8 +168,6 @@ body {
   background: var(--ink);
 }
 
-/* the moment it is done it stops existing, rather than sitting there
-   invisible and swallowing clicks */
 [data-js] .curtain.is-done {
   display: none;
 }
@@ -187,48 +187,113 @@ body {
   height: 100%;
 }
 
-/* The void it is all standing in. A hundred and fifty drawn circles is a
-   starfield nobody can tell from two tiled dot patterns, and the page
-   already shades itself with one of those. */
-/* Scaling an svg or a tiled background makes the browser draw it again at
-   the new size every frame. Saying up front that the transform is what
-   changes gets each of these rasterised once and moved as a texture, which
-   is the difference between the sequence running at thirty and at sixty. */
 .curtain-void,
-.curtain-streams,
-.curtain-sphere {
+.curtain-sky,
+.curtain-hole,
+.curtain-streams {
   will-change: transform, opacity;
 }
 
+/* the sky it is all standing in */
 .curtain-void {
   position: absolute;
   inset: 0;
-  /* three layers on sizes with no common factor, or the lattice is
-     visible and it reads as a screen rather than a sky */
+  /* three layers on sizes with no common factor, or the lattice shows and
+     it reads as a screen rather than a sky */
   background-image:
     radial-gradient(var(--paper) 1px, transparent 1.1px),
     radial-gradient(var(--paper) .7px, transparent .8px),
     radial-gradient(var(--paper) .5px, transparent .6px);
   background-size: 211px 173px, 97px 131px, 53px 47px;
   background-position: 0 0, 37px 61px, 19px 7px;
-  animation: void-drift 2s linear both;
+  animation: sky-in 2.1s linear both;
 }
 
-@keyframes void-drift {
-  0% { transform: scale(1.3); opacity: 0; }
-  22% { opacity: .4; }
-  100% { transform: scale(1); opacity: .16; }
+@keyframes sky-in {
+  0% { transform: scale(1.4); opacity: 0; }
+  20% { opacity: .5; }
+  100% { transform: scale(1); opacity: .26; }
 }
 
-/* more than a mind can take, pouring off it */
+/* the galaxies and the patches, turning the other way to the hole */
+.curtain-sky {
+  animation: drift-back 2.1s cubic-bezier(.2, .6, .3, 1) both;
+}
+
+@keyframes drift-back {
+  0% { transform: scale(1.55) rotate(5deg); opacity: 0; }
+  26% { opacity: 1; }
+  100% { transform: scale(1) rotate(-2deg); opacity: .9; }
+}
+
+.uv-arm {
+  fill: none;
+  stroke: var(--paper);
+  stroke-linecap: round;
+}
+
+.uv-core,
+.uv-dust {
+  fill: var(--paper);
+}
+
+/* pale, which is what "white patches" means — at a tenth they are grey
+   landmasses rather than something faint and far away */
+.uv-patch {
+  fill: var(--paper);
+  opacity: .32;
+}
+
+/* The hole. It keeps turning once it has arrived — the disc is what is
+   moving, and a black hole that has stopped is a picture of one. */
+.curtain-hole {
+  animation: open .95s cubic-bezier(.16, .9, .28, 1) both,
+             spin-slow 11s linear .95s infinite;
+  transform-origin: 50% 50%;
+}
+
+@keyframes open {
+  0% { transform: scale(.02) rotate(-34deg); opacity: 0; }
+  24% { opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+/* the shadow is the page's own black, so it is a hole and not a disc */
+.uv-shadow {
+  fill: var(--ink);
+  stroke: var(--paper);
+  stroke-width: 2;
+}
+
+.uv-disc,
+.uv-lens,
+.uv-rim {
+  fill: none;
+  stroke: var(--paper);
+  stroke-linecap: round;
+}
+
+.uv-disc { stroke-width: 3.4; opacity: .85; }
+.uv-thin { stroke-width: 1.6; opacity: .45; }
+
+/* the far side of the disc, bent over the top — the part that makes it a
+   black hole rather than a ring around a ball */
+.uv-lens { stroke-width: 5.5; }
+.uv-rim { stroke-width: 1.4; opacity: .5; }
+
+/* more than a mind can take, pouring through it */
 .curtain-streams {
   animation: pour 1.55s cubic-bezier(.15, .75, .25, 1) both;
 }
 
 @keyframes pour {
-  0% { transform: scale(.3) rotate(-8deg); opacity: 0; }
+  0% { transform: scale(.32) rotate(-8deg); opacity: 0; }
   18% { opacity: .95; }
-  100% { transform: scale(1.75) rotate(6deg); opacity: 0; }
+  100% { transform: scale(1.8) rotate(6deg); opacity: 0; }
 }
 
 /* bucketed by weight rather than carrying a style attribute each */
@@ -248,61 +313,11 @@ body {
 .uv-d2 { opacity: .24; }
 .uv-d3 { opacity: .13; }
 
-/* The sphere, with the rings round it. It keeps turning after it has
-   arrived — a domain that stops moving is a picture of one. */
-.curtain-sphere {
-  animation: cast .95s cubic-bezier(.18, .9, .28, 1) both,
-             turn-slow 9s linear .95s infinite;
-  transform-origin: 50% 50%;
-}
-
-@keyframes cast {
-  0% { transform: scale(.02) rotate(-40deg); opacity: 0; }
-  22% { opacity: 1; }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
-}
-
-@keyframes turn-slow {
-  to { transform: rotate(360deg); }
-}
-
-/* A shade off the page rather than the same black, or the sphere has no
-   mass — against a background its own colour, all that is left of it is
-   the rim, and the rim on its own is a hoop. */
-.uv-fill {
-  fill: var(--ink-3);
-  stroke: none;
-}
-
-.uv-rim,
-.uv-lat,
-.uv-ring {
-  fill: none;
-  stroke: var(--paper);
-  stroke-linecap: round;
-}
-
-.uv-rim {
-  stroke-width: 2.6;
-}
-
-.uv-lat {
-  stroke-width: 1;
-}
-
-/* the lit edge, so it reads as a ball rather than a disc */
-.uv-lit {
-  fill: none;
-  stroke: var(--paper);
-  stroke-width: 6;
-  stroke-linecap: round;
-}
-
 /* ── what is being said ─────────────────────────────────────── */
 
-/* The casting above and the name below, with the sphere between them.
-   Stacked in the middle they land on top of it, and the one thing that
-   has to be legible on a title card is the title. */
+/* The casting above and the name below, with the hole between them.
+   Stacked in the middle they land on top of it, and the one thing that has
+   to be legible on a title card is the title. */
 .curtain-say {
   position: absolute;
   inset: 0;
@@ -330,24 +345,22 @@ body {
   fill: var(--paper);
 }
 
-/* the casting, small and first */
 .curtain-cast {
   gap: clamp(.15rem, .8vw, .5rem);
 }
 
 .curtain-cast span {
   width: clamp(1.5rem, 5vw, 3.1rem);
-  animation: strike-in .38s cubic-bezier(.2, .9, .2, 1) calc(.46s + var(--n) * .07s) both;
+  animation: strike-in .38s cubic-bezier(.2, .9, .2, 1) calc(.5s + var(--n) * .07s) both;
 }
 
-/* and the name of the thing, which is what it is actually called */
 .curtain-name {
   gap: clamp(.25rem, 1.4vw, .9rem);
 }
 
 .curtain-name span {
   width: clamp(3rem, 11vw, 7.4rem);
-  animation: strike-in .44s cubic-bezier(.2, .9, .2, 1) calc(.86s + var(--n) * .09s) both;
+  animation: strike-in .44s cubic-bezier(.2, .9, .2, 1) calc(.9s + var(--n) * .09s) both;
 }
 
 /* one mark in red, the way exactly one mark on this page is */
@@ -356,18 +369,18 @@ body {
 }
 
 /* No blur here. Animating filter re-rasterises the element every frame,
-   and eight of them at once took the sequence from sixty frames a second
-   to twenty — which is a strange thing for the one part of the page whose
-   whole job is to look good. Opacity and scale composite. */
+   and eight at once took the sequence to half its frame rate — a strange
+   price on the one part of the page whose whole job is to look good.
+   Opacity and scale composite, and it looks the same. */
 @keyframes strike-in {
   0% { opacity: 0; transform: translateY(.18em) scale(1.28); }
   100% { opacity: 1; transform: none; }
 }
 
-/* And then nothing. It sits above the curtain rather than inside it, so
-   it is still there once the curtain has gone and the page arrives out of
-   the white. One rise and one fall rather than a switch — a hard cut to
-   white and back is a strobe, and this is somebody's homepage. */
+/* And then nothing. It sits above the curtain rather than inside it, so it
+   is still there once the curtain has gone and the page arrives out of the
+   white. One rise and one fall rather than a switch — a hard cut to white
+   and back is a strobe, and this is somebody's homepage. */
 .curtain-white {
   display: none;
 }
@@ -384,7 +397,7 @@ body {
 
 .is-cast .curtain-white,
 .curtain-white.is-going {
-  animation: white-out .92s ease-in-out 1.2s both;
+  animation: white-out .95s ease-in-out 1.24s both;
 }
 
 .curtain-white.is-done {
