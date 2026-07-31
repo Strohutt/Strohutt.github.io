@@ -251,6 +251,19 @@ body {
 
 /* pale, which is what "white patches" means — at a tenth they are grey
    landmasses rather than something faint and far away */
+/* Four hundred of them, in three paths. The sphere is filled with the
+   page's own ink — the same colour as the page — so on an empty field it
+   is not a hole, it is a circle in outline. These are what it is dark
+   against. */
+.uv-star {
+  fill: var(--paper);
+  stroke: none;
+}
+
+.uv-s0 { opacity: .34; }
+.uv-s1 { opacity: .6; }
+.uv-s2 { opacity: .95; }
+
 .uv-patch {
   fill: var(--paper);
   opacity: .32;
@@ -305,10 +318,16 @@ body {
   animation: pour 1.55s cubic-bezier(.15, .75, .25, 1) both;
 }
 
+/* It used to rush past and be gone by a second and a half, which left the
+   sphere with nothing behind it for the rest of the time it was up — and
+   the only thing giving a black shape on a black page an edge is what it
+   covers. It still comes in hard and it still keeps moving, but it never
+   goes to nothing. */
 @keyframes pour {
-  0% { transform: scale(.32) rotate(-8deg); opacity: 0; }
-  18% { opacity: .95; }
-  100% { transform: scale(1.8) rotate(6deg); opacity: 0; }
+  0% { transform: scale(.3) rotate(-8deg); opacity: 0; }
+  14% { opacity: 1; }
+  55% { opacity: .8; }
+  100% { transform: scale(2.1) rotate(7deg); opacity: .55; }
 }
 
 /* bucketed by weight rather than carrying a style attribute each */
