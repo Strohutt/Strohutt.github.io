@@ -12,8 +12,15 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
 
+  /* The barrier goes up on the first page of a session and covers
+     everything for a second and three quarters. These checks are about
+     what is underneath it, so they arrive having already seen it — the
+     same as mocking an upstream. The intro has its own checks. */
+  const seen = () => { try { sessionStorage.setItem('strohut-seen', '1'); } catch { /* nothing to do */ } };
+
   const open = async (routes = {}, opts = {}) => {
     const p = await b.newPage({ viewport: { width: 1340, height: 900 }, ...opts });
+    await p.addInitScript(seen);
     p.on('pageerror', e => fails.push('pageerror: ' + e.message));
     for (const [pat, handler] of Object.entries(routes)) await p.route(pat, handler);
     await p.goto(BASE + '/index.html');
@@ -72,6 +79,7 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
 
   // ── localStorage refuses to play
   p = await b.newPage({ viewport: { width: 1340, height: 900 } });
+  await p.addInitScript(seen);
   p.on('pageerror', e => fails.push('pageerror(storage): ' + e.message));
   await p.addInitScript(() => {
     Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('denied'); } });
@@ -101,6 +109,26 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   check('quiet line appears when nothing is on', !(await p.evaluate(() => document.getElementById('dc-quiet').hidden)));
   await p.close();
 
+  /* The socket dying does not stop the ticker that was counting the song
+     it was carrying. Every render clears those; failing does not go
+     through one. */
+  p = await open();
+  await p.waitForTimeout(1200);
+  await p.evaluate(() => render({
+    discord_user: { id: '1', username: 'u', display_name: 'Strohut', avatar: null },
+    discord_status: 'online', activities: [], listening_to_spotify: true,
+    spotify: { track_id: 'x', song: 'a', artist: 'b', album_art_url: null,
+      timestamps: { start: Date.now() - 1e4, end: Date.now() + 3e5 } }
+  }));
+  await p.waitForTimeout(300);
+  const ticking = await p.evaluate(() => document.getElementById('track-time').textContent);
+  await p.evaluate(() => fail());
+  await p.waitForTimeout(2500);
+  check('the socket dying stops the track counting',
+    await p.evaluate(() => document.getElementById('track-time').textContent) === ticking,
+    `${ticking} → ${await p.evaluate(() => document.getElementById('track-time').textContent)}`);
+  await p.close();
+
   /* What the page remembers between visits. Nothing playing is not the
      same as nothing ever playing, and the panel should not have to choose
      between claiming silence and saying nothing. */
@@ -116,6 +144,7 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   const jar = await b.newContext({ viewport: { width: 1340, height: 900 } });
 
   p = await jar.newPage();
+  await p.addInitScript(seen);
   p.on('pageerror', e => fails.push('pageerror(cache 1): ' + e.message));
   await p.route('**/api.lanyard.rest/**', r => r.fulfill(SONG(true)));
   await p.goto(BASE + '/index.html');
@@ -126,6 +155,7 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
 
   // same visitor, back later, and the music has stopped
   p = await jar.newPage();
+  await p.addInitScript(seen);
   p.on('pageerror', e => fails.push('pageerror(cache 2): ' + e.message));
   await p.route('**/api.lanyard.rest/**', r => r.fulfill(SONG(false)));
   await p.goto(BASE + '/index.html');

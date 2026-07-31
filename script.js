@@ -732,6 +732,12 @@ function clockOf(ms) {
 }
 
 function fail() {
+  /* Every render clears these first; this does not go through one. The
+     track's own ticker would otherwise keep counting a song that stopped
+     when the socket did. */
+  liveTimers.forEach(clearInterval);
+  liveTimers = [];
+
   el.slab.dataset.state = 'ready';
   el.name.textContent = 'Strohut';
   el.state.textContent = "can't reach discord right now";

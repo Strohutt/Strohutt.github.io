@@ -6,6 +6,73 @@
 
 const stillPlease = window.matchMedia('(prefers-reduced-motion: reduce)');
 
+/* ─────────────────────────── 領域展開 ──────────────────────────── */
+
+/* The barrier goes up once when you arrive, and then it is gone. Not on
+   every page in a session, not for anybody who has asked their machine to
+   stop moving things, and never for longer than it takes — any key, any
+   click, any scroll takes it down early, and a timer takes it down even
+   if nothing else fires at all.
+
+   A loading screen that cannot be got rid of is a loading screen that
+   somebody leaves. */
+const curtain = document.getElementById('curtain');
+
+if (curtain) {
+  let seen = true;
+  try {
+    seen = sessionStorage.getItem('strohut-seen') === '1';
+    sessionStorage.setItem('strohut-seen', '1');
+  } catch {
+    // no session storage: show it, once, and let the reload be the cost
+    seen = false;
+  }
+
+  const SKIPS = ['pointerdown', 'keydown', 'wheel', 'touchstart'];
+  let failsafe = 0;
+
+  const lift = () => {
+    if (curtain.classList.contains('is-done')) return;
+    curtain.classList.add('is-done');
+    clearTimeout(failsafe);
+    for (const kind of SKIPS) removeEventListener(kind, lift);
+  };
+
+  const raise = () => {
+    if (stillPlease.matches) return;
+
+    // the animation has to be started again from nothing, or a second
+    // showing is a class change on something that already finished
+    curtain.classList.add('is-done');
+    void curtain.offsetWidth;
+    curtain.classList.remove('is-done');
+
+    clearTimeout(failsafe);
+    // the animation finishing is the ordinary way out; the rest are the
+    // ways out for when it does not
+    failsafe = setTimeout(lift, 3200);
+    for (const kind of SKIPS) addEventListener(kind, lift, { passive: true, once: true });
+  };
+
+  if (seen || stillPlease.matches) {
+    curtain.classList.add('is-done');
+  } else {
+    failsafe = setTimeout(lift, 3200);
+    for (const kind of SKIPS) addEventListener(kind, lift, { passive: true, once: true });
+  }
+
+  curtain.addEventListener('animationend', event => {
+    if (event.animationName === 'curtain') lift();
+  });
+
+  /* Once is a loading screen. Being able to do it again is the thing he
+     asked for — so the name is the control: it already redraws the stroke
+     under itself, and pressing the biggest word on the page is about as
+     deliberate as a click gets. */
+  const again = document.getElementById('name-hit');
+  if (again) again.addEventListener('click', raise);
+}
+
 const strikes = document.getElementById('strikes');
 const tally = document.getElementById('tally');
 const sigil = document.querySelector('.hero');
@@ -470,7 +537,23 @@ if (wheelHit && wheel) {
   };
 
   wheelHit.addEventListener('pointerup', letGo);
-  wheelHit.addEventListener('pointercancel', letGo);
+
+  /* A cancelled gesture is the browser taking the pointer away — a system
+     swipe, a context menu, a call coming in. Nobody pressed anything, so
+     the wheel goes back where it was rather than clicking on a tooth. The
+     same applies to the window losing focus mid-grip, which otherwise
+     leaves it paused and half-turned for good. */
+  const abandon = () => {
+    if (!grip) return;
+    grip = null;
+    spin = 0;
+    drag = 0;
+    paint();
+    wheel.classList.remove('is-spinning');
+  };
+
+  wheelHit.addEventListener('pointercancel', abandon);
+  addEventListener('blur', abandon);
 
   // the keyboard has no pointer to release, so it comes through as a click
   // with no click count behind it

@@ -11,6 +11,12 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
 
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+
+  /* The barrier goes up on the first page of a session and covers
+     everything for a second and three quarters. These checks are about
+     what is underneath it, so they arrive having already seen it — the
+     same as mocking an upstream. The intro has its own checks. */
+  const seen = () => { try { sessionStorage.setItem('strohut-seen', '1'); } catch { /* nothing to do */ } };
   const over = p => p.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
 
   // ── fully offline
@@ -24,6 +30,7 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
 
   // ── 280px, the narrowest thing anybody still uses
   p = await b.newPage({ viewport: { width: 280, height: 650 } });
+  await p.addInitScript(seen);
   p.on('pageerror', e => fails.push('280 pageerror: ' + e.message));
   await p.goto(BASE + '/index.html'); await p.waitForTimeout(1200);
   check('280px does not scroll sideways', !(await over(p)));
@@ -32,6 +39,7 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
 
   // ── someone has set their browser text to 200%
   p = await b.newPage({ viewport: { width: 1340, height: 900 } });
+  await p.addInitScript(seen);
   p.on('pageerror', e => fails.push('zoom pageerror: ' + e.message));
   await p.goto(BASE + '/index.html');
   await p.addStyleTag({ content: 'html { font-size: 32px !important; }' });
@@ -42,6 +50,7 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
 
   // ── the same on a phone
   p = await b.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await p.addInitScript(seen);
   await p.goto(BASE + '/index.html');
   await p.addStyleTag({ content: 'html { font-size: 26px !important; }' });
   await p.waitForTimeout(900);
@@ -50,6 +59,7 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
 
   // ── a very slow upstream that answers after the visitor has moved on
   p = await b.newPage({ viewport: { width: 1340, height: 900 } });
+  await p.addInitScript(seen);
   p.on('pageerror', e => fails.push('slow pageerror: ' + e.message));
   await p.route('**/graphql.anilist.co/**', async r => {
     await new Promise(res => setTimeout(res, 4000));
@@ -67,6 +77,7 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
 
   // ── the 404 under the same pressure
   p = await b.newPage({ viewport: { width: 320, height: 650 } });
+  await p.addInitScript(seen);
   p.on('pageerror', e => fails.push('404 pageerror: ' + e.message));
   await p.goto(BASE + '/404.html'); await p.waitForTimeout(900);
   check('404 at 320px holds', !(await over(p)));

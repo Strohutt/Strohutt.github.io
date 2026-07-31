@@ -96,11 +96,18 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
 
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+
+  /* The barrier goes up on the first page of a session and covers
+     everything for a second and three quarters. These checks are about
+     what is underneath it, so they arrive having already seen it — the
+     same as mocking an upstream. The intro has its own checks. */
+  const seen = () => { try { sessionStorage.setItem('strohut-seen', '1'); } catch { /* nothing to do */ } };
   const fails = [];
   const check = (name, ok, detail) => { console.log((ok ? 'ok   ' : 'FAIL ') + name + (detail ? '  ' + detail : '')); if (!ok) fails.push(name); };
 
   const fresh = async (opts = {}) => {
     const p = await b.newPage({ viewport: { width: 900, height: 700 }, ...opts });
+    await p.addInitScript(seen);
     p.on('pageerror', e => fails.push('pageerror: ' + e.message));
     await p.goto(BASE + '/index.html');
     await p.waitForTimeout(700);
@@ -148,6 +155,7 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
   // ── a finger, with real touch events rather than a mouse
   const phone = await b.newContext({ ...devices['iPhone 13'] });
   p = await phone.newPage();
+  await p.addInitScript(seen);
   p.on('pageerror', e => fails.push('touch pageerror: ' + e.message));
   await p.goto(BASE + '/index.html');
   await p.waitForTimeout(1200);
@@ -178,6 +186,7 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
   // ── reduced motion: nothing fires at all
   const rm = await b.newContext({ reducedMotion: 'reduce' });
   p = await rm.newPage({ viewport: { width: 900, height: 700 } });
+  await p.addInitScript(seen);
   await p.goto(BASE + '/index.html'); await p.waitForTimeout(600);
   await p.mouse.move(...(await openGround(p))); await p.mouse.down(); await p.waitForTimeout(700); await p.mouse.up();
   await p.waitForTimeout(150);
@@ -304,6 +313,27 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
   check('a throw does not leave it spinning',
     !(await p.evaluate(() => document.querySelector('.wheel').classList.contains('is-spinning'))));
 
+  /* A cancelled gesture is the browser taking the pointer away, not
+     somebody pressing. It must put the wheel back rather than click it on
+     a tooth — and it must not leave it paused half-turned either. */
+  const before2 = await adapt();
+  await p.mouse.move(at[0], at[1] - 60);
+  await p.mouse.down();
+  await p.mouse.move(at[0] + 30, at[1] - 50);
+  await p.waitForTimeout(60);
+  await p.evaluate(() => dispatchEvent(new Event('blur')));
+  await p.waitForTimeout(300);
+  const after2 = await p.evaluate(() => ({
+    adapt: parseInt(getComputedStyle(document.querySelector('.wheel')).getPropertyValue('--adapt'), 10),
+    drag: document.querySelector('.wheel').style.getPropertyValue('--drag'),
+    spinning: document.querySelector('.wheel').classList.contains('is-spinning')
+  }));
+  await p.mouse.up();
+  await p.waitForTimeout(200);
+  check('an abandoned grip does not move the wheel', after2.adapt === before2, `${before2} → ${after2.adapt}`);
+  check('an abandoned grip puts it back', (after2.drag || '0deg').startsWith('0'), after2.drag);
+  check('an abandoned grip does not leave it paused', !after2.spinning);
+
   // a press is still a press
   const held = await adapt();
   await p.click('#wheel-hit');
@@ -316,6 +346,7 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
   // away from the rest of the page.
   const pad = await b.newContext({ viewport: { width: 1024, height: 1180 }, hasTouch: true, isMobile: true });
   p = await pad.newPage();
+  await p.addInitScript(seen);
   p.on('pageerror', e => fails.push('touch throw pageerror: ' + e.message));
   await p.goto(BASE + '/index.html');
   await p.waitForTimeout(1200);
