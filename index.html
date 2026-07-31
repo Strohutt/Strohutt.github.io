@@ -8,9 +8,9 @@
   <meta name="description" content="Mico. Discord presence, what is playing, and recent pushes.">
   <link rel="canonical" href="https://strohutt.github.io/">
 
-  <link rel="icon" href="favicon.svg?v=6" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=6">
-  <link rel="manifest" href="site.webmanifest?v=6">
+  <link rel="icon" href="favicon.svg?v=8" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=8">
+  <link rel="manifest" href="site.webmanifest?v=8">
   <meta name="theme-color" content="#08080b">
 
   <!-- Posting the link used to give a blank card. The image is built from
@@ -19,14 +19,14 @@
   <meta property="og:description" content="Mico. Discord presence, what is playing, and recent pushes.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://strohutt.github.io/">
-  <meta property="og:image" content="https://strohutt.github.io/og.png?v=6">
+  <meta property="og:image" content="https://strohutt.github.io/og.png?v=8">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="STROHUT, in white serif on black, over a red brush stroke, with Mahoraga's wheel cropped by the right edge.">
   <meta name="twitter:card" content="summary_large_image">
 
-  <link rel="stylesheet" href="fonts.css?v=6">
-  <link rel="stylesheet" href="styles.css?v=6">
+  <link rel="stylesheet" href="fonts.css?v=8">
+  <link rel="stylesheet" href="styles.css?v=8">
 
   <!-- set before first paint, so nothing that js reveals starts hidden -->
   <script>document.documentElement.setAttribute('data-js', '');</script>
@@ -371,6 +371,13 @@
       <svg viewBox="0 0 900 120" aria-hidden="true"><use href="#cloudbar" /></svg>
     </button>
 
+    <section class="panel likes reveal" id="likes" aria-labelledby="likes-h" hidden>
+      <div class="head">
+        <h2 id="likes-h">favourites</h2>
+      </div>
+      <ul class="like-list" id="like-list"></ul>
+    </section>
+
     <section class="panel work reveal" id="work" aria-labelledby="work-h" hidden>
       <div class="head">
         <h2 id="work-h">repos</h2>
@@ -402,12 +409,6 @@
       </ul>
     </section>
 
-    <section class="panel pushes reveal" id="pushes" aria-labelledby="pushes-h" hidden>
-      <div class="head">
-        <h2 id="pushes-h">lately</h2>
-      </div>
-      <ol class="push-list" id="push-list"></ol>
-    </section>
 
     <footer class="panel foot">
       <button class="flag" id="flag-hit" type="button" aria-label="Swing the flag">
@@ -421,8 +422,8 @@
     </div>
   </main>
 
-  <script src="flash.js?v=6" defer></script>
-  <script src="script.js?v=6" defer></script>
+  <script src="flash.js?v=8" defer></script>
+  <script src="script.js?v=8" defer></script>
 </body>
 
 </html>

@@ -147,16 +147,28 @@ if (clock) {
 }
 
 
-/* ─────────────────────── What he has pushed ────────────────────── */
+/* ───────────────────────────── His repos ───────────────────────── */
 
-/* The public events feed needs no key and no auth. If it is rate limited
-   or unreachable the panel stays hidden rather than showing an apology —
-   a section that only ever explains its own failure is not worth a
-   heading. */
+/* There used to be two regions here. One listed his repositories and one
+   listed his recent pushes, which on a personal account is the same three
+   or four names printed twice with the same timestamps next to them. It
+   is one list: the repositories, each carrying whatever was last pushed
+   to it.
+
+   Two calls feed it. The repository list is the spine — it is the thing
+   that says what exists and what it is for. The events feed only adds the
+   last commit message and how many landed with it, so losing it costs a
+   line rather than the section. Losing the repository list instead falls
+   back to building rows out of the events alone, which is what the second
+   region used to be.
+
+   Neither needs a key. Sixty unauthenticated calls an hour are shared by
+   everyone behind one address, so being refused is ordinary rather than
+   exceptional: whatever last came back is kept and stands in. Every row
+   carries its own timestamp, so a stale list ages honestly instead of
+   claiming to be current. */
 
 const GH_USER = 'Strohutt';
-const pushBox = document.getElementById('pushes');
-const pushList = document.getElementById('push-list');
 
 function ago(iso) {
   const secs = Math.max(0, (Date.now() - new Date(iso)) / 1000);
@@ -168,12 +180,6 @@ function ago(iso) {
   return `${v} ${unit}${v === 1 ? '' : 's'} ago`;
 }
 
-/* Sixty unauthenticated calls an hour are shared by everyone behind one
-   address, so being refused is ordinary rather than exceptional — and two
-   of the five regions on this page came from here. Whatever last came back
-   is kept, and stands in when the next call is turned away. Every row
-   carries its own timestamp, so a stale list ages honestly instead of
-   claiming to be current. */
 function fromGithub(key, url, shape) {
   return fetch(url)
     .then(r => (r.ok ? r.json() : null))
@@ -188,83 +194,65 @@ function fromGithub(key, url, shape) {
     .catch(() => unstash(key));
 }
 
-if (pushBox && pushList) {
-  fromGithub('strohut-pushes', `https://api.github.com/users/${GH_USER}/events/public?per_page=60`, events => {
-    // one row per repo, carrying its most recent push
-    const seen = new Map();
-    for (const e of events) {
-      if (!e || e.type !== 'PushEvent' || !e.repo || seen.has(e.repo.name)) continue;
-      const commits = (e.payload && e.payload.commits) || [];
-      seen.set(e.repo.name, {
-        repo: e.repo.name,
-        when: e.created_at,
-        count: (e.payload && e.payload.size) || commits.length,
-        last: commits.length ? String(commits[commits.length - 1].message).split('\n')[0] : ''
-      });
-      if (seen.size >= 5) break;
-    }
-    return [...seen.values()];
-  }).then(rows => {
-    if (!Array.isArray(rows) || !rows.length) return;
-    pushList.replaceChildren(...rows.map((p, i) => pushRow(p, i)));
-    pushBox.hidden = false;
-    pushBox.classList.add('is-in');
-  });
-}
-
-function pushRow(p, i) {
-  const li = document.createElement('li');
-  li.style.setProperty('--i', i);
-
-  const link = document.createElement('a');
-  link.className = 'push-repo';
-  link.href = `https://github.com/${p.repo}`;
-  link.textContent = p.repo.replace(`${GH_USER}/`, '');
-  li.append(link);
-
-  if (p.last) {
-    const msg = document.createElement('p');
-    msg.className = 'push-msg';
-    msg.textContent = p.last;
-    li.append(msg);
-  }
-
-  const meta = document.createElement('p');
-  meta.className = 'push-meta';
-  meta.textContent = `${p.count} commit${p.count === 1 ? '' : 's'} · ${ago(p.when)}`;
-  li.append(meta);
-
-  return li;
-}
-
-/* ─────────────────────────── His repos ─────────────────────────── */
-
-/* Commit messages say what changed this week; the repositories say what
-   someone actually spends their time on. Forks are somebody else's work
-   and archived ones are finished, so neither belongs here. */
-
 const workBox = document.getElementById('work');
 const workList = document.getElementById('work-list');
 
 if (workBox && workList) {
-  fromGithub('strohut-repos', `https://api.github.com/users/${GH_USER}/repos?sort=pushed&per_page=100`, repos =>
-    // github answering with the right shape is not the same as github
-    // answering with what was asked for, so the name is checked before it
-    // is read rather than after it throws
-    repos
+  const repos = fromGithub('strohut-repos',
+    `https://api.github.com/users/${GH_USER}/repos?sort=pushed&per_page=100`,
+    body => body
+      // github answering with the right shape is not the same as github
+      // answering with what was asked for
       .filter(r => r && typeof r.name === 'string' && !r.fork && !r.archived
         && r.name.toLowerCase() !== `${GH_USER.toLowerCase()}.github.io`)
       .slice(0, 6)
       .map(r => ({
-        name: r.name, url: r.html_url, what: r.description,
-        lang: r.language, stars: r.stargazers_count, when: r.pushed_at
-      }))
-  ).then(rows => {
-    if (!Array.isArray(rows) || !rows.length) return;
-    workList.replaceChildren(...rows.map((repo, i) => workRow(repo, i)));
+        name: r.name,
+        url: r.html_url || `https://github.com/${GH_USER}/${r.name}`,
+        about: r.description || '',
+        language: r.language || '',
+        stars: r.stargazers_count || 0,
+        when: r.pushed_at || ''
+      })));
+
+  const pushes = fromGithub('strohut-pushes',
+    `https://api.github.com/users/${GH_USER}/events/public?per_page=60`,
+    body => {
+      // one entry per repository, carrying its most recent push
+      const seen = new Map();
+      for (const e of body) {
+        if (!e || e.type !== 'PushEvent' || !e.repo || !e.repo.name || seen.has(e.repo.name)) continue;
+        const commits = (e.payload && e.payload.commits) || [];
+        seen.set(e.repo.name, {
+          name: String(e.repo.name).replace(`${GH_USER}/`, ''),
+          url: `https://github.com/${e.repo.name}`,
+          when: e.created_at || '',
+          count: (e.payload && e.payload.size) || commits.length,
+          last: commits.length ? String(commits[commits.length - 1].message).split('\n')[0] : ''
+        });
+      }
+      return [...seen.values()];
+    });
+
+  Promise.all([repos, pushes]).then(([list, recent]) => {
+    const byName = new Map((recent || []).map(r => [r.name.toLowerCase(), r]));
+
+    // the repository list is the spine; without it, the pushes are all
+    // there is to go on
+    const rows = (list && list.length ? list : (recent || []).slice(0, 6))
+      .map(r => ({ ...r, ...pick(byName.get(r.name.toLowerCase())) }));
+
+    if (!rows.length) return;
+    workList.replaceChildren(...rows.map((r, i) => workRow(r, i)));
     workBox.hidden = false;
     workBox.classList.add('is-in');
   });
+}
+
+// only the two fields the events feed is here for, so it cannot overwrite
+// the repository's own name, link or description with a thinner version
+function pick(push) {
+  return push ? { last: push.last, count: push.count } : {};
 }
 
 function workRow(repo, i) {
@@ -277,36 +265,209 @@ function workRow(repo, i) {
   link.textContent = repo.name;
   li.append(link);
 
-  if (repo.what) {
+  if (repo.about) {
     const what = document.createElement('p');
     what.className = 'work-what';
-    what.textContent = repo.what;
+    what.textContent = repo.about;
     li.append(what);
   }
 
-  const meta = document.createElement('p');
-  meta.className = 'work-meta';
-
-  if (repo.lang) {
-    const lang = document.createElement('span');
-    lang.className = 'work-lang';
-    lang.textContent = repo.lang;
-    meta.append(lang);
+  // what he last said about it, in his own words
+  if (repo.last) {
+    const said = document.createElement('p');
+    said.className = 'work-last';
+    said.textContent = repo.last;
+    li.append(said);
   }
 
-  if (repo.stars) {
-    const stars = document.createElement('span');
-    stars.textContent = `${repo.stars} star${repo.stars === 1 ? '' : 's'}`;
-    meta.append(stars);
+  const bits = [
+    repo.language,
+    repo.stars ? `${repo.stars} star${repo.stars === 1 ? '' : 's'}` : '',
+    repo.count ? `${repo.count} commit${repo.count === 1 ? '' : 's'}` : '',
+    repo.when ? ago(repo.when) : ''
+  ].filter(Boolean);
+
+  if (bits.length) {
+    const meta = document.createElement('p');
+    meta.className = 'work-meta';
+    if (repo.language) {
+      const lang = document.createElement('span');
+      lang.className = 'work-lang';
+      lang.textContent = bits.shift();
+      meta.append(lang);
+    }
+    for (const b of bits) {
+      const span = document.createElement('span');
+      span.textContent = b;
+      meta.append(span);
+    }
+    li.append(meta);
   }
 
-  if (repo.when) {
-    const when = document.createElement('span');
-    when.textContent = ago(repo.when);
-    meta.append(when);
+  return li;
+}
+
+/* ───────────────────────────── Favourites ──────────────────────── */
+
+/* The three the whole page is drawn out of. Anilist has a public graphql
+   endpoint that needs no key and sends CORS headers, and it is asked by
+   title rather than by numeric id — an id I cannot check is an id that
+   silently points at a spin-off one day.
+
+   Everything here is anilist's: the cover, the format, how many chapters
+   there are. Nothing on the card is a sentence somebody wrote about them.
+
+   Same rule as the github regions: no answer, no heading. */
+
+const LIKED = [
+  { key: 'jjk', title: 'Jujutsu Kaisen' },
+  { key: 'gohs', title: 'The God of High School' },
+  { key: 'op', title: 'One Piece' }
+];
+
+const likeBox = document.getElementById('likes');
+const likeList = document.getElementById('like-list');
+
+const LIKE_FIELDS = `
+  id siteUrl format status chapters volumes
+  title { romaji english native }
+  coverImage { large }
+  startDate { year }`;
+
+if (likeBox && likeList) {
+  // one request, one alias per title, rather than three round trips
+  const query = `{${LIKED.map(l =>
+    `${l.key}: Media(search: ${JSON.stringify(l.title)}, type: MANGA) {${LIKE_FIELDS}}`
+  ).join('\n')}}`;
+
+  fetch('https://graphql.anilist.co', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ query })
+  })
+    .then(r => (r.ok ? r.json() : null))
+    .then(body => {
+      const data = body && body.data;
+      if (!data) return;
+
+      /* A search returns a best match, not a promise. Asked for one of
+         these it can hand back a spin-off, a colour edition or a databook
+         with a longer name, and the card would then state that thing's
+         format and chapter count under a heading that says favourites.
+         So what came back has to answer to what was asked for. */
+      const got = LIKED
+        .map(l => [l, data[l.key]])
+        .filter(([l, m]) => m && m.title && answersTo(m.title, l.title))
+        .map(([, m]) => m);
+
+      if (!got.length) return;
+
+      likeList.replaceChildren(...got.map(likeRow));
+      likeBox.hidden = false;
+      likeBox.classList.add('is-in');
+    })
+    .catch(() => {
+      /* stays hidden */
+    });
+}
+
+// romaji is what people actually call them; english is often a licensing
+// title nobody uses, and native is unreadable to most of the page
+const nameOf = t => t.romaji || t.english || t.native || '';
+
+const plain = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+// one of the titles it came back under has to be the one that was asked
+// for, give or take a "the" and the punctuation
+function answersTo(title, asked) {
+  const want = plain(asked).replace(/^the /, '');
+  return [title.romaji, title.english, title.native]
+    .filter(Boolean)
+    .some(t => plain(t).replace(/^the /, '') === want);
+}
+
+/* Anilist's format is the field that says what something actually is. The
+   God of High School is a manhwa, not a manga — calling it one is exactly
+   the kind of thing a page has no business getting wrong about something
+   it claims to like. Every value anilist can send for a written work is
+   spelled out here rather than left to a fallback. */
+const FORMAT = {
+  MANGA: 'manga',
+  MANHWA: 'manhwa',
+  MANHUA: 'manhua',
+  NOVEL: 'light novel',
+  ONE_SHOT: 'one shot'
+};
+const STATE = {
+  RELEASING: 'still going',
+  FINISHED: 'finished',
+  HIATUS: 'on hiatus',
+  NOT_YET_RELEASED: 'not out yet',
+  CANCELLED: 'cancelled'
+};
+
+function likeRow(media) {
+  const li = document.createElement('li');
+
+  const plate = document.createElement('div');
+  plate.className = 'cover';
+
+  /* The plate only covers its empty mark once the picture has really
+     loaded, so a blocked cdn leaves the mark rather than a broken image.
+
+     It is hidden with visibility rather than the hidden attribute, which
+     is display:none — and a display:none image is never near the viewport,
+     so a lazy one never loads, so the load event that would reveal it
+     never fires. The image waits for itself forever. */
+  const art = document.createElement('img');
+  art.alt = '';
+  art.loading = 'lazy';
+  art.width = 230;
+  art.height = 345;
+  art.addEventListener('load', () => art.classList.add('is-there'));
+  art.addEventListener('error', () => art.classList.remove('is-there'));
+  if (media.coverImage && media.coverImage.large) art.src = media.coverImage.large;
+  plate.append(art);
+
+  const void_ = document.createElement('span');
+  void_.className = 'cover-void';
+  void_.setAttribute('aria-hidden', 'true');
+  plate.append(void_);
+  li.append(plate);
+
+  const body = document.createElement('div');
+  body.className = 'like-text';
+
+  const name = document.createElement('p');
+  name.className = 'like-name';
+  const link = document.createElement('a');
+  link.href = media.siteUrl || 'https://anilist.co';
+  link.textContent = nameOf(media.title);
+  name.append(link);
+  body.append(name);
+
+  if (media.title.native) {
+    const native = document.createElement('p');
+    native.className = 'like-native';
+    native.textContent = media.title.native;
+    body.append(native);
   }
 
-  if (meta.childElementCount) li.append(meta);
+  const bits = [
+    FORMAT[media.format] || (media.format || '').toLowerCase().replace(/_/g, ' '),
+    STATE[media.status],
+    media.chapters ? `${media.chapters} chapters` : '',
+    media.startDate && media.startDate.year ? `since ${media.startDate.year}` : ''
+  ].filter(Boolean);
+
+  if (bits.length) {
+    const meta = document.createElement('p');
+    meta.className = 'like-meta';
+    meta.textContent = bits.join(' · ');
+    body.append(meta);
+  }
+
+  li.append(body);
   return li;
 }
 

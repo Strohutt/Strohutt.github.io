@@ -30,7 +30,7 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   });
   await p.waitForTimeout(2500);
   check('all upstreams dead: page still stands', !(await overflows(p)));
-  check('all upstreams dead: pushes stay hidden', await p.evaluate(() => document.getElementById('pushes').hidden));
+  check('all upstreams dead: the repo list stays hidden', await p.evaluate(() => document.getElementById('work').hidden));
   check('all upstreams dead: readout says so',
     /reach|can't|offline/i.test(await p.evaluate(() => document.getElementById('dc-state').textContent)),
     await p.evaluate(() => document.getElementById('dc-state').textContent));
@@ -39,24 +39,43 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   // ── github rate limits
   p = await open({ '**/api.github.com/**': r => r.fulfill({ status: 403, contentType: 'application/json', body: '{"message":"rate limit"}' }) });
   await p.waitForTimeout(1800);
-  check('github 403: panel stays hidden', await p.evaluate(() => document.getElementById('pushes').hidden));
+  check('github 403: panel stays hidden', await p.evaluate(() => document.getElementById('work').hidden));
   await p.close();
 
   // ── github answers with junk
   p = await open({ '**/api.github.com/**': r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"not":"an array"}' }) });
   await p.waitForTimeout(1500);
-  check('github junk: panel stays hidden', await p.evaluate(() => document.getElementById('pushes').hidden));
+  check('github junk: panel stays hidden', await p.evaluate(() => document.getElementById('work').hidden));
   await p.close();
 
-  // ── github answers with events that have no commits
+  /* The repository list is the spine of that region and the events feed
+     only adds a line to each row. With the list refused and the events
+     answering, the events are all there is to go on — which is what the
+     second region used to be on its own. */
   p = await open({
-    '**/api.github.com/**': r => r.fulfill({
+    '**/api.github.com/**/repos**': r => r.fulfill({ status: 403, contentType: 'application/json', body: '{}' }),
+    '**/api.github.com/**/events/**': r => r.fulfill({
       status: 200, contentType: 'application/json',
-      body: JSON.stringify([{ type: 'PushEvent', repo: { name: 'a/b' }, created_at: new Date().toISOString(), payload: {} }])
+      body: JSON.stringify([{ type: 'PushEvent', repo: { name: 'Strohutt/only-this' }, created_at: new Date().toISOString(), payload: { size: 2, commits: [{ message: 'A message' }] } }])
     })
   });
-  await p.waitForTimeout(1500);
-  check('push with no commits renders', await p.evaluate(() => document.querySelectorAll('#push-list li').length) === 1);
+  await p.waitForTimeout(1800);
+  check('no repo list: the pushes carry the region alone',
+    await p.evaluate(() => document.querySelectorAll('#work-list li').length) === 1 &&
+    await p.evaluate(() => document.querySelector('.work-name').textContent) === 'only-this',
+    await p.evaluate(() => (document.querySelector('.work-name') || {}).textContent || 'none'));
+  await p.close();
+
+  // and a push carrying no commits still renders its row
+  p = await open({
+    '**/api.github.com/**/repos**': r => r.abort(),
+    '**/api.github.com/**/events/**': r => r.fulfill({
+      status: 200, contentType: 'application/json',
+      body: JSON.stringify([{ type: 'PushEvent', repo: { name: 'Strohutt/bare' }, created_at: new Date().toISOString(), payload: {} }])
+    })
+  });
+  await p.waitForTimeout(1800);
+  check('a push with no commits renders', await p.evaluate(() => document.querySelectorAll('#work-list li').length) === 1);
   await p.close();
 
   // ── twenty activities, all with very long names
@@ -189,9 +208,9 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   await p.route('**/api.lanyard.rest/**', r => r.fulfill(SONG(true)));
   await p.goto(BASE + '/index.html');
   await p.waitForTimeout(1800);
-  check('a good visit fills both github regions',
+  check('a good visit fills the repo list, commit line and all',
     await p.evaluate(() => document.querySelectorAll('#work-list li').length) === 1 &&
-    await p.evaluate(() => document.querySelectorAll('#push-list li').length) === 1);
+    await p.evaluate(() => document.querySelectorAll('.work-last').length) === 1);
   check('a track that is playing says so',
     await p.evaluate(() => document.getElementById('music-kicker').textContent) === 'now playing');
   await p.close();
@@ -223,7 +242,7 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   p = await open({ '**/api.github.com/**': r => r.abort(), '**/api.lanyard.rest/**': r => r.fulfill(SONG(false)) });
   await p.waitForTimeout(1800);
   check('cold and refused: both github regions stay hidden',
-    await p.evaluate(() => document.getElementById('work').hidden && document.getElementById('pushes').hidden));
+    await p.evaluate(() => document.getElementById('work').hidden));
   check('cold and quiet: the panel says nothing is playing',
     await p.evaluate(() => document.getElementById('track-song').textContent) === 'nothing playing');
   check('cold and quiet: no link to a track nobody picked',
@@ -262,6 +281,111 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
     await p.evaluate(() => document.getElementById('track-song').textContent) === 'Kaikai Kitan');
   await p.close();
   await kept.close();
+
+  /* Anilist. This is the one upstream nobody here can reach, so every
+     shape it might answer with is forced rather than assumed. */
+  const media = (over = {}) => ({
+    id: 1, siteUrl: 'https://anilist.co/manga/1', format: 'MANGA', status: 'RELEASING',
+    chapters: 271, volumes: 30, title: { romaji: 'Jujutsu Kaisen', english: 'Jujutsu Kaisen', native: '呪術廻戦' },
+    coverImage: { large: 'https://example.invalid/cover.jpg' }, startDate: { year: 2018 }, ...over
+  });
+  const anilist = body => r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+
+  p = await open({ '**/graphql.anilist.co/**': r => r.abort(), '**/api.github.com/**': r => r.abort() });
+  await p.waitForTimeout(2000);
+  check('anilist dead: the panel stays hidden', await p.evaluate(() => document.getElementById('likes').hidden));
+  await p.close();
+
+  p = await open({ '**/graphql.anilist.co/**': anilist({ errors: [{ message: 'nope' }] }) });
+  await p.waitForTimeout(1800);
+  check('anilist errors: the panel stays hidden', await p.evaluate(() => document.getElementById('likes').hidden));
+  await p.close();
+
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: null, gohs: null, op: null } }) });
+  await p.waitForTimeout(1800);
+  check('anilist finds none of them: the panel stays hidden',
+    await p.evaluate(() => document.getElementById('likes').hidden));
+  await p.close();
+
+  // one of the three missing is still worth showing
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: media(), gohs: null, op: media({ title: { romaji: 'One Piece', native: 'ONE PIECE' } }) } }) });
+  await p.waitForTimeout(1800);
+  check('anilist missing one: the other two still show',
+    await p.evaluate(() => document.querySelectorAll('#like-list li').length) === 2,
+    String(await p.evaluate(() => document.querySelectorAll('#like-list li').length)));
+  await p.close();
+
+  // a record with nothing but a title, which is all the code may assume
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: { title: { romaji: 'Jujutsu Kaisen' } } } }) });
+  await p.waitForTimeout(1800);
+  check('anilist sends only a title: it still renders',
+    await p.evaluate(() => document.querySelectorAll('#like-list li').length) === 1 &&
+    await p.evaluate(() => document.querySelector('.like-name').textContent) === 'Jujutsu Kaisen');
+  check('a record with no cover keeps its empty plate',
+    await p.evaluate(() => !!document.querySelector('.cover-void') &&
+      getComputedStyle(document.querySelector('.cover-void')).display !== 'none'));
+  await p.close();
+
+  /* An image that starts display:none and is loading="lazy" never loads —
+     it is never near the viewport, so the load event that would reveal it
+     never fires, and it waits for itself for as long as the tab is open.
+     Nothing errors and nothing appears. */
+  const COVER = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 345"><rect width="230" height="345" fill="#c9c4b8"/></svg>');
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: media({ coverImage: { large: COVER } }) } }) });
+  await p.waitForTimeout(2200);
+  const cover = await p.evaluate(() => {
+    const img = document.querySelector('.cover img');
+    return { loaded: img.complete && img.naturalWidth > 0, shown: img.classList.contains('is-there'),
+      plate: getComputedStyle(document.querySelector('.cover-void')).display };
+  });
+  check('a cover that exists actually loads', cover.loaded, JSON.stringify(cover));
+  check('a loaded cover is visible', cover.shown, JSON.stringify(cover));
+  check('a loaded cover covers its empty plate', cover.plate === 'none', cover.plate);
+  await p.close();
+
+  // the cover host refusing must not leave a broken image
+  p = await open({
+    '**/graphql.anilist.co/**': anilist({ data: { jjk: media() } }),
+    '**/example.invalid/**': r => r.abort()
+  });
+  await p.waitForTimeout(2000);
+  check('a blocked cover leaves the plate, not a broken image',
+    await p.evaluate(() => !document.querySelector('.cover img').classList.contains('is-there') &&
+      getComputedStyle(document.querySelector('.cover-void')).display !== 'none'));
+  await p.close();
+
+  /* A search returns a best match, not a promise: it can hand back a
+     spin-off, a colour edition or a databook. The card would then state
+     that thing's format and chapter count under a heading saying these
+     are his favourites. */
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: {
+    jjk: media({ title: { romaji: 'Jujutsu Kaisen 0: Tokyo Metropolitan Curse Technical School' } }),
+    op: media({ title: { romaji: 'One Piece' } })
+  } }) });
+  await p.waitForTimeout(1800);
+  check('a search that lands on a spin-off is dropped',
+    JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.like-name')].map(a => a.textContent))) === '["One Piece"]',
+    JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.like-name')].map(a => a.textContent))));
+  await p.close();
+
+  // the same work under a name with an article and different punctuation
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: {
+    gohs: media({ title: { romaji: 'God of High School', native: '갓 오브 하이스쿨' }, format: 'MANHWA' })
+  } }) });
+  await p.waitForTimeout(1800);
+  check('a leading "the" and punctuation do not lose a match',
+    await p.evaluate(() => document.querySelectorAll('#like-list li').length) === 1);
+  check('a manhwa is called a manhwa',
+    /manhwa/i.test(await p.evaluate(() => (document.querySelector('.like-meta') || {}).textContent || '')),
+    await p.evaluate(() => (document.querySelector('.like-meta') || {}).textContent || ''));
+  await p.close();
+
+  // a title long enough to be a paragraph
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk: media({ title: { romaji: 'Jujutsu Kaisen', native: LONG } }) } }) });
+  await p.waitForTimeout(1800);
+  check('a 220-char title does not overflow', !(await overflows(p)));
+  await p.close();
 
   await b.close();
   console.log(fails.length ? '\n' + fails.length + ' FAILING: ' + fails.join(' | ') : '\nall failure modes hold');
