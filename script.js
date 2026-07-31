@@ -409,6 +409,114 @@ const flagHit = document.getElementById('flag-hit');
 if (flagHit) flagHit.addEventListener('click', () => knock(flagHit, 'is-struck'));
 
 
+/* ────────────────────────── ログポース ─────────────────────────── */
+
+/* A log pose points at the island you have not reached yet, and once
+   you have been on one long enough it locks onto the next. The regions
+   of this page are the islands: the needle points at the first one that
+   is still below the middle of the screen, swings past it as it goes
+   by, and once they have all been passed it points home.
+
+   The angle is the real one — from the dial on the screen to the middle
+   of that region on the screen — so it behaves like something pointing
+   at a place rather than like a progress bar. */
+const pose = document.getElementById('pose');
+const poseHit = document.getElementById('pose-hit');
+const poseName = document.getElementById('pose-name');
+const poseTo = document.querySelector('.pose-to');
+
+if (pose && poseHit && poseName) {
+  const ISLANDS = [
+    ['.now', 'right now'],
+    ['.likes', 'favourites'],
+    ['.score', 'black flash'],
+    ['.foot', 'the sea'],
+    ['.hero', 'the top']
+  ];
+
+  let target = null;
+  let queued = false;
+  let saying = 0;
+
+  const islands = () => ISLANDS
+    .map(([sel, name]) => [document.querySelector(sel), name])
+    // a region whose upstream never answered takes itself off the page,
+    // and an island that is not there is not somewhere to sail to
+    .filter(([el]) => el && el.offsetParent !== null && !el.hidden);
+
+  const look = () => {
+    queued = false;
+    const list = islands();
+    if (!list.length) return;
+
+    const mid = innerHeight * .55;
+    /* It holds onto an island until that island is behind you, rather
+       than dropping it the moment its top edge goes past — which is
+       what a log pose does, and it is also the only way the needle ever
+       gets to sweep. Locked to what is ahead, the needle sits at the
+       same angle for the whole page and switches when it would have
+       been about to move.
+
+       At the very foot of the page there is nothing ahead, however the
+       boxes happen to fall: the only place left to go is back. */
+    const landed = scrollY + innerHeight >= (document.documentElement.scrollHeight - 8);
+    let found = landed ? list[list.length - 1]
+      : list.find(([el, name]) => name !== 'the top' && el.getBoundingClientRect().bottom > mid);
+    if (!found) found = list[list.length - 1];
+
+    if (found[0] !== target) {
+      target = found[0];
+      poseName.textContent = found[1];
+      /* said out loud for a moment whenever it locks onto a new one,
+         which is the only way somebody without a pointer ever sees it */
+      pose.classList.add('is-saying');
+      clearTimeout(saying);
+      saying = setTimeout(() => pose.classList.remove('is-saying'), 2400);
+    }
+
+    // and it says which of the two it is: somewhere to go, or where you are
+    const on = !landed && found[0].getBoundingClientRect().top <= mid;
+    if (poseTo) poseTo.textContent = on ? 'here' : 'next';
+
+    /* Measured from the middle of the screen rather than from the dial
+       in the corner. The dial is pinned to the foot of the window, so
+       reading the angle off it has the needle pointing up at a region
+       that is plainly further down the page — true of the two boxes and
+       useless to anybody looking at it. Where you are is the middle of
+       what you can see.
+
+       And the lead is a fixed distance ahead rather than the region's
+       own middle: a full-width region is six hundred pixels to the
+       right of the corner, which swamps every bit of the up and down
+       the needle is there to show. */
+    const box = target.getBoundingClientRect();
+    const dy = box.top + Math.min(box.height, innerHeight) / 2 - innerHeight / 2;
+    const dx = Math.max(150, Math.min(330, innerWidth * .2));
+    pose.style.setProperty('--ndl', `${(Math.atan2(dy, dx) * 180 / Math.PI).toFixed(1)}deg`);
+  };
+
+  const soon = () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(look);
+  };
+
+  addEventListener('scroll', soon, { passive: true });
+  addEventListener('resize', soon, { passive: true });
+  /* the favourites arrive late and the music can take itself away, and
+     either changes what the islands are */
+  setTimeout(soon, 1200);
+  setTimeout(soon, 3000);
+  whenOpen(soon);
+  look();
+
+  poseHit.addEventListener('click', () => {
+    if (!target) return;
+    target.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' });
+  });
+}
+
+
 /* ─────────────────────────── 여의봉 ────────────────────────────── */
 
 /* Yeoui: a stone staff with a gold band at each end that grows to

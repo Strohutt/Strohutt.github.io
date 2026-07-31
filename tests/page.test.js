@@ -214,6 +214,44 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
     Math.abs(home.len - parked.len) <= 2 && Math.abs(parseFloat(home.turn) - parseFloat(parked.turn)) < .05,
     `${JSON.stringify(home)} vs ${JSON.stringify(parked)}`);
 
+  /* ── ログポース ─────────────────────────────────────────────────
+     The one piece of navigation on the page. It has to name where it
+     is taking you, change as the page goes by, actually take you
+     there, and point home once there is nothing left ahead. */
+  const poseOf = () => p.evaluate(() => ({
+    ndl: parseFloat(getComputedStyle(document.getElementById('pose')).getPropertyValue('--ndl')),
+    to: document.querySelector('.pose-to').textContent,
+    name: document.getElementById('pose-name').textContent,
+    label: document.getElementById('pose-hit').textContent.replace(/\s+/g, ' ').trim()
+  }));
+
+  await p.evaluate(() => scrollTo(0, 0));
+  await p.waitForTimeout(500);
+  const top = await poseOf();
+  check('the pose says where it is taking you', /right now/.test(top.label), top.label);
+
+  await p.evaluate(() => scrollTo(0, 900));
+  await p.waitForTimeout(600);
+  const along = await poseOf();
+  check('and it locks onto the next one as the page goes by',
+    along.name !== top.name || along.ndl !== top.ndl, `${top.name}@${top.ndl} → ${along.name}@${along.ndl}`);
+
+  await p.evaluate(() => scrollTo(0, 0));
+  await p.waitForTimeout(500);
+  await p.click('#pose-hit');
+  await p.waitForTimeout(1500);
+  check('and pressing it sails there', await p.evaluate(() => scrollY) > 200,
+    String(await p.evaluate(() => Math.round(scrollY))));
+
+  await p.evaluate(() => scrollTo(0, document.body.scrollHeight));
+  await p.waitForTimeout(700);
+  const end = await poseOf();
+  check('at the end of the page it points home', /the top/.test(end.name), end.name);
+  await p.click('#pose-hit');
+  await p.waitForTimeout(1600);
+  check('and takes you back there', await p.evaluate(() => scrollY) < 120,
+    String(await p.evaluate(() => Math.round(scrollY))));
+
   // scrolling has to reach the drawings, not just the text
   await p.evaluate(() => scrollTo(0, 900));
   await p.waitForTimeout(400);

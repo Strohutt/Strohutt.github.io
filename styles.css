@@ -789,6 +789,149 @@ a {
   opacity: .55;
 }
 
+/* ══ ログポース ═══════════════════════════════════════════════
+   A log pose records the magnetic wave of the island it is on and
+   points at the next one. The regions of this page are the islands, so
+   the needle points at whichever one has not been reached yet, swings
+   past it as it goes by, and at the end of the page it points home.
+
+   It sits in the corner the tally does not use, and it is the only
+   thing on the page that is fixed to the screen and can be pressed. */
+.pose {
+  position: fixed;
+  left: clamp(.7rem, 2vw, 1.4rem);
+  bottom: clamp(.7rem, 2vw, 1.4rem);
+  z-index: 37;
+  --ndl: 90deg;
+}
+
+/* The dial is the whole of the control. The words are beside it rather
+   than part of it, so what is fixed to the corner of the screen is one
+   small object and not a label lying across whatever is under it —
+   which at the top of the page is the first row of the readout. */
+.pose-hit {
+  position: relative;
+  display: block;
+  width: clamp(3.4rem, 8vw, 4.6rem);
+  padding: 0;
+  cursor: pointer;
+  color: var(--paper-2);
+  text-align: left;
+}
+
+/* It is an object lying on the page rather than a panel, so it gets no
+   box — but it is fixed to the screen and whatever it happens to be
+   over has to give way rather than fight it. The same backing the
+   domain's reading is given. */
+.pose-hit::before {
+  content: "";
+  position: absolute;
+  inset: -.7rem;
+  z-index: -1;
+  background: radial-gradient(58% 58% at 50% 50%, rgb(8 8 11 / .9), rgb(8 8 11 / 0) 78%);
+}
+
+.pose-art {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  display: block;
+}
+
+.pose-case,
+.pose-needle {
+  position: absolute;
+  display: block;
+}
+
+.pose-case {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* the needle hangs off the wire by its middle, so its own box is
+   centred on the point it turns about and the rotation needs no offset */
+.pose-needle {
+  left: 50%;
+  top: 52.7%;
+  width: 66%;
+  height: 66%;
+  translate: -50% -50%;
+  rotate: var(--ndl, 90deg);
+  /* it settles like something floating in liquid: quick, and it goes
+     past the mark once before it stops */
+  transition: rotate .7s cubic-bezier(.2, 1.5, .4, 1);
+}
+
+.lp-strap { fill: #241d16; stroke: var(--paper); stroke-width: 3; stroke-linejoin: round; }
+.lp-stitch { fill: none; stroke: var(--paper); stroke-width: 1.6; stroke-opacity: .4; stroke-dasharray: 5 6; stroke-linecap: round; }
+.lp-brass { fill: #8a6c1f; stroke: var(--paper); stroke-width: 3.2; }
+.lp-brass-lit { fill: none; stroke: #f7ecb8; stroke-width: 6; stroke-opacity: .65; stroke-linecap: round; }
+.lp-brass-dark { fill: none; stroke: #2a1f05; stroke-width: 8; stroke-opacity: .55; stroke-linecap: round; }
+.lp-tick { fill: none; stroke: var(--paper); stroke-width: 2; stroke-opacity: .5; stroke-linecap: round; }
+.lp-tick-big { stroke-width: 3.4; stroke-opacity: .8; }
+.lp-glass { fill: #10131b; stroke: var(--paper); stroke-width: 2.6; }
+.lp-shine { fill: none; stroke: var(--paper); stroke-width: 5; stroke-opacity: .3; stroke-linecap: round; }
+.lp-shine-2 { stroke-width: 2.6; stroke-opacity: .5; }
+.lp-under { fill: none; stroke: #000; stroke-width: 12; stroke-opacity: .5; stroke-linecap: round; }
+.lp-wire { fill: none; stroke: var(--paper); stroke-width: 1.6; stroke-opacity: .55; }
+.lp-tail { fill: var(--ink-3); stroke: var(--paper); stroke-width: 2.4; stroke-opacity: .5; stroke-linejoin: round; }
+.lp-point { fill: var(--blood); stroke: var(--paper); stroke-width: 2.4; stroke-linejoin: round; }
+.lp-needle-lit { fill: none; stroke: #ffd3d8; stroke-width: 2; stroke-opacity: .6; stroke-linecap: round; }
+.lp-pin { fill: #c9a227; stroke: var(--paper); stroke-width: 2; }
+
+/* Said when it changes, and while it is being pointed at. It is never
+   taken out of the tree — the words are the button's own name, and a
+   button that only says where it goes to somebody with a pointer is a
+   button nobody else can use. */
+.pose-text {
+  position: absolute;
+  left: calc(100% + .5rem);
+  top: 50%;
+  translate: -.4rem -50%;
+  display: grid;
+  gap: .1rem;
+  width: max-content;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .28s ease, translate .28s cubic-bezier(.2, .9, .3, 1);
+}
+
+.pose:hover .pose-text,
+.pose-hit:focus-visible .pose-text,
+.pose.is-saying .pose-text {
+  opacity: 1;
+  translate: 0 -50%;
+}
+
+.pose-text::before {
+  content: "";
+  position: absolute;
+  inset: -.7rem -1.4rem -.7rem -1rem;
+  z-index: -1;
+  background: radial-gradient(62% 62% at 44% 50%, rgb(8 8 11 / .9), rgb(8 8 11 / 0) 78%);
+}
+
+.pose-to {
+  font-size: .52rem;
+  font-weight: 700;
+  letter-spacing: .28em;
+  text-indent: .28em;
+  text-transform: uppercase;
+  color: var(--paper-3);
+}
+
+.pose-name {
+  font-family: "Shippori Mincho B1", Georgia, serif;
+  font-size: .92rem;
+  line-height: 1.1;
+  color: var(--paper);
+}
+
+.pose-hit:hover .pose-name,
+.pose-hit:focus-visible .pose-name { color: var(--blood-lit); }
+
 /* ══ 여의봉 ═══════════════════════════════════════════════════
    Yeoui, the staff, which grows to whatever length is asked of it. So
    it cannot be one drawing: an end, a middle that stretches, an end.
@@ -2702,6 +2845,7 @@ svg.flag {
 .band,
 .flag,
 .staff-grip,
+.pose-hit,
 .name button {
   -webkit-appearance: none;
   appearance: none;
