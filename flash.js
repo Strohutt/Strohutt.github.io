@@ -42,15 +42,35 @@ if (curtain) {
 
   let cutTimer = 0;
   let doneTimer = 0;
+  let barred = false;
+
+  /* Everything the page does when it arrives — the stroke inking itself
+     in, the regions assembling a part at a time — used to happen while
+     this was still over the top of it, and the page came out of the white
+     already built. It waits for this instead, so the barrier lifts on a
+     page that then puts itself together in front of you.
+
+     Said once per showing whichever way the barrier went, because the
+     thing on the other end has no way of telling a timer running out from
+     somebody clicking through it. */
+  const open = () => {
+    document.documentElement.classList.remove('is-cast');
+    if (!barred) return;
+    barred = false;
+    dispatchEvent(new Event('strohut:open'));
+  };
 
   const lift = () => {
-    if (curtain.classList.contains('is-done') && (!flare || flare.classList.contains('is-done'))) return;
+    if (curtain.classList.contains('is-done') && (!flare || flare.classList.contains('is-done'))) {
+      open();
+      return;
+    }
     curtain.classList.add('is-done');
     if (flare) {
       flare.classList.add('is-done');
       flare.classList.remove('is-going');
     }
-    document.documentElement.classList.remove('is-cast');
+    open();
     clearTimeout(cutTimer);
     clearTimeout(doneTimer);
     for (const kind of SKIPS) removeEventListener(kind, lift);
@@ -59,11 +79,12 @@ if (curtain) {
   const run = () => {
     clearTimeout(cutTimer);
     clearTimeout(doneTimer);
+    barred = true;
 
     // the drawing goes while the screen is white
     cutTimer = setTimeout(() => {
       curtain.classList.add('is-done');
-      document.documentElement.classList.remove('is-cast');
+      open();
     }, CUT);
 
     // and this is the one that has to happen whatever else did not

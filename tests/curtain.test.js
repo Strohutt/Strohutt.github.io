@@ -34,8 +34,30 @@ const up = p => p.evaluate(() => {
     await p.evaluate(() => document.querySelectorAll('.panel').length >= 4 &&
       !!document.querySelector('h1') && document.body.innerText.includes('right now')));
 
+  /* Nothing underneath it is allowed to have arrived yet. The regions in
+     view used to assemble themselves behind the barrier and be sitting
+     there finished when it went, which threw away the one moment on the
+     page where everything is about to happen. */
+  check('what is under it has not arrived yet',
+    await p.evaluate(() => ![...document.querySelectorAll('.reveal')].some(s => s.classList.contains('is-in'))));
+  check('and the stroke has not been pulled',
+    await p.evaluate(() => {
+      const a = document.getElementById('brush').getAnimations()[0];
+      return Boolean(a) && a.playState === 'paused';
+    }));
+
   await p.waitForTimeout(2200);
   check('it lifts on its own', !(await up(p)));
+
+  /* .now only. Nothing is mocked here, so the music region has hidden
+     itself and the favourites never appeared — both correctly. */
+  check('and then what is in view arrives',
+    await p.evaluate(() => document.querySelector('.now').classList.contains('is-in')));
+  check('and the stroke is pulled',
+    await p.evaluate(() => {
+      const a = document.getElementById('brush').getAnimations()[0];
+      return !a || a.playState !== 'paused';
+    }));
   check('and stops being in the way',
     await p.evaluate(() => getComputedStyle(document.getElementById('curtain')).display) === 'none');
   check('what is under it can be clicked once it is gone',
@@ -73,8 +95,14 @@ const up = p => p.evaluate(() => {
   await p.goto(BASE + '/index.html');
   await p.waitForTimeout(200);
   await p.mouse.click(600, 400);
-  await p.waitForTimeout(120);
+  await p.waitForTimeout(400);
   check('a click takes it down at once', !(await up(p)));
+  /* Clicking through it is not the timer running out, and what is
+     underneath is waiting on a word from one place. Miss this path and
+     anybody impatient enough to skip the barrier gets a page that never
+     arrives at all. */
+  check('and clicking through it still lets the page arrive',
+    await p.evaluate(() => document.querySelector('.now').classList.contains('is-in')));
   await p.close();
 
   p = await c.newPage();

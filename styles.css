@@ -704,6 +704,13 @@ a {
   animation-play-state: paused;
 }
 
+/* Reaching for it winds it up. Four times its resting speed, which is
+   still slow — the point is that it noticed, not that it spun. */
+.sigil:hover ~ .wheel .wheel-turn,
+.sigil:focus-visible ~ .wheel .wheel-turn {
+  animation-duration: 24s;
+}
+
 /* ink fill, not none — the spokes have to be occluded by the rim.
    stroke and stroke-width are inherited, and inheritance is the only
    thing that crosses a <use> shadow boundary, so they are set on the svg
@@ -786,8 +793,20 @@ a {
   fill: var(--blood);
 }
 
+/* The stroke is pulled once, when the page arrives. Held while the
+   barrier is up: it used to be inked in behind 無量空処 and be sitting
+   there finished the moment that lifted. Paused rather than delayed,
+   because a delay has to know how long the barrier lasts and this does
+   not — it just does not start until there is nothing over it. */
 [data-js] .brush {
   animation: pull .8s .25s cubic-bezier(.2, .9, .2, 1) backwards;
+}
+
+/* No space. data-js and is-cast are both set on the html element, so a
+   descendant combinator between them asks for one inside the other and
+   matches nothing at all. */
+[data-js].is-cast .brush {
+  animation-play-state: paused;
 }
 
 .bs-skip {
@@ -2083,6 +2102,17 @@ svg.band {
   margin-block: clamp(.4rem, 2vw, 1.4rem);
 }
 
+/* Reaching the bottom of a page is usually the one thing on it that gets
+   no answer at all. Here it runs the colours up: the flag comes out of
+   the water it is now standing over, once, when the footer arrives. */
+[data-js] .foot.is-in .flag {
+  animation: hoist 1.1s cubic-bezier(.16, .84, .3, 1) backwards;
+}
+
+@keyframes hoist {
+  from { translate: 0 46%; opacity: 0; }
+}
+
 .flag svg,
 svg.flag {
   --drift: 0px;
@@ -2239,9 +2269,27 @@ svg.flag {
   100% { stroke: var(--paper); stroke-width: 2.4; }
 }
 
-/* the cloud gets shoved along and settles */
+/* The cloud gets shoved along and settles.
+
+   On the button, not on the drawing inside it. The drawing's idle drift
+   is an infinite animation on its transform, and an animation beats a
+   declaration for as long as it runs — so the shove was set on a property
+   that was never going to be rendered, and clicking a cloud changed a
+   number and moved nothing. Here there is nothing competing.
+
+   scale, translate and transform are three separate properties, which is
+   the only reason the shove, the stretch and the skew can sit on one
+   element without any of them having to know about the others. */
 .band {
   --shove: 0;
+  translate: calc(var(--shove) * 1.7%) 0;
+  transform: skewX(calc(var(--shove) * -.7deg));
+  /* and it stretches with how hard the page is being thrown about, the
+     same reading the speed lines use */
+  scale: calc(1 + var(--vel, 0) * .05) 1;
+  transition: translate .7s cubic-bezier(.2, .9, .2, 1),
+              transform .7s cubic-bezier(.2, .9, .2, 1),
+              scale .45s ease-out;
 }
 
 .band svg {
@@ -2249,8 +2297,6 @@ svg.flag {
   width: 100%;
   height: auto;
   overflow: visible;
-  transform: translateX(calc(var(--shove) * 1.6%)) skewX(calc(var(--shove) * -.6deg));
-  transition: transform .7s cubic-bezier(.2, .9, .2, 1);
 }
 
 .band.is-struck svg {
