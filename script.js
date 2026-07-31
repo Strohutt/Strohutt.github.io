@@ -60,15 +60,24 @@ if (hero && !stillPlease.matches && matchMedia('(pointer: fine)').matches) {
   }, { passive: true });
 }
 
-const drifters = document.querySelectorAll('.band svg, .flag svg');
+const drifters = document.querySelectorAll('.band svg, svg.band, .flag svg, svg.flag');
 
 if (drifters.length && !stillPlease.matches) {
-  const RATE = [.05, .04];
+  // one rate per drifter, none of them a multiple of another, so no two
+  // ever move together for long enough to look like one layer
+  const RATE = [.07, -.05, .04];
   let waiting = false;
+
+  /* The wheel is the largest thing on the page and it was the only thing
+     that did not answer to scrolling. It turns with the page now — which
+     is what a wheel does when something rolls past it — on top of its own
+     slow ratchet, so the two never line up into one obvious loop. */
+  const wheelArt = document.querySelector('.wheel');
 
   const shift = () => {
     const y = scrollY;
     drifters.forEach((el, i) => el.style.setProperty('--drift', `${(y * RATE[i % RATE.length]).toFixed(1)}px`));
+    if (wheelArt) wheelArt.style.setProperty('--roll', `${(y * .06).toFixed(2)}deg`);
     waiting = false;
   };
 
@@ -93,15 +102,14 @@ const STROKES = [
   "<path class=\"bs-body\" d=\"M12 45.3C20.9 43.5 47.6 36.6 65.5 34.1C83.3 31.5 101.1 31.3 118.9 30.2C136.7 29.1 154.5 28 172.4 27.4C190.2 26.7 208 26.6 225.8 26.4C243.6 26.2 261.5 26.2 279.3 26.2C297.1 26.2 314.9 26.2 332.7 26.4C350.5 26.5 368.4 27.1 386.2 27.2C404 27.4 421.8 26.9 439.6 27.3C457.5 27.6 475.3 28.8 493.1 29.2C510.9 29.6 528.7 29.3 546.5 29.7C564.4 30.2 582.2 31.2 600 31.8C617.8 32.4 635.6 33 653.5 33.3C671.3 33.7 689.1 33.5 706.9 33.8C724.7 34.2 742.5 35.3 760.4 35.7C778.2 36.1 796 35.7 813.8 36.2C831.6 36.7 849.5 38.1 867.3 38.6C885.1 39.1 902.9 39 920.7 39.2C938.5 39.4 956.4 39.5 974.2 39.8C992 40.1 1009.8 41 1027.6 41.2C1045.5 41.5 1063.3 41.3 1081.1 41.2C1098.9 41.2 1116.7 40.9 1134.5 41.1C1152.4 41.2 1179.1 42 1188 42.2L1188 42.5C1179.1 42.8 1152.4 44 1134.5 44.6C1116.7 45.1 1098.9 45.2 1081.1 45.7C1063.3 46.2 1045.5 47 1027.6 47.6C1009.8 48.3 992 48.8 974.2 49.6C956.4 50.4 938.5 51.5 920.7 52.4C902.9 53.2 885.1 54.1 867.3 54.7C849.5 55.4 831.6 55.5 813.8 56.1C796 56.6 778.2 57.1 760.4 58C742.5 58.8 724.7 60.4 706.9 61.1C689.1 61.9 671.3 62 653.5 62.6C635.6 63.2 617.8 64.3 600 64.8C582.2 65.3 564.4 65.4 546.5 65.8C528.7 66.3 510.9 67.3 493.1 67.7C475.3 68.1 457.5 68.3 439.6 68.4C421.8 68.4 404 68.1 386.2 68.1C368.4 68.1 350.5 68.2 332.7 68.2C314.9 68.3 297.1 68.6 279.3 68.4C261.5 68.2 243.6 67.8 225.8 67.2C208 66.6 190.2 65.7 172.4 64.9C154.5 64.2 136.7 64.1 118.9 62.8C101.1 61.6 83.3 60.3 65.5 57.5C47.6 54.6 20.9 47.7 12 45.8Z\"/><path class=\"bs-skip\" d=\"M747.3 32.6L969 31.9\" style=\"stroke-width:1.5\"/><path class=\"bs-skip\" d=\"M977.3 54.4L1200 52.5\" style=\"stroke-width:3.1\"/><path class=\"bs-skip\" d=\"M821.6 55.3L990.6 55.5\" style=\"stroke-width:1.4\"/><path class=\"bs-skip\" d=\"M793.9 27.9L877.3 27.8\" style=\"stroke-width:0.9\"/><path class=\"bs-skip\" d=\"M801.9 21.1L1057.1 20.3\" style=\"stroke-width:3.1\"/><path class=\"bs-skip\" d=\"M682 31.3L776.5 32.2\" style=\"stroke-width:1.7\"/><path class=\"bs-skip\" d=\"M594.1 61.4L786.7 61.5\" style=\"stroke-width:2.3\"/>"
   ];
 
-const cloudHit = document.getElementById('cloud-hit');
-if (cloudHit) {
+document.querySelectorAll('.band').forEach(band => {
   let shove = 0;
-  cloudHit.addEventListener('click', () => {
+  band.addEventListener('click', () => {
     shove = (shove + 1) % 4;
-    cloudHit.style.setProperty('--shove', shove);
-    knock(cloudHit, 'is-struck');
+    band.style.setProperty('--shove', shove);
+    knock(band, 'is-struck');
   });
-}
+});
 
 const flagHit = document.getElementById('flag-hit');
 if (flagHit) flagHit.addEventListener('click', () => knock(flagHit, 'is-struck'));
@@ -195,7 +203,7 @@ if (pushBox && pushList) {
       }
       if (!seen.size) return;
 
-      pushList.replaceChildren(...[...seen.values()].map(pushRow));
+      pushList.replaceChildren(...[...seen.values()].map((p, i) => pushRow(p, i)));
       pushBox.hidden = false;
       pushBox.classList.add('is-in');
     })
@@ -204,8 +212,9 @@ if (pushBox && pushList) {
     });
 }
 
-function pushRow(p) {
+function pushRow(p, i) {
   const li = document.createElement('li');
+  li.style.setProperty('--i', i);
 
   const link = document.createElement('a');
   link.className = 'push-repo';
@@ -225,6 +234,83 @@ function pushRow(p) {
   meta.textContent = `${p.count} commit${p.count === 1 ? '' : 's'} · ${ago(p.when)}`;
   li.append(meta);
 
+  return li;
+}
+
+/* ──────────────────── What he keeps poking at ──────────────────── */
+
+/* Commit messages say what changed this week; the repositories say what
+   someone actually spends their time on. Forks are somebody else's work
+   and archived ones are finished, so neither belongs here. */
+
+const workBox = document.getElementById('work');
+const workList = document.getElementById('work-list');
+
+if (workBox && workList) {
+  fetch(`https://api.github.com/users/${GH_USER}/repos?sort=pushed&per_page=100`)
+    .then(r => (r.ok ? r.json() : null))
+    .then(repos => {
+      if (!Array.isArray(repos)) return;
+
+      // github answering with the right shape is not the same as github
+      // answering with what was asked for, so the name is checked before
+      // it is read rather than after it throws
+      const mine = repos
+        .filter(r => r && typeof r.name === 'string' && !r.fork && !r.archived
+          && r.name.toLowerCase() !== `${GH_USER.toLowerCase()}.github.io`)
+        .slice(0, 6);
+
+      if (!mine.length) return;
+
+      workList.replaceChildren(...mine.map((repo, i) => workRow(repo, i)));
+      workBox.hidden = false;
+      workBox.classList.add('is-in');
+    })
+    .catch(() => {
+      /* stays hidden */
+    });
+}
+
+function workRow(repo, i) {
+  const li = document.createElement('li');
+  li.style.setProperty('--i', i);
+
+  const link = document.createElement('a');
+  link.className = 'work-name';
+  link.href = repo.html_url;
+  link.textContent = repo.name;
+  li.append(link);
+
+  if (repo.description) {
+    const what = document.createElement('p');
+    what.className = 'work-what';
+    what.textContent = repo.description;
+    li.append(what);
+  }
+
+  const meta = document.createElement('p');
+  meta.className = 'work-meta';
+
+  if (repo.language) {
+    const lang = document.createElement('span');
+    lang.className = 'work-lang';
+    lang.textContent = repo.language;
+    meta.append(lang);
+  }
+
+  if (repo.stargazers_count) {
+    const stars = document.createElement('span');
+    stars.textContent = `${repo.stargazers_count} star${repo.stargazers_count === 1 ? '' : 's'}`;
+    meta.append(stars);
+  }
+
+  if (repo.pushed_at) {
+    const when = document.createElement('span');
+    when.textContent = ago(repo.pushed_at);
+    meta.append(when);
+  }
+
+  if (meta.childElementCount) li.append(meta);
   return li;
 }
 

@@ -1,5 +1,11 @@
 const BASE = `http://localhost:${process.env.PORT || 8899}`;
 const { chromium } = require('playwright');
+const path = require('node:path');
+const fs = require('node:fs');
+
+// screenshots are for whoever is running this, not for the repository
+const OUT = path.join(__dirname, 'out');
+fs.mkdirSync(OUT, { recursive: true });
 const fails = [];
 const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? '  — ' + d : '')); if (!ok) fails.push(n); };
 
@@ -21,7 +27,7 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   p.on('pageerror', e => fails.push('280 pageerror: ' + e.message));
   await p.goto(BASE + '/index.html'); await p.waitForTimeout(1200);
   check('280px does not scroll sideways', !(await over(p)));
-  await p.screenshot({ path: 'iter/w280.png', fullPage: true });
+  await p.screenshot({ path: path.join(OUT, 'w280.png'), fullPage: true });
   await p.close();
 
   // ── someone has set their browser text to 200%
@@ -31,7 +37,7 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   await p.addStyleTag({ content: 'html { font-size: 32px !important; }' });
   await p.waitForTimeout(900);
   check('200% text does not scroll sideways', !(await over(p)));
-  await p.screenshot({ path: 'iter/zoom200.png', fullPage: true });
+  await p.screenshot({ path: path.join(OUT, 'zoom200.png'), fullPage: true });
   await p.close();
 
   // ── the same on a phone

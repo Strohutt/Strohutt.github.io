@@ -33,37 +33,102 @@ const DOMAIN_AT = 5;
 let streak = 0;
 let charge = null;
 
-/* the wheel keeps what it has already adapted to — that is the whole
-   point of the thing */
-function readAdapt() {
+/* Storage is not always there to be written to — private windows and a
+   full quota both throw — and none of this is worth losing the page over,
+   so every read falls back to zero and every write is allowed to fail. */
+function readNum(key) {
   try {
-    return Math.max(0, parseInt(localStorage.getItem('strohut-adapt'), 10) || 0);
+    return Math.max(0, parseInt(localStorage.getItem(key), 10) || 0);
   } catch {
     return 0;
   }
 }
 
-let adapted = readAdapt();
-
-function remember() {
+function write(key, value) {
   try {
-    localStorage.setItem('strohut-adapt', String(adapted));
+    localStorage.setItem(key, String(value));
   } catch {
     /* it just starts over next time */
   }
 }
 
-function readBest() {
-  try {
-    return Math.max(0, parseInt(localStorage.getItem('strohut-flash'), 10) || 0);
-  } catch {
-    return 0;
-  }
+/* the wheel keeps what it has already adapted to — that is the whole
+   point of the thing */
+let adapted = readNum('strohut-adapt');   // where it points, either way
+let turns = readNum('strohut-turns');     // how far it has been moved, ever
+let best = readNum('strohut-flash');
+let total = readNum('strohut-landed');
+
+/* Every turn goes through here — a landed flash, a press, a throw running
+   down — so there is one place that knows where the wheel is. */
+function turn(by) {
+  adapted += by;
+  turns += Math.abs(by);
+  write('strohut-adapt', adapted);
+  write('strohut-turns', turns);
+  if (wheel) wheel.style.setProperty('--adapt', adapted);
 }
 
-let best = readBest();
 if (tally) document.getElementById('tally-best').textContent = best;
 if (wheel && adapted) wheel.style.setProperty('--adapt', adapted);
+
+/* The score panel. The corner tally comes and goes with a run; this is
+   what is left over afterwards, and it is the only part of the page that
+   is about the person reading it rather than the one who wrote it. */
+const score = {
+  best: document.getElementById('score-best'),
+  total: document.getElementById('score-total'),
+  adapt: document.getElementById('score-adapt')
+};
+
+function post(cell, value, bump) {
+  if (!cell || cell.textContent === String(value)) return;
+  cell.textContent = value;
+  if (!bump) return;
+  cell.classList.remove('is-up');
+  void cell.offsetWidth;
+  cell.classList.add('is-up');
+}
+
+function tell(bump) {
+  post(score.best, best, bump);
+  post(score.total, total, bump);
+  post(score.adapt, turns, bump);
+}
+
+tell(false);
+
+/* The row of tally marks. A number tells you how you have done; twelve
+   marks tell you how the last two minutes went, which is the thing you
+   are actually trying to change while you are playing.
+
+   The row starts full of unstruck marks rather than empty. An empty row
+   is a gap in the panel that has to be reserved anyway, and it says
+   nothing; twelve faint marks say how many it remembers. */
+const marks = document.getElementById('score-marks');
+const MARK_KEEP = 12;
+let brush = 0;
+
+// five brushes taken in turn, so a run of misses is not one shape stamped
+// out twelve times
+function slotFor(hit, ghost) {
+  const slot = document.createElement('span');
+  slot.className = `mark${ghost ? ' is-ghost' : ''}${hit ? ' is-hit' : ''}`;
+  slot.innerHTML = `<svg viewBox="0 0 24 60"><use href="#tick-${1 + (brush++ % 5)}" /></svg>`;
+  return slot;
+}
+
+if (marks) {
+  marks.replaceChildren(...Array.from({ length: MARK_KEEP }, () => slotFor(false, true)));
+}
+
+function mark(hit) {
+  if (!marks) return;
+  // the row is a fixed twelve, so one falls off the left as one lands on
+  // the right and the panel never changes height
+  if (marks.firstElementChild) marks.firstElementChild.remove();
+  marks.append(slotFor(hit, false));
+}
 
 // anything you can actually operate is off limits, or this fires on top
 // of every link and button press
@@ -75,18 +140,18 @@ function windowNow() {
 
 function strikeAt(x, y, kind) {
   if (!strikes) return;
-  const mark = document.createElement('div');
-  mark.className = `strike strike-${kind}`;
-  mark.style.left = `${x}px`;
-  mark.style.top = `${y}px`;
+  const stamp = document.createElement('div');
+  stamp.className = `strike strike-${kind}`;
+  stamp.style.left = `${x}px`;
+  stamp.style.top = `${y}px`;
 
   if (kind === 'flash') {
     const which = 1 + Math.floor(Math.random() * 2);
-    mark.innerHTML = `<svg viewBox="0 0 400 400"><use href="#flash-${which}" /></svg>`;
+    stamp.innerHTML = `<svg viewBox="0 0 400 400"><use href="#flash-${which}" /></svg>`;
   }
 
-  strikes.append(mark);
-  mark.addEventListener('animationend', () => mark.remove(), { once: true });
+  strikes.append(stamp);
+  stamp.addEventListener('animationend', () => stamp.remove(), { once: true });
 }
 
 /* the ring that shows the window. it carries its own timing as custom
@@ -121,6 +186,9 @@ function shutCharge(hit) {
    says which side of the window you were on. */
 function missed(how) {
   streak = 0;
+  // a cancelled hold is not an attempt, and marking it would punish
+  // scrolling away mid-charge
+  if (how) mark(false);
   if (!tally) return;
   tally.classList.remove('is-hot');
   document.getElementById('tally-streak').textContent = '0';
@@ -140,18 +208,16 @@ function say(word) {
 
 function landed() {
   streak += 1;
-  adapted += 1;
+  total += 1;
+  write('strohut-landed', total);
 
   if (streak > best) {
     best = streak;
-    try {
-      localStorage.setItem('strohut-flash', String(best));
-    } catch {
-      /* it just won't survive a reload */
-    }
+    write('strohut-flash', best);
   }
 
   say('landed');
+  mark(true);
 
   if (tally) {
     tally.hidden = false;
@@ -161,8 +227,8 @@ function landed() {
   }
 
   // the wheel takes the hit and turns
-  remember();
-  if (wheel) wheel.style.setProperty('--adapt', adapted);
+  turn(1);
+  tell(true);
   if (sigil) sigil.classList.add('is-adapted');
 
   document.body.classList.remove('is-flashing');
@@ -251,11 +317,105 @@ function knock(el, cls) {
 }
 
 const wheelHit = document.getElementById('wheel-hit');
+
 if (wheelHit && wheel) {
-  wheelHit.addEventListener('click', () => {
-    adapted += 1;
-    remember();
-    wheel.style.setProperty('--adapt', adapted);
+  /* A press moves the wheel one tooth. Taking hold of it and throwing it
+     spins it down through however many teeth the throw was worth, and it
+     clicks into the nearest one when it stops — a ratchet, not a dial.
+
+     --drag carries the free rotation while it is moving; on settling it is
+     folded into --adapt so there is only ever one source of truth for
+     where the wheel is pointing. */
+  let drag = 0;                 // degrees away from the ratchet
+  let spin = 0;                 // degrees per frame while it runs down
+  let frame = 0;
+  let grip = null;
+
+  const paint = () => wheel.style.setProperty('--drag', `${drag.toFixed(2)}deg`);
+
+  const angleAt = (x, y) => {
+    const box = wheel.getBoundingClientRect();
+    return Math.atan2(y - (box.top + box.height / 2), x - (box.left + box.width / 2)) * 180 / Math.PI;
+  };
+
+  function step(by) {
+    turn(by);
+    tell(true);
     knock(wheel, 'is-struck');
+  }
+
+  function settle() {
+    frame = 0;
+    wheel.classList.remove('is-spinning');
+    const teeth = Math.round(drag / 45);
+    drag = 0;
+    paint();
+    step(teeth);
+  }
+
+  function runDown() {
+    spin *= .955;
+    drag += spin;
+    paint();
+    // below a quarter of a degree a frame it is not moving, it is drifting
+    if (Math.abs(spin) > .25) frame = requestAnimationFrame(runDown);
+    else settle();
+  }
+
+  wheelHit.addEventListener('pointerdown', event => {
+    if (event.button !== 0) return;
+    cancelAnimationFrame(frame);
+    frame = 0;
+    spin = 0;
+    grip = { angle: angleAt(event.clientX, event.clientY), moved: 0, at: performance.now() };
+    wheel.classList.add('is-spinning');
+    wheelHit.setPointerCapture(event.pointerId);
+  });
+
+  wheelHit.addEventListener('pointermove', event => {
+    if (!grip) return;
+
+    const now = angleAt(event.clientX, event.clientY);
+    // atan2 wraps at the half turn; without unwrapping, crossing it reads
+    // as a 360 degree flick in the wrong direction
+    let by = now - grip.angle;
+    if (by > 180) by -= 360;
+    if (by < -180) by += 360;
+
+    const gap = performance.now() - grip.at;
+    grip.angle = now;
+    grip.at = performance.now();
+    grip.moved += Math.abs(by);
+
+    drag += by;
+    // per-frame speed, so the throw carries whatever the hand was doing
+    spin = gap > 0 ? by * (16 / gap) : by;
+    paint();
+  });
+
+  const letGo = () => {
+    if (!grip) return;
+    const thrown = grip.moved > 6;
+    grip = null;
+
+    if (thrown) {
+      runDown();
+      return;
+    }
+
+    // it was a press, not a throw: one tooth, the way it always was
+    drag = 0;
+    paint();
+    wheel.classList.remove('is-spinning');
+    step(1);
+  };
+
+  wheelHit.addEventListener('pointerup', letGo);
+  wheelHit.addEventListener('pointercancel', letGo);
+
+  // the keyboard has no pointer to release, so it comes through as a click
+  // with no click count behind it
+  wheelHit.addEventListener('click', event => {
+    if (event.detail === 0) step(1);
   });
 }
