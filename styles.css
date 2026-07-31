@@ -268,8 +268,11 @@ a {
 
 /* where each region sits on the twelve columns */
 .hero { grid-column: 1 / -1; }
-.now { grid-column: 1 / 7; align-content: start; }
-.music { grid-column: 7 / -1; align-content: start; }
+/* The presence runs to three or four activities; the track is a sleeve and
+   four lines and is never going to be more. Splitting the row down the
+   middle gave the shorter one the same width as the taller. */
+.now { grid-column: 1 / 8; align-content: start; }
+.music { grid-column: 8 / -1; align-content: start; }
 
 .likes { grid-column: 1 / -1; }
 .score { grid-column: 1 / -1; }
@@ -1211,6 +1214,9 @@ svg.band {
    itself. Stacked down one column across the full width it would be three
    numbers and a lot of black, so the counts and the readings sit beside
    each other. */
+/* Across the full width the counts are three numbers and a lot of black,
+   and the row of marks is a short line with nothing beside it. The counts
+   take one column and the marks and the readings share the other. */
 @media (min-width: 60rem) {
   .score {
     display: grid;
@@ -1220,9 +1226,24 @@ svg.band {
   }
 
   .score > .head,
-  .score > .kicker,
-  .score > .score-marks {
+  .score > .kicker {
     grid-column: 1 / -1;
+  }
+
+  .score > .score-marks {
+    grid-column: 2;
+    grid-row: 3;
+    margin-top: 0;
+  }
+
+  .score > .score-list {
+    grid-column: 1;
+    grid-row: 3 / span 2;
+  }
+
+  .score > .score-read {
+    grid-column: 2;
+    grid-row: 4;
   }
 }
 
@@ -1383,8 +1404,11 @@ svg.flag {
   stroke-linecap: butt;
 }
 
+/* the flag at one end and the one link at the other, so the width is used
+   rather than left sitting there */
 .foot-text {
   flex: 1 1 14rem;
+  text-align: right;
   font-size: .82rem;
   letter-spacing: .08em;
   color: var(--paper-3);
