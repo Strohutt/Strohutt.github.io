@@ -181,7 +181,7 @@ const drifters = document.querySelectorAll('.band svg, svg.band, .flag svg, svg.
 if (!still) {
   // one rate per drifter, none of them a multiple of another, so no two
   // ever move together for long enough to look like one layer
-  const RATE = [.07, -.05, .04];
+  const AMP = [15, -12, 9];
   let waiting = false;
 
   /* The wheel is the largest thing on the page and it was the only thing
@@ -238,7 +238,21 @@ if (!still) {
     lastT = t;
 
     root.style.setProperty('--vel', vel.toFixed(3));
-    drifters.forEach((el, i) => el.style.setProperty('--drift', `${(y * RATE[i % RATE.length]).toFixed(1)}px`));
+    /* Off the page's own scroll position this grew without a limit — by
+       the foot of a phone page the second cloud was a hundred and thirty
+       pixels above where it had been placed, sitting across the last line
+       of the region before it. It leans by where it is on the screen
+       instead, which is what a layer behind the page does and cannot run
+       further than the amplitude it is given.
+
+       The reading is taken through the drift already applied, so it feeds
+       back into itself — at a gain of about fourteen pixels in a screen
+       height that is a quarter of a pixel, and it settles at once. */
+    drifters.forEach((el, i) => {
+      const r = el.getBoundingClientRect();
+      const off = Math.max(-1, Math.min(1, (r.top + r.height / 2 - innerHeight / 2) / innerHeight));
+      el.style.setProperty('--drift', `${(off * AMP[i % AMP.length]).toFixed(1)}px`);
+    });
     if (wheelArt) wheelArt.style.setProperty('--roll', `${(y * .06).toFixed(2)}deg`);
 
     const mid = innerHeight / 2;
