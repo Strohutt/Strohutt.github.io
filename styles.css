@@ -234,12 +234,6 @@ a {
   color: inherit;
 }
 
-/* Vertical japanese down a panel edge. Stacked as separate elements
-   rather than writing-mode, because that needs vertical metrics the
-   fallback font may not have — and without them every glyph lands on
-   top of the last one. */
-
-
 /* ── the spread ─────────────────────────────────────────────── */
 
 /* The wheel runs past the right margin on purpose. Clipping on the grid
@@ -675,10 +669,6 @@ svg.band {
   font-size: clamp(1.4rem, 3.4vw, 2rem);
 }
 
-.head .vert {
-  flex: none;
-}
-
 /* ══ 現在 — the live readout ════════════════════════════════ */
 
 /* While the socket is still on its way the panel is showing placeholder
@@ -950,6 +940,20 @@ svg.band {
   font-size: .88rem;
   color: var(--paper-2);
   overflow-wrap: anywhere;
+}
+
+/* only on the last one it caught, never on what is playing now */
+.track-seen {
+  margin: 0 0 .5rem;
+  font-size: .7rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--paper-3);
+}
+
+.track-seen[hidden],
+.track-link[hidden] {
+  display: none;
 }
 
 .track-link {
@@ -1758,14 +1762,6 @@ body.is-domain .wheel {
   .hero {
     min-height: 0;
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  /* stacked, the label has nowhere to sit beside the text, so it goes
-     above it and runs across instead of down */
-  .hero > .vert {
-    flex-direction: row;
-    gap: .5em;
-    margin-bottom: .8rem;
   }
 
   /* on a narrow screen the wheel sits right behind the running text, so

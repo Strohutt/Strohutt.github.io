@@ -166,6 +166,70 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
     JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.work-name')].map(a => a.textContent))));
   await p.close();
 
+  /* Sixty unauthenticated calls an hour are shared by a whole address, so
+     being refused is ordinary. What came back last time has to stand in —
+     but only if there was a last time. */
+  const ok = x => ({ status: 200, contentType: 'application/json', body: JSON.stringify(x) });
+  const REPO = [{ name: 'centauri', html_url: 'https://x.invalid', description: 'a bot',
+    language: 'TypeScript', stargazers_count: 4, pushed_at: new Date().toISOString(), fork: false, archived: false }];
+  const EVENT = [{ type: 'PushEvent', repo: { name: 'Strohutt/centauri' }, created_at: new Date().toISOString(),
+    payload: { size: 2, commits: [{ message: 'Fix the thing' }] } }];
+  const SONG = playing => ok({ success: true, data: {
+    discord_user: { id: '1', username: 'strohut', display_name: 'Strohut', avatar: null },
+    discord_status: 'online', listening_to_spotify: playing, activities: [],
+    spotify: playing ? { song: 'Kaikai Kitan', artist: 'Eve', track_id: 'abc123', album_art_url: '',
+      timestamps: { start: Date.now() - 3e4, end: Date.now() + 1e5 } } : null } });
+
+  const jar = await b.newContext({ viewport: { width: 1340, height: 900 } });
+
+  p = await jar.newPage();
+  p.on('pageerror', e => fails.push('pageerror(cache 1): ' + e.message));
+  await p.route('**/api.github.com/**/repos**', r => r.fulfill(ok(REPO)));
+  await p.route('**/api.github.com/**/events/**', r => r.fulfill(ok(EVENT)));
+  await p.route('**/api.lanyard.rest/**', r => r.fulfill(SONG(true)));
+  await p.goto(BASE + '/index.html');
+  await p.waitForTimeout(1800);
+  check('a good visit fills both github regions',
+    await p.evaluate(() => document.querySelectorAll('#work-list li').length) === 1 &&
+    await p.evaluate(() => document.querySelectorAll('#push-list li').length) === 1);
+  check('a track that is playing says so',
+    await p.evaluate(() => document.getElementById('music-kicker').textContent) === 'playing right now');
+  await p.close();
+
+  // same visitor, back later: github refuses and the music has stopped
+  p = await jar.newPage();
+  p.on('pageerror', e => fails.push('pageerror(cache 2): ' + e.message));
+  await p.route('**/api.github.com/**', r => r.fulfill({ status: 403, contentType: 'application/json', body: '{"message":"rate limit"}' }));
+  await p.route('**/api.lanyard.rest/**', r => r.fulfill(SONG(false)));
+  await p.goto(BASE + '/index.html');
+  await p.waitForTimeout(1800);
+  check('a rate limit falls back to what came back last time',
+    !(await p.evaluate(() => document.getElementById('work').hidden)) &&
+    await p.evaluate(() => document.querySelectorAll('#work-list li').length) === 1);
+  check('nothing playing falls back to the last one caught',
+    await p.evaluate(() => document.getElementById('music-kicker').textContent) === 'last thing I caught' &&
+    await p.evaluate(() => document.getElementById('track-song').textContent) === 'Kaikai Kitan');
+  check('the last one caught says when it was',
+    /ago$/.test(await p.evaluate(() => document.getElementById('track-seen').textContent)),
+    await p.evaluate(() => document.getElementById('track-seen').textContent));
+  check('the fallback links at the track it actually names',
+    /abc123/.test(await p.evaluate(() => document.getElementById('music-link').href)));
+  await p.close();
+  await jar.close();
+
+  // a first-ever visit with nothing stored and nothing answering: the
+  // regions have to be absent rather than empty, and the panel must not
+  // offer a link to a track it cannot name
+  p = await open({ '**/api.github.com/**': r => r.abort(), '**/api.lanyard.rest/**': r => r.fulfill(SONG(false)) });
+  await p.waitForTimeout(1800);
+  check('cold and refused: both github regions stay hidden',
+    await p.evaluate(() => document.getElementById('work').hidden && document.getElementById('pushes').hidden));
+  check('cold and quiet: the panel says nothing is playing',
+    await p.evaluate(() => document.getElementById('track-song').textContent) === 'nothing playing');
+  check('cold and quiet: no link to a track nobody picked',
+    await p.evaluate(() => document.getElementById('music-link').hidden));
+  await p.close();
+
   await b.close();
   console.log(fails.length ? '\n' + fails.length + ' FAILING: ' + fails.join(' | ') : '\nall failure modes hold');
   process.exit(fails.length ? 1 : 0);
