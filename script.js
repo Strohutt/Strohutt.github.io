@@ -997,7 +997,11 @@ function showTrack(track) {
   el.track.classList.toggle('is-playing', Boolean(track && track.song));
 
   el.kicker.textContent = track ? 'now playing' : seen ? 'last played' : 'nothing playing';
-  el.song.textContent = show ? show.song : 'nothing playing';
+  /* Not "nothing playing" a second time — the kicker above it has just
+     said that in red capitals, and the two lines sat one under the other
+     saying the same three words. This one says the other true thing:
+     nothing has been caught in this browser yet. */
+  el.song.textContent = show ? show.song : 'nothing caught yet';
   el.artist.textContent = show ? show.artist || '' : '';
   el.artist.hidden = !el.artist.textContent;
 

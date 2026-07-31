@@ -150,12 +150,24 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
   await p.waitForTimeout(1000);
   check('rings are cleaned up', await rings(p) === 0, `${await rings(p)} left`);
 
-  // ── holding forever resolves on its own
+  /* ── holding forever resolves on its own
+     Watched from inside the page rather than read once at a fixed
+     moment: the ring goes on the end of an animation, and an animation
+     on a machine with something else running can be a few hundred
+     milliseconds late. What matters is that it resolves without the
+     hold ending, not that it resolves by a particular frame. */
   await p.mouse.down();
-  await p.waitForTimeout(2600);
-  const afterHold = await rings(p);
+  const afterHold = await p.evaluate(async () => {
+    const left = () => document.querySelectorAll('.charge').length;
+    const t0 = performance.now();
+    while (performance.now() - t0 < 3800) {
+      if (left() === 0) return 0;
+      await new Promise(r => setTimeout(r, 60));
+    }
+    return left();
+  });
   await p.mouse.up(); await p.waitForTimeout(100);
-  check('hold limit resolves', afterHold === 0, `${afterHold} rings after 2.6s`);
+  check('hold limit resolves', afterHold === 0, `${afterHold} rings, still held`);
 
   // ── a second pointer must not open a second charge
   await p.mouse.down(); await p.waitForTimeout(60);
@@ -467,6 +479,18 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
   const open = await reading();
   check('five in a row opens the domain', open.on, JSON.stringify(open));
   check('and it says how long it has left', /^\d+(\.\d)?s$/.test(open.left), open.left);
+
+  /* The field settles back to a quarter so the page can be read through
+     it. What it says must not settle with it: the animation was on the
+     layer that holds both, and for six of the seven seconds the seconds
+     left were drawn at a quarter of their colour. */
+  await q.waitForTimeout(1400);
+  const lit = await q.evaluate(() => ({
+    field: Number(getComputedStyle(document.querySelector('.domain-field')).opacity).toFixed(2),
+    say: Number(getComputedStyle(document.querySelector('.domain-say')).opacity).toFixed(2)
+  }));
+  check('the field settles back and what it says does not',
+    Number(lit.field) < .5 && Number(lit.say) > .95, JSON.stringify(lit));
 
   await wild();
   await q.waitForTimeout(240);
