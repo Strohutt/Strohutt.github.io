@@ -1083,7 +1083,7 @@ svg.band {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
   gap: 1.6rem clamp(1.6rem, 4vw, 3rem);
 }
 
@@ -1100,9 +1100,10 @@ svg.band {
   border-top: 1px solid var(--ink-3);
 }
 
+/* the only real pictures on the page, so they are allowed to be a size */
 .cover {
   position: relative;
-  width: clamp(4.2rem, 10vw, 5.6rem);
+  width: clamp(5rem, 13vw, 7.5rem);
   aspect-ratio: 2 / 3;
   display: grid;
   place-items: center;
@@ -1186,11 +1187,19 @@ svg.band {
 }
 
 .like-meta {
-  margin: .5rem 0 0;
+  margin: .45rem 0 0;
   font-size: .72rem;
   letter-spacing: .1em;
   text-transform: uppercase;
   color: var(--paper-3);
+  overflow-wrap: anywhere;
+}
+
+/* what it is about, in anilist's words rather than anybody's sentence */
+.like-tags {
+  margin: .55rem 0 0;
+  font-size: .8rem;
+  color: var(--paper-2);
   overflow-wrap: anywhere;
 }
 
