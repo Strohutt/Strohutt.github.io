@@ -132,20 +132,19 @@ body {
   mix-blend-mode: overlay;
 }
 
-/* ── 領域展開 ───────────────────────────────────────────────── */
+/* ── 無量空処 ───────────────────────────────────────────────── */
 
-/* A barrier closes around whoever is standing there, and what is inside
-   belongs to whoever cast it. So: a ring that shuts, information pouring
-   inward, four characters struck one after another, and then nothing but
-   white before the page is underneath it.
+/* Unlimited Void. The first pass at this was a ragged circle with radial
+   lines behind a title, which is a generic barrier and not this domain.
+   What makes it recognisable is a sphere with rings running round it at
+   angles and more information pouring off it than anything could read.
 
-   Unlimited Void is blue on television. Blue here would be the one thing
-   on this page wearing somebody else's palette, so it is ink, paper and
-   the one red — the same three as everything else.
+   In the anime it is blue; in the manga it is black and white. This page
+   is a manga spread, so for once accuracy and the palette want the same
+   thing.
 
    It is display:none by default and only exists once javascript has said
-   so. A curtain that a browser without javascript cannot lift is a
-   curtain that never lifts. */
+   so. A curtain a browser cannot lift is a curtain that never lifts. */
 .curtain {
   display: none;
 }
@@ -157,18 +156,17 @@ body {
   z-index: 90;
   overflow: hidden;
   background: var(--ink);
-  animation: curtain 1.75s cubic-bezier(.3, .1, .2, 1) forwards;
+  animation: curtain 2s cubic-bezier(.3, .1, .2, 1) forwards;
 }
 
-/* Nothing under it is reachable while it is up, and the moment it is
-   done it stops existing rather than sitting there invisible and
-   swallowing clicks. */
+/* the moment it is done it stops existing, rather than sitting there
+   invisible and swallowing clicks */
 [data-js] .curtain.is-done {
   display: none;
 }
 
 @keyframes curtain {
-  0%, 84% { opacity: 1; }
+  0%, 86% { opacity: 1; }
   100% { opacity: 0; visibility: hidden; }
 }
 
@@ -179,71 +177,130 @@ body {
   height: 100%;
 }
 
-/* The boundary, coming toward you and then holding. Thrown past the edge
-   of the screen it is over inside four hundred milliseconds and the rest
-   of the sequence has nothing framing it; stopping just wide of the
-   corners leaves you standing inside something. */
-.curtain-ring {
-  animation: shut 1.02s cubic-bezier(.16, .86, .3, 1) both;
+/* The void it is all standing in. A hundred and fifty drawn circles is a
+   starfield nobody can tell from two tiled dot patterns, and the page
+   already shades itself with one of those. */
+.curtain-void {
+  position: absolute;
+  inset: 0;
+  /* three layers on sizes with no common factor, or the lattice is
+     visible and it reads as a screen rather than a sky */
+  background-image:
+    radial-gradient(var(--paper) 1px, transparent 1.1px),
+    radial-gradient(var(--paper) .7px, transparent .8px),
+    radial-gradient(var(--paper) .5px, transparent .6px);
+  background-size: 211px 173px, 97px 131px, 53px 47px;
+  background-position: 0 0, 37px 61px, 19px 7px;
+  animation: void-drift 2s linear both;
 }
 
-@keyframes shut {
-  0% { transform: scale(.05) rotate(-14deg); opacity: 0; }
-  20% { opacity: 1; }
-  100% { transform: scale(1.32) rotate(0deg); opacity: .92; }
+@keyframes void-drift {
+  0% { transform: scale(1.3); opacity: 0; }
+  22% { opacity: .4; }
+  100% { transform: scale(1); opacity: .16; }
 }
 
-.dm-rim {
+/* more than a mind can take, pouring off it */
+.curtain-streams {
+  animation: pour 1.55s cubic-bezier(.15, .75, .25, 1) both;
+}
+
+@keyframes pour {
+  0% { transform: scale(.3) rotate(-8deg); opacity: 0; }
+  18% { opacity: .95; }
+  100% { transform: scale(1.75) rotate(6deg); opacity: 0; }
+}
+
+/* bucketed by weight rather than carrying a style attribute each */
+.uv-ray,
+.uv-tick {
   fill: none;
   stroke: var(--paper);
-  stroke-width: 3.4;
-  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-width: .7;
 }
 
-.dm-thin {
-  stroke-width: 1.6;
-  stroke-opacity: .5;
+.uv-fat { stroke-width: 1.8; }
+.uv-tick { stroke-width: 1.6; }
+
+.uv-d0 { opacity: .55; }
+.uv-d1 { opacity: .38; }
+.uv-d2 { opacity: .24; }
+.uv-d3 { opacity: .13; }
+
+/* The sphere, with the rings round it. It keeps turning after it has
+   arrived — a domain that stops moving is a picture of one. */
+.curtain-sphere {
+  animation: cast .95s cubic-bezier(.18, .9, .28, 1) both,
+             turn-slow 9s linear .95s infinite;
+  transform-origin: 50% 50%;
 }
 
-.dm-seam {
+@keyframes cast {
+  0% { transform: scale(.02) rotate(-40deg); opacity: 0; }
+  22% { opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes turn-slow {
+  to { transform: rotate(360deg); }
+}
+
+/* A shade off the page rather than the same black, or the sphere has no
+   mass — against a background its own colour, all that is left of it is
+   the rim, and the rim on its own is a hoop. */
+.uv-fill {
+  fill: var(--ink-3);
+  stroke: none;
+}
+
+.uv-rim,
+.uv-lat,
+.uv-ring {
   fill: none;
   stroke: var(--paper);
-  stroke-width: 1.4;
   stroke-linecap: round;
 }
 
-/* more than a mind can take, which here is what the speed lines already
-   do, turned to point inward */
-.curtain-influx {
-  animation: influx 1.25s cubic-bezier(.2, .7, .2, 1) both;
+.uv-rim {
+  stroke-width: 2.6;
 }
 
-@keyframes influx {
-  0% { transform: scale(2.1) rotate(-7deg); opacity: 0; }
-  26% { opacity: .85; }
-  100% { transform: scale(.5) rotate(5deg); opacity: 0; }
+.uv-lat {
+  stroke-width: 1;
 }
 
-.dm-line {
-  fill: var(--paper);
+/* the lit edge, so it reads as a ball rather than a disc */
+.uv-lit {
+  fill: none;
+  stroke: var(--paper);
+  stroke-width: 6;
+  stroke-linecap: round;
 }
 
-/* struck one after another, the way the characters go up on a title card */
+/* ── what is being said ─────────────────────────────────────── */
+
+/* The casting above and the name below, with the sphere between them.
+   Stacked in the middle they land on top of it, and the one thing that
+   has to be legible on a title card is the title. */
 .curtain-say {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 3;
+  display: grid;
+  align-content: space-between;
+  justify-items: center;
+  padding: clamp(1.6rem, 9vh, 5.5rem) 1rem;
+}
+
+.curtain-say p {
   margin: 0;
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: clamp(.2rem, 1.4vw, .9rem);
 }
 
 .curtain-say span {
   display: block;
-  width: clamp(3.2rem, 12vw, 8rem);
-  animation: strike-in .42s cubic-bezier(.2, .9, .2, 1) calc(.42s + var(--n) * .085s) both;
 }
 
 .curtain-say svg {
@@ -253,30 +310,50 @@ body {
   fill: var(--paper);
 }
 
-/* the third one lands in red, because on this page exactly one mark does */
-.curtain-say span:nth-child(3) svg {
+/* the casting, small and first */
+.curtain-cast {
+  gap: clamp(.15rem, .8vw, .5rem);
+}
+
+.curtain-cast span {
+  width: clamp(1.5rem, 5vw, 3.1rem);
+  animation: strike-in .38s cubic-bezier(.2, .9, .2, 1) calc(.46s + var(--n) * .07s) both;
+}
+
+/* and the name of the thing, which is what it is actually called */
+.curtain-name {
+  gap: clamp(.25rem, 1.4vw, .9rem);
+}
+
+.curtain-name span {
+  width: clamp(3rem, 11vw, 7.4rem);
+  animation: strike-in .44s cubic-bezier(.2, .9, .2, 1) calc(.86s + var(--n) * .09s) both;
+}
+
+/* one mark in red, the way exactly one mark on this page is */
+.curtain-name span:nth-child(2) svg {
   fill: var(--blood);
 }
 
 @keyframes strike-in {
-  0% { opacity: 0; transform: translateY(.22em) scale(1.35); filter: blur(6px); }
+  0% { opacity: 0; transform: translateY(.18em) scale(1.3); filter: blur(7px); }
   100% { opacity: 1; transform: none; filter: blur(0); }
 }
 
 /* And then nothing. One rise and one fall rather than a switch — a hard
    cut to white and back is a strobe, and this is somebody's homepage. */
-.curtain-void {
+.curtain-white {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: 4;
   background: var(--paper);
   opacity: 0;
-  animation: void-out .82s ease-in-out .93s both;
+  animation: white-out .8s ease-in-out 1.24s both;
 }
 
-@keyframes void-out {
+@keyframes white-out {
   0% { opacity: 0; }
-  46% { opacity: 1; }
+  48% { opacity: 1; }
   100% { opacity: 0; }
 }
 
@@ -793,7 +870,10 @@ svg.band {
   border-bottom: 1px solid var(--ink-3);
 }
 
-/* the one heavy mark in the rule, so the eye knows where a region starts */
+/* The one heavy mark in the rule, so the eye knows where a region starts.
+   It is struck when the region arrives rather than being there already —
+   a rule that draws itself is the difference between a section appearing
+   and a section being scrolled past. */
 .head::before {
   content: "";
   position: absolute;
@@ -802,6 +882,16 @@ svg.band {
   width: 3.2rem;
   height: var(--rule);
   background: var(--blood);
+  transform-origin: 0 50%;
+}
+
+[data-js] .reveal .head::before {
+  transform: scaleX(0);
+}
+
+[data-js] .reveal.is-in .head::before {
+  transform: scaleX(1);
+  transition: transform .5s cubic-bezier(.2, .9, .2, 1) .12s;
 }
 
 .head {
@@ -1259,6 +1349,17 @@ svg.band {
   display: grid;
   place-items: center;
   flex: none;
+}
+
+/* the only pictures on the page, so they are the only thing that gets to
+   lean when you reach for it */
+.like-list li:hover .cover,
+.like-list li:focus-within .cover {
+  transform: rotate(-1.4deg) scale(1.04);
+}
+
+.cover {
+  transition: transform .35s cubic-bezier(.2, .9, .2, 1);
 }
 
 /* visibility, not display — see the note in script.js. It keeps a box, so
