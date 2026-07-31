@@ -10,8 +10,13 @@ favicon, open them and type.
 | ------------- | ----------------------------------------------------- |
 | `index.html`  | The page, plus every drawn thing as inline SVG         |
 | `styles.css`  | The panel system, the palette, the black flash         |
-| `script.js`   | Reveals, the black flash, the hit targets, the presence |
+| `404.html`    | The same page, for a url that is not there             |
+| `flash.js`    | 黒閃, shared by both pages                              |
+| `script.js`   | Reveals, the hit targets, the clock, pushes, presence  |
+| `og.png`      | The share card, built from the front page's own parts  |
+| `fonts.css`, `fonts/` | The two faces, self-hosted, latin + two kanji |
 | `favicon.svg` | The wheel, drawn the same way as the one on the page   |
+| `site.webmanifest`, `apple-touch-icon.png` | For a home screen |
 
 ## The look
 
@@ -136,6 +141,25 @@ markup only holds a bare track id, so the title comes from Spotify's
 oembed endpoint — no key, no auth. If that is blocked the panel keeps the
 wording it already had.
 
+## The 404
+
+GitHub Pages serves `404.html` for anything it cannot find, and without
+one a typo lands on GitHub's own page, which has nothing to do with this
+site. It is the same page with less on it — same wheel, same cloud, same
+flag — and it is still worth hitting, so `flash.js` is shared rather than
+copied. Everything in there guards on its element existing, because the
+404 does not carry all of the front page's markup.
+
+## Fonts
+
+Self-hosted. Both families are Japanese and run to thousands of glyphs;
+this page reaches basic latin plus exactly two kanji, 黒 and 閃, so only
+those subsets are here — 160K on disk, and `unicode-range` means a first
+paint pulls about 50K of it. The kanji only arrive if the counter does.
+
+That drops two render-blocking requests to a third party, and the type no
+longer depends on Google being reachable.
+
 ## Cache
 
 `index.html` asks for `styles.css?v=N` and `script.js?v=N`. GitHub Pages
@@ -143,6 +167,26 @@ does not fingerprint filenames and browsers hold onto both files, so
 **bump N whenever either changes** — otherwise a returning visitor gets
 new markup against an old stylesheet, which looks far more broken than a
 page that simply did not update.
+
+## Checks
+
+```sh
+npm install
+npm test
+```
+
+Five suites:
+
+| | |
+| --- | --- |
+| `source` | No browser. Asset versions agree across both pages, every `use` has a symbol and no symbol is unused, nothing styles a cloned symbol through a descendant selector, every `getElementById` has an element, `:has()` and `overflow: clip` are not load-bearing |
+| `page` | Nothing hidden without javascript, no sideways scroll from 1600 to 320, every hit target reacts, keyboard reaches all of them, no tap target under 44px |
+| `flash` | The timing window lands and misses where it should, rings never pile up, holding forever resolves, touch does not strand one, reduced motion stays still, the best score survives a reload |
+| `upstream` | Every upstream dead, github rate limited, github answering junk, twenty activities, a 200-character track title, a malformed presence payload, localStorage refusing to open |
+| `limits` | Offline, 280px wide, browser text at 200%, a response that arrives four seconds late, the 404 at 320px |
+
+The site itself has no build step and no dependencies. `package.json`
+exists for these and nothing else.
 
 ## Running it locally
 

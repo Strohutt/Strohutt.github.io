@@ -1,0 +1,269 @@
+const BASE = `http://localhost:${process.env.PORT || 8899}`;
+const { chromium } = require('playwright');
+
+const fails = [];
+const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? '  — ' + d : '')); if (!ok) fails.push(n); };
+
+const LONG = 'x'.repeat(220);
+const MANY = Array.from({ length: 20 }, (_, i) => ({
+  type: 0, name: `Game ${i} ${LONG.slice(0, 60)}`, timestamps: { start: Date.now() - i * 1e6 }
+}));
+
+(async () => {
+  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+
+  const open = async (routes = {}, opts = {}) => {
+    const p = await b.newPage({ viewport: { width: 1340, height: 900 }, ...opts });
+    p.on('pageerror', e => fails.push('pageerror: ' + e.message));
+    for (const [pat, handler] of Object.entries(routes)) await p.route(pat, handler);
+    await p.goto(BASE + '/index.html');
+    return p;
+  };
+  const overflows = p => p.evaluate(() =>
+    document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+
+  // ── every upstream refuses
+  let p = await open({
+    '**/api.lanyard.rest/**': r => r.abort(),
+    '**/api.github.com/**': r => r.abort(),
+    '**/oembed**': r => r.abort()
+  });
+  await p.waitForTimeout(2500);
+  check('all upstreams dead: page still stands', !(await overflows(p)));
+  check('all upstreams dead: pushes stay hidden', await p.evaluate(() => document.getElementById('pushes').hidden));
+  check('all upstreams dead: readout says so',
+    /reach|can't|offline/i.test(await p.evaluate(() => document.getElementById('dc-state').textContent)),
+    await p.evaluate(() => document.getElementById('dc-state').textContent));
+  await p.close();
+
+  // ── github rate limits
+  p = await open({ '**/api.github.com/**': r => r.fulfill({ status: 403, contentType: 'application/json', body: '{"message":"rate limit"}' }) });
+  await p.waitForTimeout(1800);
+  check('github 403: panel stays hidden', await p.evaluate(() => document.getElementById('pushes').hidden));
+  await p.close();
+
+  // ── github answers with junk
+  p = await open({ '**/api.github.com/**': r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"not":"an array"}' }) });
+  await p.waitForTimeout(1500);
+  check('github junk: panel stays hidden', await p.evaluate(() => document.getElementById('pushes').hidden));
+  await p.close();
+
+  // ── github answers with events that have no commits
+  p = await open({
+    '**/api.github.com/**': r => r.fulfill({
+      status: 200, contentType: 'application/json',
+      body: JSON.stringify([{ type: 'PushEvent', repo: { name: 'a/b' }, created_at: new Date().toISOString(), payload: {} }])
+    })
+  });
+  await p.waitForTimeout(1500);
+  check('push with no commits renders', await p.evaluate(() => document.querySelectorAll('#push-list li').length) === 1);
+  await p.close();
+
+  // ── twenty activities, all with very long names
+  p = await open();
+  await p.waitForTimeout(1200);
+  await p.evaluate(acts => render({
+    discord_user: { id: '1', username: 'u', display_name: 'Strohut', avatar: null },
+    discord_status: 'online', activities: acts, listening_to_spotify: false, spotify: null
+  }), MANY);
+  await p.waitForTimeout(400);
+  check('twenty activities do not overflow', !(await overflows(p)));
+  check('twenty activities all render', await p.evaluate(() => document.querySelectorAll('#dc-doing li').length) === 20);
+  await p.close();
+
+  // ── a song with a novel for a title
+  p = await open();
+  await p.waitForTimeout(1200);
+  await p.evaluate(t => render({
+    discord_user: { id: '1', username: 'u', display_name: 'Strohut', avatar: null },
+    discord_status: 'online', activities: [], listening_to_spotify: true,
+    spotify: { track_id: 'x', song: t, artist: t, album_art_url: null, timestamps: { start: Date.now() - 1e4, end: Date.now() + 1e5 } }
+  }), LONG);
+  await p.waitForTimeout(400);
+  check('200-char track does not overflow', !(await overflows(p)));
+  await p.close();
+
+  // ── the presence payload is malformed
+  p = await open();
+  await p.waitForTimeout(1200);
+  const beforeJunk = await p.evaluate(() => document.getElementById('dc-name').textContent);
+  await p.evaluate(() => { try { render({}); render(null); render({ discord_user: null }); } catch (e) { window.__threw = e.message; } });
+  await p.waitForTimeout(200);
+  check('malformed presence is ignored', !(await p.evaluate(() => window.__threw)) &&
+    await p.evaluate(() => document.getElementById('dc-name').textContent) === beforeJunk);
+  await p.close();
+
+  // ── localStorage refuses to play
+  p = await b.newPage({ viewport: { width: 1340, height: 900 } });
+  p.on('pageerror', e => fails.push('pageerror(storage): ' + e.message));
+  await p.addInitScript(() => {
+    Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('denied'); } });
+  });
+  await p.goto(BASE + '/index.html');
+  await p.waitForTimeout(1500);
+  check('localStorage blocked: page still works',
+    await p.evaluate(() => !!document.querySelector('.name')) && !(await overflows(p)));
+  await p.close();
+
+  // ── the socket drops and comes back
+  p = await open();
+  await p.waitForTimeout(1500);
+  await p.evaluate(() => render({
+    discord_user: { id: '1', username: 'u', display_name: 'Strohut', avatar: null },
+    discord_status: 'online', activities: [{ type: 0, name: 'Minecraft' }], listening_to_spotify: false, spotify: null
+  }));
+  await p.waitForTimeout(200);
+  const had = await p.evaluate(() => document.querySelectorAll('#dc-doing li').length);
+  await p.evaluate(() => render({
+    discord_user: { id: '1', username: 'u', display_name: 'Strohut', avatar: null },
+    discord_status: 'offline', activities: [], listening_to_spotify: false, spotify: null
+  }));
+  await p.waitForTimeout(200);
+  check('presence update clears the old one', had === 1 &&
+    await p.evaluate(() => document.querySelectorAll('#dc-doing li').length) === 0);
+  check('quiet line appears when nothing is on', !(await p.evaluate(() => document.getElementById('dc-quiet').hidden)));
+  await p.close();
+
+  // ── the repository list, which is the other thing github can refuse
+  const REPOS = n => Array.from({ length: n }, (_, i) => ({
+    name: `repo-${i}`, html_url: 'https://example.invalid', description: LONG,
+    language: 'TypeScript', stargazers_count: i, pushed_at: new Date(Date.now() - i * 6e7).toISOString(),
+    fork: false, archived: false
+  }));
+
+  p = await open({ '**/api.github.com/**/repos**': r => r.fulfill({ status: 403, contentType: 'application/json', body: '{}' }) });
+  await p.waitForTimeout(1600);
+  check('repos 403: the panel stays hidden', await p.evaluate(() => document.getElementById('work').hidden));
+  await p.close();
+
+  p = await open({ '**/api.github.com/**/repos**': r => r.fulfill({ status: 200, contentType: 'application/json', body: '[{"fork":true},{},{"name":null}]' }) });
+  await p.waitForTimeout(1600);
+  check('repos with no usable rows: the panel stays hidden',
+    await p.evaluate(() => document.getElementById('work').hidden));
+  await p.close();
+
+  p = await open({ '**/api.github.com/**/repos**': r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(REPOS(40)) }) });
+  await p.waitForTimeout(1600);
+  check('forty repos are cut down to six',
+    await p.evaluate(() => document.querySelectorAll('#work-list li').length) === 6,
+    String(await p.evaluate(() => document.querySelectorAll('#work-list li').length)));
+  check('a 220-char description does not overflow', !(await overflows(p)));
+  await p.close();
+
+  // his own page is where the visitor already is, so listing it is noise
+  p = await open({
+    '**/api.github.com/**/repos**': r => r.fulfill({
+      status: 200, contentType: 'application/json',
+      body: JSON.stringify([{ name: 'Strohutt.github.io', html_url: 'x', fork: false, archived: false },
+        { name: 'kept', html_url: 'x', fork: false, archived: false },
+        { name: 'gone', html_url: 'x', fork: true, archived: false },
+        { name: 'done', html_url: 'x', fork: false, archived: true }])
+    })
+  });
+  await p.waitForTimeout(1600);
+  check('forks, archives and this page itself are left out',
+    JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.work-name')].map(a => a.textContent))) === '["kept"]',
+    JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.work-name')].map(a => a.textContent))));
+  await p.close();
+
+  /* Sixty unauthenticated calls an hour are shared by a whole address, so
+     being refused is ordinary. What came back last time has to stand in —
+     but only if there was a last time. */
+  const ok = x => ({ status: 200, contentType: 'application/json', body: JSON.stringify(x) });
+  const REPO = [{ name: 'centauri', html_url: 'https://x.invalid', description: 'a bot',
+    language: 'TypeScript', stargazers_count: 4, pushed_at: new Date().toISOString(), fork: false, archived: false }];
+  const EVENT = [{ type: 'PushEvent', repo: { name: 'Strohutt/centauri' }, created_at: new Date().toISOString(),
+    payload: { size: 2, commits: [{ message: 'Fix the thing' }] } }];
+  const SONG = playing => ok({ success: true, data: {
+    discord_user: { id: '1', username: 'strohut', display_name: 'Strohut', avatar: null },
+    discord_status: 'online', listening_to_spotify: playing, activities: [],
+    spotify: playing ? { song: 'Kaikai Kitan', artist: 'Eve', track_id: 'abc123', album_art_url: '',
+      timestamps: { start: Date.now() - 3e4, end: Date.now() + 1e5 } } : null } });
+
+  const jar = await b.newContext({ viewport: { width: 1340, height: 900 } });
+
+  p = await jar.newPage();
+  p.on('pageerror', e => fails.push('pageerror(cache 1): ' + e.message));
+  await p.route('**/api.github.com/**/repos**', r => r.fulfill(ok(REPO)));
+  await p.route('**/api.github.com/**/events/**', r => r.fulfill(ok(EVENT)));
+  await p.route('**/api.lanyard.rest/**', r => r.fulfill(SONG(true)));
+  await p.goto(BASE + '/index.html');
+  await p.waitForTimeout(1800);
+  check('a good visit fills both github regions',
+    await p.evaluate(() => document.querySelectorAll('#work-list li').length) === 1 &&
+    await p.evaluate(() => document.querySelectorAll('#push-list li').length) === 1);
+  check('a track that is playing says so',
+    await p.evaluate(() => document.getElementById('music-kicker').textContent) === 'now playing');
+  await p.close();
+
+  // same visitor, back later: github refuses and the music has stopped
+  p = await jar.newPage();
+  p.on('pageerror', e => fails.push('pageerror(cache 2): ' + e.message));
+  await p.route('**/api.github.com/**', r => r.fulfill({ status: 403, contentType: 'application/json', body: '{"message":"rate limit"}' }));
+  await p.route('**/api.lanyard.rest/**', r => r.fulfill(SONG(false)));
+  await p.goto(BASE + '/index.html');
+  await p.waitForTimeout(1800);
+  check('a rate limit falls back to what came back last time',
+    !(await p.evaluate(() => document.getElementById('work').hidden)) &&
+    await p.evaluate(() => document.querySelectorAll('#work-list li').length) === 1);
+  check('nothing playing falls back to the last one caught',
+    await p.evaluate(() => document.getElementById('music-kicker').textContent) === 'last played' &&
+    await p.evaluate(() => document.getElementById('track-song').textContent) === 'Kaikai Kitan');
+  check('the last one caught says when it was',
+    /ago$/.test(await p.evaluate(() => document.getElementById('track-seen').textContent)),
+    await p.evaluate(() => document.getElementById('track-seen').textContent));
+  check('the fallback links at the track it actually names',
+    /abc123/.test(await p.evaluate(() => document.getElementById('music-link').href)));
+  await p.close();
+  await jar.close();
+
+  // a first-ever visit with nothing stored and nothing answering: the
+  // regions have to be absent rather than empty, and the panel must not
+  // offer a link to a track it cannot name
+  p = await open({ '**/api.github.com/**': r => r.abort(), '**/api.lanyard.rest/**': r => r.fulfill(SONG(false)) });
+  await p.waitForTimeout(1800);
+  check('cold and refused: both github regions stay hidden',
+    await p.evaluate(() => document.getElementById('work').hidden && document.getElementById('pushes').hidden));
+  check('cold and quiet: the panel says nothing is playing',
+    await p.evaluate(() => document.getElementById('track-song').textContent) === 'nothing playing');
+  check('cold and quiet: no link to a track nobody picked',
+    await p.evaluate(() => document.getElementById('music-link').hidden));
+  await p.close();
+
+  /* The track rides the same socket as the presence, so with lanyard
+     unreachable there is nothing to say about it. The panel used to sit on
+     "checking…" for as long as the tab stayed open. */
+  p = await open({ '**/api.lanyard.rest/**': r => r.abort(), '**/api.github.com/**': r => r.abort() });
+  await p.waitForTimeout(2500);
+  check('discord unreachable and nothing stored: the music region goes',
+    await p.evaluate(() => document.querySelector('.music').hidden));
+  check('discord unreachable: nothing is left saying "checking"',
+    !/checking/i.test(await p.evaluate(() => document.body.innerText)));
+  await p.close();
+
+  // but a track this page has caught before still stands
+  const kept = await b.newContext({ viewport: { width: 1340, height: 900 } });
+  p = await kept.newPage();
+  p.on('pageerror', e => fails.push('pageerror(kept): ' + e.message));
+  await p.route('**/api.github.com/**', r => r.abort());
+  await p.route('**/api.lanyard.rest/**', r => r.fulfill(SONG(true)));
+  await p.goto(BASE + '/index.html');
+  await p.waitForTimeout(1500);
+  await p.close();
+
+  p = await kept.newPage();
+  p.on('pageerror', e => fails.push('pageerror(kept 2): ' + e.message));
+  await p.route('**/api.github.com/**', r => r.abort());
+  await p.route('**/api.lanyard.rest/**', r => r.abort());
+  await p.goto(BASE + '/index.html');
+  await p.waitForTimeout(2500);
+  check('discord unreachable but something stored: the region stays',
+    !(await p.evaluate(() => document.querySelector('.music').hidden)) &&
+    await p.evaluate(() => document.getElementById('track-song').textContent) === 'Kaikai Kitan');
+  await p.close();
+  await kept.close();
+
+  await b.close();
+  console.log(fails.length ? '\n' + fails.length + ' FAILING: ' + fails.join(' | ') : '\nall failure modes hold');
+  process.exit(fails.length ? 1 : 0);
+})();

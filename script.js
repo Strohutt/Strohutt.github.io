@@ -1,15 +1,15 @@
 /* ════════════════════════════════════════════════════════════════
    strohut
-   1. Sections arriving as you scroll
-   2. Black flash, and the wheel that adapts to it
-   3. Things you can hit
-   4. The clock, and what he has pushed
-   5. Discord presence, via Lanyard
+   Loaded after flash.js, which carries 黒閃 and the wheel.
+
+   1. Sections arriving, and the layers that lean and drift
+   2. Things you can hit
+   3. The clock, what he has pushed, and what he is building
+   4. Discord presence, via Lanyard
    ════════════════════════════════════════════════════════════════ */
 
 const DISCORD_ID = '402858450926829568';
-const root = document.documentElement;
-const stillPlease = window.matchMedia('(prefers-reduced-motion: reduce)');
+/* stillPlease, strikes and the wheel come from flash.js */
 
 /* ───────────────────────── Arriving ────────────────────────────── */
 
@@ -30,114 +30,64 @@ if (stillPlease.matches || !('IntersectionObserver' in window)) {
 }
 
 
-/* ─────────────────────── 黒閃 / black flash ────────────────────── */
 
-/* Hit the page and you land a strike. Most are nothing. A black flash
-   is a hair's breadth of timing, and once someone lands one they tend
-   to land the next — so the odds climb with the streak and reset when
-   you miss. Every one that lands turns Mahoraga's wheel a spoke on. */
-const strikes = document.getElementById('strikes');
-const tally = document.getElementById('tally');
-const sigil = document.querySelector('.hero');
-const wheel = document.querySelector('.wheel');
+/* ───────────────────────── Lean and drift ──────────────────────── */
 
-const BASE_ODDS = 0.13;
-const ODDS_STEP = 0.12;
-const ODDS_CAP = 0.55;
-const DOMAIN_AT = 5;
+/* A page that only moves when it is clicked reads as a screenshot. The
+   layers behind the header lean away from the pointer and lag behind the
+   scroll, at different rates, so there is depth to look at while nothing
+   is happening. Both are written to custom properties and let css do the
+   easing — setting transforms per frame fights the transitions. */
 
-let streak = 0;
-let adapted = 0;
+const hero = document.querySelector('.hero');
 
-function readBest() {
-  try {
-    return Math.max(0, parseInt(localStorage.getItem('strohut-flash'), 10) || 0);
-  } catch {
-    return 0;
-  }
+if (hero && !stillPlease.matches && matchMedia('(pointer: fine)').matches) {
+  let queued = false;
+  let lx = 0;
+  let ly = 0;
+
+  addEventListener('pointermove', event => {
+    lx = (event.clientX / innerWidth - .5) * 2;
+    ly = (event.clientY / innerHeight - .5) * 2;
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      hero.style.setProperty('--lean-x', lx.toFixed(3));
+      hero.style.setProperty('--lean-y', ly.toFixed(3));
+      queued = false;
+    });
+  }, { passive: true });
 }
 
-let best = readBest();
-document.getElementById('tally-best').textContent = best;
+const drifters = document.querySelectorAll('.band svg, svg.band, .flag svg, svg.flag');
 
-// Anything you can actually operate is off limits, or the flash would
-// fire on top of every link and button press
-const OFF_LIMITS = 'a, button, input, iframe, .tally';
+if (drifters.length && !stillPlease.matches) {
+  // one rate per drifter, none of them a multiple of another, so no two
+  // ever move together for long enough to look like one layer
+  const RATE = [.07, -.05, .04];
+  let waiting = false;
 
-function strikeAt(x, y, kind) {
-  const mark = document.createElement('div');
-  mark.className = `strike strike-${kind}`;
-  mark.style.left = `${x}px`;
-  mark.style.top = `${y}px`;
+  /* The wheel is the largest thing on the page and it was the only thing
+     that did not answer to scrolling. It turns with the page now — which
+     is what a wheel does when something rolls past it — on top of its own
+     slow ratchet, so the two never line up into one obvious loop. */
+  const wheelArt = document.querySelector('.wheel');
 
-  if (kind === 'flash') {
-    const which = 1 + Math.floor(Math.random() * 2);
-    mark.innerHTML =
-      `<svg viewBox="0 0 400 400"><use href="#flash-${which}" /></svg>`;
-  }
+  const shift = () => {
+    const y = scrollY;
+    drifters.forEach((el, i) => el.style.setProperty('--drift', `${(y * RATE[i % RATE.length]).toFixed(1)}px`));
+    if (wheelArt) wheelArt.style.setProperty('--roll', `${(y * .06).toFixed(2)}deg`);
+    waiting = false;
+  };
 
-  strikes.append(mark);
-  mark.addEventListener('animationend', () => mark.remove(), { once: true });
+  addEventListener('scroll', () => {
+    if (waiting) return;
+    waiting = true;
+    requestAnimationFrame(shift);
+  }, { passive: true });
+
+  shift();
 }
-
-function landed() {
-  streak += 1;
-  adapted += 1;
-
-  if (streak > best) {
-    best = streak;
-    try {
-      localStorage.setItem('strohut-flash', String(best));
-    } catch {
-      /* it just won't survive a reload */
-    }
-  }
-
-  tally.hidden = false;
-  tally.classList.toggle('is-hot', streak > 1);
-  document.getElementById('tally-streak').textContent = streak;
-  document.getElementById('tally-best').textContent = best;
-
-  // the wheel takes the hit and turns
-  wheel.style.setProperty('--adapt', adapted);
-  sigil.classList.add('is-adapted');
-
-  document.body.classList.remove('is-flashing');
-  void document.body.offsetWidth;
-  document.body.classList.add('is-flashing');
-
-  // a long streak stops being a counter and takes the room
-  if (streak >= DOMAIN_AT) {
-    document.body.classList.remove('is-domain');
-    void document.body.offsetWidth;
-    document.body.classList.add('is-domain');
-  }
-}
-
-if (!stillPlease.matches) {
-  document.addEventListener('pointerdown', event => {
-    if (event.button !== 0) return;
-    if (event.target.closest(OFF_LIMITS)) return;
-
-    const odds = Math.min(ODDS_CAP, BASE_ODDS + streak * ODDS_STEP);
-
-    if (Math.random() < odds) {
-      strikeAt(event.clientX, event.clientY, 'flash');
-      landed();
-    } else {
-      strikeAt(event.clientX, event.clientY, 'hit');
-      streak = 0;
-      tally.classList.remove('is-hot');
-      document.getElementById('tally-streak').textContent = '0';
-    }
-  });
-
-  document.body.addEventListener('animationend', event => {
-    if (event.animationName === 'room') document.body.classList.remove('is-flashing');
-    if (event.animationName === 'domain') document.body.classList.remove('is-domain');
-  });
-}
-
 
 /* ─────────────────────── Things you can hit ────────────────────── */
 
@@ -146,36 +96,19 @@ if (!stillPlease.matches) {
    shoved, the flag swings, the stroke is pulled again. */
 
 const STROKES = [
-  "<path class=\"bs-body\" d=\"M12 44.8C20.91 43.02 47.64 36.61 65.45 34.07C83.27 31.54 101.09 30.61 118.91 29.61C136.73 28.61 154.55 28.65 172.36 28.05C190.18 27.45 208 26.42 225.82 26.01C243.64 25.6 261.45 25.55 279.27 25.6C297.09 25.64 314.91 26.17 332.73 26.28C350.55 26.4 368.36 25.97 386.18 26.28C404 26.6 421.82 27.62 439.64 28.16C457.45 28.7 475.27 29.08 493.09 29.52C510.91 29.96 528.73 30.51 546.55 30.8C564.36 31.1 582.18 31.09 600 31.3C617.82 31.51 635.64 31.52 653.45 32.07C671.27 32.61 689.09 34.12 706.91 34.57C724.73 35.01 742.55 34.29 760.36 34.72C778.18 35.15 796 36.5 813.82 37.14C831.64 37.79 849.45 38.33 867.27 38.57C885.09 38.8 902.91 38.37 920.73 38.55C938.55 38.72 956.36 39.42 974.18 39.64C992 39.85 1009.82 39.59 1027.64 39.82C1045.45 40.04 1063.27 40.66 1081.09 40.98C1098.91 41.29 1116.73 41.67 1134.55 41.71C1152.36 41.75 1179.09 41.31 1188 41.24L1188 41.87C1179.09 42.28 1152.36 43.56 1134.55 44.31C1116.73 45.07 1098.91 45.77 1081.09 46.4C1063.27 47.02 1045.45 47.38 1027.64 48.06C1009.82 48.75 992 49.86 974.18 50.51C956.36 51.17 938.55 51.27 920.73 51.99C902.91 52.7 885.09 53.96 867.27 54.79C849.45 55.61 831.64 56.2 813.82 56.92C796 57.65 778.18 58.42 760.36 59.14C742.55 59.86 724.73 60.68 706.91 61.23C689.09 61.78 671.27 61.86 653.45 62.44C635.64 63.01 617.82 64.04 600 64.69C582.18 65.33 564.36 65.93 546.55 66.29C528.73 66.66 510.91 66.59 493.09 66.88C475.27 67.18 457.45 67.7 439.64 68.07C421.82 68.45 404 69.16 386.18 69.14C368.36 69.12 350.55 68.01 332.73 67.96C314.91 67.9 297.09 68.86 279.27 68.81C261.45 68.76 243.64 68.22 225.82 67.67C208 67.12 190.18 66.52 172.36 65.5C154.55 64.49 136.73 63 118.91 61.58C101.09 60.16 83.27 59.67 65.45 56.97C47.64 54.27 20.91 47.31 12 45.38Z\"/><path class=\"bs-skip\" d=\"M630.02 27.58L943.79 28.07\" style=\"stroke-width:0.9\"/><path class=\"bs-skip\" d=\"M586.22 50.31L816.64 50.42\" style=\"stroke-width:3.18\"/><path class=\"bs-skip\" d=\"M995.01 33.85L1200 32.16\" style=\"stroke-width:1.92\"/><path class=\"bs-skip\" d=\"M1023.32 51.07L1200 50.51\" style=\"stroke-width:2.68\"/><path class=\"bs-skip\" d=\"M620.85 54.62L841.42 52.72\" style=\"stroke-width:1.96\"/><path class=\"bs-skip\" d=\"M1044.59 37.71L1200 36.16\" style=\"stroke-width:2.52\"/><path class=\"bs-skip\" d=\"M779.11 54.37L1056.89 52.61\" style=\"stroke-width:2.64\"/>",
-  "<path class=\"bs-body\" d=\"M12 45C20.91 43.1 47.64 36.1 65.45 33.61C83.27 31.13 101.09 31.14 118.91 30.09C136.73 29.03 154.55 27.72 172.36 27.28C190.18 26.85 208 27.71 225.82 27.46C243.64 27.21 261.45 25.99 279.27 25.79C297.09 25.59 314.91 26.19 332.73 26.26C350.55 26.34 368.36 25.92 386.18 26.23C404 26.54 421.82 27.61 439.64 28.12C457.45 28.63 475.27 29.01 493.09 29.3C510.91 29.6 528.73 29.62 546.55 29.9C564.36 30.18 582.18 30.4 600 30.97C617.82 31.55 635.64 32.69 653.45 33.33C671.27 33.97 689.09 34.42 706.91 34.82C724.73 35.23 742.55 35.5 760.36 35.77C778.18 36.05 796 36.03 813.82 36.46C831.64 36.9 849.45 37.86 867.27 38.38C885.09 38.9 902.91 39.27 920.73 39.6C938.55 39.93 956.36 40.21 974.18 40.34C992 40.47 1009.82 40.28 1027.64 40.38C1045.45 40.48 1063.27 40.78 1081.09 40.97C1098.91 41.16 1116.73 41.23 1134.55 41.52C1152.36 41.82 1179.09 42.53 1188 42.73L1188 41.5C1179.09 41.93 1152.36 43.43 1134.55 44.11C1116.73 44.78 1098.91 44.95 1081.09 45.53C1063.27 46.12 1045.45 46.95 1027.64 47.62C1009.82 48.28 992 48.64 974.18 49.53C956.36 50.41 938.55 52.11 920.73 52.93C902.91 53.75 885.09 53.71 867.27 54.45C849.45 55.19 831.64 56.71 813.82 57.34C796 57.98 778.18 57.63 760.36 58.24C742.55 58.86 724.73 60.19 706.91 61.03C689.09 61.87 671.27 62.81 653.45 63.26C635.64 63.71 617.82 63.29 600 63.75C582.18 64.21 564.36 65.52 546.55 66.02C528.73 66.51 510.91 66.41 493.09 66.71C475.27 67.02 457.45 67.44 439.64 67.87C421.82 68.3 404 69.05 386.18 69.3C368.36 69.55 350.55 69.43 332.73 69.36C314.91 69.29 297.09 69.28 279.27 68.88C261.45 68.49 243.64 67.51 225.82 66.99C208 66.47 190.18 66.69 172.36 65.76C154.55 64.82 136.73 62.81 118.91 61.38C101.09 59.94 83.27 59.73 65.45 57.16C47.64 54.58 20.91 47.8 12 45.93Z\"/><path class=\"bs-skip\" d=\"M1006.59 53.78L1115.18 52.99\" style=\"stroke-width:3.09\"/><path class=\"bs-skip\" d=\"M733.03 33.86L881.1 33.32\" style=\"stroke-width:1.68\"/><path class=\"bs-skip\" d=\"M748.5 52.56L854.63 51.54\" style=\"stroke-width:1.41\"/><path class=\"bs-skip\" d=\"M949.65 42.75L1107.62 43.01\" style=\"stroke-width:2.56\"/><path class=\"bs-skip\" d=\"M642.42 47.43L927.39 48.44\" style=\"stroke-width:0.83\"/><path class=\"bs-skip\" d=\"M656.76 48.28L780.97 48.96\" style=\"stroke-width:1.45\"/><path class=\"bs-skip\" d=\"M556.26 21.78L823.4 19.85\" style=\"stroke-width:1.83\"/>",
-  "<path class=\"bs-body\" d=\"M12 45.33C20.91 43.45 47.64 36.57 65.45 34.05C83.27 31.53 101.09 31.33 118.91 30.21C136.73 29.1 154.55 27.99 172.36 27.36C190.18 26.73 208 26.62 225.82 26.44C243.64 26.25 261.45 26.25 279.27 26.23C297.09 26.22 314.91 26.2 332.73 26.36C350.55 26.52 368.36 27.07 386.18 27.22C404 27.37 421.82 26.92 439.64 27.26C457.45 27.59 475.27 28.81 493.09 29.22C510.91 29.63 528.73 29.3 546.55 29.73C564.36 30.16 582.18 31.22 600 31.82C617.82 32.42 635.64 33 653.45 33.34C671.27 33.68 689.09 33.45 706.91 33.85C724.73 34.25 742.55 35.33 760.36 35.72C778.18 36.11 796 35.71 813.82 36.18C831.64 36.66 849.45 38.07 867.27 38.57C885.09 39.07 902.91 39 920.73 39.21C938.55 39.41 956.36 39.47 974.18 39.81C992 40.15 1009.82 41 1027.64 41.24C1045.45 41.48 1063.27 41.26 1081.09 41.24C1098.91 41.21 1116.73 40.92 1134.55 41.08C1152.36 41.24 1179.09 42.01 1188 42.19L1188 42.5C1179.09 42.84 1152.36 44.03 1134.55 44.55C1116.73 45.08 1098.91 45.15 1081.09 45.67C1063.27 46.18 1045.45 46.97 1027.64 47.63C1009.82 48.29 992 48.83 974.18 49.63C956.36 50.42 938.55 51.53 920.73 52.39C902.91 53.24 885.09 54.13 867.27 54.75C849.45 55.36 831.64 55.54 813.82 56.08C796 56.62 778.18 57.12 760.36 57.97C742.55 58.81 724.73 60.35 706.91 61.12C689.09 61.89 671.27 61.98 653.45 62.59C635.64 63.2 617.82 64.26 600 64.8C582.18 65.34 564.36 65.37 546.55 65.85C528.73 66.33 510.91 67.27 493.09 67.69C475.27 68.11 457.45 68.29 439.64 68.36C421.82 68.44 404 68.15 386.18 68.13C368.36 68.1 350.55 68.18 332.73 68.22C314.91 68.27 297.09 68.55 279.27 68.39C261.45 68.22 243.64 67.8 225.82 67.22C208 66.64 190.18 65.66 172.36 64.93C154.55 64.2 136.73 64.08 118.91 62.84C101.09 61.59 83.27 60.32 65.45 57.48C47.64 54.64 20.91 47.74 12 45.79Z\"/><path class=\"bs-skip\" d=\"M747.26 32.59L969 31.9\" style=\"stroke-width:1.5\"/><path class=\"bs-skip\" d=\"M977.35 54.41L1200 52.52\" style=\"stroke-width:3.12\"/><path class=\"bs-skip\" d=\"M821.61 55.33L990.62 55.52\" style=\"stroke-width:1.42\"/><path class=\"bs-skip\" d=\"M793.93 27.86L877.32 27.77\" style=\"stroke-width:0.86\"/><path class=\"bs-skip\" d=\"M801.94 21.1L1057.05 20.33\" style=\"stroke-width:3.13\"/><path class=\"bs-skip\" d=\"M681.98 31.3L776.47 32.23\" style=\"stroke-width:1.66\"/><path class=\"bs-skip\" d=\"M594.05 61.35L786.72 61.53\" style=\"stroke-width:2.28\"/>"
+  "<path class=\"bs-body\" d=\"M12 44.8C20.9 43 47.6 36.6 65.5 34.1C83.3 31.5 101.1 30.6 118.9 29.6C136.7 28.6 154.5 28.7 172.4 28.1C190.2 27.5 208 26.4 225.8 26C243.6 25.6 261.5 25.6 279.3 25.6C297.1 25.6 314.9 26.2 332.7 26.3C350.5 26.4 368.4 26 386.2 26.3C404 26.6 421.8 27.6 439.6 28.2C457.5 28.7 475.3 29.1 493.1 29.5C510.9 30 528.7 30.5 546.5 30.8C564.4 31.1 582.2 31.1 600 31.3C617.8 31.5 635.6 31.5 653.5 32.1C671.3 32.6 689.1 34.1 706.9 34.6C724.7 35 742.5 34.3 760.4 34.7C778.2 35.1 796 36.5 813.8 37.1C831.6 37.8 849.5 38.3 867.3 38.6C885.1 38.8 902.9 38.4 920.7 38.5C938.5 38.7 956.4 39.4 974.2 39.6C992 39.8 1009.8 39.6 1027.6 39.8C1045.5 40 1063.3 40.7 1081.1 41C1098.9 41.3 1116.7 41.7 1134.5 41.7C1152.4 41.8 1179.1 41.3 1188 41.2L1188 41.9C1179.1 42.3 1152.4 43.6 1134.5 44.3C1116.7 45.1 1098.9 45.8 1081.1 46.4C1063.3 47 1045.5 47.4 1027.6 48.1C1009.8 48.8 992 49.9 974.2 50.5C956.4 51.2 938.5 51.3 920.7 52C902.9 52.7 885.1 54 867.3 54.8C849.5 55.6 831.6 56.2 813.8 56.9C796 57.6 778.2 58.4 760.4 59.1C742.5 59.9 724.7 60.7 706.9 61.2C689.1 61.8 671.3 61.9 653.5 62.4C635.6 63 617.8 64 600 64.7C582.2 65.3 564.4 65.9 546.5 66.3C528.7 66.7 510.9 66.6 493.1 66.9C475.3 67.2 457.5 67.7 439.6 68.1C421.8 68.4 404 69.2 386.2 69.1C368.4 69.1 350.5 68 332.7 68C314.9 67.9 297.1 68.9 279.3 68.8C261.5 68.8 243.6 68.2 225.8 67.7C208 67.1 190.2 66.5 172.4 65.5C154.5 64.5 136.7 63 118.9 61.6C101.1 60.2 83.3 59.7 65.5 57C47.6 54.3 20.9 47.3 12 45.4Z\"/><path class=\"bs-skip\" d=\"M630 27.6L943.8 28.1\" style=\"stroke-width:0.9\"/><path class=\"bs-skip\" d=\"M586.2 50.3L816.6 50.4\" style=\"stroke-width:3.2\"/><path class=\"bs-skip\" d=\"M995 33.9L1200 32.2\" style=\"stroke-width:1.9\"/><path class=\"bs-skip\" d=\"M1023.3 51.1L1200 50.5\" style=\"stroke-width:2.7\"/><path class=\"bs-skip\" d=\"M620.8 54.6L841.4 52.7\" style=\"stroke-width:2\"/><path class=\"bs-skip\" d=\"M1044.6 37.7L1200 36.2\" style=\"stroke-width:2.5\"/><path class=\"bs-skip\" d=\"M779.1 54.4L1056.9 52.6\" style=\"stroke-width:2.6\"/>",
+  "<path class=\"bs-body\" d=\"M12 45C20.9 43.1 47.6 36.1 65.5 33.6C83.3 31.1 101.1 31.1 118.9 30.1C136.7 29 154.5 27.7 172.4 27.3C190.2 26.8 208 27.7 225.8 27.5C243.6 27.2 261.5 26 279.3 25.8C297.1 25.6 314.9 26.2 332.7 26.3C350.5 26.3 368.4 25.9 386.2 26.2C404 26.5 421.8 27.6 439.6 28.1C457.5 28.6 475.3 29 493.1 29.3C510.9 29.6 528.7 29.6 546.5 29.9C564.4 30.2 582.2 30.4 600 31C617.8 31.5 635.6 32.7 653.5 33.3C671.3 34 689.1 34.4 706.9 34.8C724.7 35.2 742.5 35.5 760.4 35.8C778.2 36 796 36 813.8 36.5C831.6 36.9 849.5 37.9 867.3 38.4C885.1 38.9 902.9 39.3 920.7 39.6C938.5 39.9 956.4 40.2 974.2 40.3C992 40.5 1009.8 40.3 1027.6 40.4C1045.5 40.5 1063.3 40.8 1081.1 41C1098.9 41.2 1116.7 41.2 1134.5 41.5C1152.4 41.8 1179.1 42.5 1188 42.7L1188 41.5C1179.1 41.9 1152.4 43.4 1134.5 44.1C1116.7 44.8 1098.9 44.9 1081.1 45.5C1063.3 46.1 1045.5 46.9 1027.6 47.6C1009.8 48.3 992 48.6 974.2 49.5C956.4 50.4 938.5 52.1 920.7 52.9C902.9 53.7 885.1 53.7 867.3 54.5C849.5 55.2 831.6 56.7 813.8 57.3C796 58 778.2 57.6 760.4 58.2C742.5 58.9 724.7 60.2 706.9 61C689.1 61.9 671.3 62.8 653.5 63.3C635.6 63.7 617.8 63.3 600 63.7C582.2 64.2 564.4 65.5 546.5 66C528.7 66.5 510.9 66.4 493.1 66.7C475.3 67 457.5 67.4 439.6 67.9C421.8 68.3 404 69.1 386.2 69.3C368.4 69.5 350.5 69.4 332.7 69.4C314.9 69.3 297.1 69.3 279.3 68.9C261.5 68.5 243.6 67.5 225.8 67C208 66.5 190.2 66.7 172.4 65.8C154.5 64.8 136.7 62.8 118.9 61.4C101.1 59.9 83.3 59.7 65.5 57.2C47.6 54.6 20.9 47.8 12 45.9Z\"/><path class=\"bs-skip\" d=\"M1006.6 53.8L1115.2 53\" style=\"stroke-width:3.1\"/><path class=\"bs-skip\" d=\"M733 33.9L881.1 33.3\" style=\"stroke-width:1.7\"/><path class=\"bs-skip\" d=\"M748.5 52.6L854.6 51.5\" style=\"stroke-width:1.4\"/><path class=\"bs-skip\" d=\"M949.7 42.8L1107.6 43\" style=\"stroke-width:2.6\"/><path class=\"bs-skip\" d=\"M642.4 47.4L927.4 48.4\" style=\"stroke-width:0.8\"/><path class=\"bs-skip\" d=\"M656.8 48.3L781 49\" style=\"stroke-width:1.4\"/><path class=\"bs-skip\" d=\"M556.3 21.8L823.4 19.9\" style=\"stroke-width:1.8\"/>",
+  "<path class=\"bs-body\" d=\"M12 45.3C20.9 43.5 47.6 36.6 65.5 34.1C83.3 31.5 101.1 31.3 118.9 30.2C136.7 29.1 154.5 28 172.4 27.4C190.2 26.7 208 26.6 225.8 26.4C243.6 26.2 261.5 26.2 279.3 26.2C297.1 26.2 314.9 26.2 332.7 26.4C350.5 26.5 368.4 27.1 386.2 27.2C404 27.4 421.8 26.9 439.6 27.3C457.5 27.6 475.3 28.8 493.1 29.2C510.9 29.6 528.7 29.3 546.5 29.7C564.4 30.2 582.2 31.2 600 31.8C617.8 32.4 635.6 33 653.5 33.3C671.3 33.7 689.1 33.5 706.9 33.8C724.7 34.2 742.5 35.3 760.4 35.7C778.2 36.1 796 35.7 813.8 36.2C831.6 36.7 849.5 38.1 867.3 38.6C885.1 39.1 902.9 39 920.7 39.2C938.5 39.4 956.4 39.5 974.2 39.8C992 40.1 1009.8 41 1027.6 41.2C1045.5 41.5 1063.3 41.3 1081.1 41.2C1098.9 41.2 1116.7 40.9 1134.5 41.1C1152.4 41.2 1179.1 42 1188 42.2L1188 42.5C1179.1 42.8 1152.4 44 1134.5 44.6C1116.7 45.1 1098.9 45.2 1081.1 45.7C1063.3 46.2 1045.5 47 1027.6 47.6C1009.8 48.3 992 48.8 974.2 49.6C956.4 50.4 938.5 51.5 920.7 52.4C902.9 53.2 885.1 54.1 867.3 54.7C849.5 55.4 831.6 55.5 813.8 56.1C796 56.6 778.2 57.1 760.4 58C742.5 58.8 724.7 60.4 706.9 61.1C689.1 61.9 671.3 62 653.5 62.6C635.6 63.2 617.8 64.3 600 64.8C582.2 65.3 564.4 65.4 546.5 65.8C528.7 66.3 510.9 67.3 493.1 67.7C475.3 68.1 457.5 68.3 439.6 68.4C421.8 68.4 404 68.1 386.2 68.1C368.4 68.1 350.5 68.2 332.7 68.2C314.9 68.3 297.1 68.6 279.3 68.4C261.5 68.2 243.6 67.8 225.8 67.2C208 66.6 190.2 65.7 172.4 64.9C154.5 64.2 136.7 64.1 118.9 62.8C101.1 61.6 83.3 60.3 65.5 57.5C47.6 54.6 20.9 47.7 12 45.8Z\"/><path class=\"bs-skip\" d=\"M747.3 32.6L969 31.9\" style=\"stroke-width:1.5\"/><path class=\"bs-skip\" d=\"M977.3 54.4L1200 52.5\" style=\"stroke-width:3.1\"/><path class=\"bs-skip\" d=\"M821.6 55.3L990.6 55.5\" style=\"stroke-width:1.4\"/><path class=\"bs-skip\" d=\"M793.9 27.9L877.3 27.8\" style=\"stroke-width:0.9\"/><path class=\"bs-skip\" d=\"M801.9 21.1L1057.1 20.3\" style=\"stroke-width:3.1\"/><path class=\"bs-skip\" d=\"M682 31.3L776.5 32.2\" style=\"stroke-width:1.7\"/><path class=\"bs-skip\" d=\"M594.1 61.4L786.7 61.5\" style=\"stroke-width:2.3\"/>"
   ];
 
-function knock(el, cls) {
-  if (!el) return;
-  el.classList.remove(cls);
-  void el.offsetWidth;                       // restart the animation
-  el.classList.add(cls);
-}
-
-const wheelHit = document.getElementById('wheel-hit');
-if (wheelHit) {
-  wheelHit.addEventListener('click', () => {
-    adapted += 1;
-    wheel.style.setProperty('--adapt', adapted);
-    knock(wheelHit, 'is-struck');
-  });
-}
-
-const cloudHit = document.getElementById('cloud-hit');
-if (cloudHit) {
+document.querySelectorAll('.band').forEach(band => {
   let shove = 0;
-  cloudHit.addEventListener('click', () => {
+  band.addEventListener('click', () => {
     shove = (shove + 1) % 4;
-    cloudHit.style.setProperty('--shove', shove);
-    knock(cloudHit, 'is-struck');
+    band.style.setProperty('--shove', shove);
+    knock(band, 'is-struck');
   });
-}
+});
 
 const flagHit = document.getElementById('flag-hit');
 if (flagHit) flagHit.addEventListener('click', () => knock(flagHit, 'is-struck'));
@@ -194,9 +127,10 @@ if (nameHit && brushSvg) {
 
 /* ──────────────────────── Time where he is ─────────────────────── */
 
-/* A homepage that says "Germany" says the same thing at four in the
-   morning as at noon. This says which one it is, and lets the visitor
-   work out for themselves whether a message is going to be answered.
+/* "Germany" says the same thing at four in the morning as it does at noon;
+   the time says which one it is, and the reader can work out for
+   themselves whether a message is going to be answered tonight. It used to
+   spell that out as well, in the voice of a caption. It does not now.
    Intl does the timezone, so summer time is not something to maintain. */
 
 const clock = document.getElementById('clock');
@@ -205,22 +139,8 @@ if (clock) {
   const face = new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit', hour12: false
   });
-  const hourOf = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Europe/Berlin', hour: 'numeric', hour12: false
-  });
 
-  const readOut = h =>
-    h < 5 ? 'probably asleep'
-      : h < 9 ? 'probably still asleep'
-        : h < 12 ? 'awake, allegedly'
-          : h < 18 ? 'around'
-            : h < 23 ? 'around' : 'up too late';
-
-  const tick = () => {
-    const now = new Date();
-    const h = parseInt(hourOf.format(now), 10);
-    clock.textContent = `${face.format(now)} — ${readOut(h)}`;
-  };
+  const tick = () => { clock.textContent = face.format(new Date()); };
 
   tick();
   setInterval(tick, 20000);
@@ -248,38 +168,53 @@ function ago(iso) {
   return `${v} ${unit}${v === 1 ? '' : 's'} ago`;
 }
 
-if (pushBox && pushList) {
-  fetch(`https://api.github.com/users/${GH_USER}/events/public?per_page=60`)
+/* Sixty unauthenticated calls an hour are shared by everyone behind one
+   address, so being refused is ordinary rather than exceptional — and two
+   of the five regions on this page came from here. Whatever last came back
+   is kept, and stands in when the next call is turned away. Every row
+   carries its own timestamp, so a stale list ages honestly instead of
+   claiming to be current. */
+function fromGithub(key, url, shape) {
+  return fetch(url)
     .then(r => (r.ok ? r.json() : null))
-    .then(events => {
-      if (!Array.isArray(events)) return;
-
-      // one row per repo, carrying its most recent push
-      const seen = new Map();
-      for (const e of events) {
-        if (e.type !== 'PushEvent' || !e.repo || seen.has(e.repo.name)) continue;
-        const commits = (e.payload && e.payload.commits) || [];
-        seen.set(e.repo.name, {
-          repo: e.repo.name,
-          when: e.created_at,
-          count: (e.payload && e.payload.size) || commits.length,
-          last: commits.length ? commits[commits.length - 1].message.split('\n')[0] : ''
-        });
-        if (seen.size >= 5) break;
+    .then(body => {
+      const rows = Array.isArray(body) ? shape(body) : null;
+      if (rows && rows.length) {
+        stash(key, rows);
+        return rows;
       }
-      if (!seen.size) return;
-
-      pushList.replaceChildren(...[...seen.values()].map(pushRow));
-      pushBox.hidden = false;
-      pushBox.classList.add('is-in');
+      return unstash(key);
     })
-    .catch(() => {
-      /* stays hidden */
-    });
+    .catch(() => unstash(key));
 }
 
-function pushRow(p) {
+if (pushBox && pushList) {
+  fromGithub('strohut-pushes', `https://api.github.com/users/${GH_USER}/events/public?per_page=60`, events => {
+    // one row per repo, carrying its most recent push
+    const seen = new Map();
+    for (const e of events) {
+      if (!e || e.type !== 'PushEvent' || !e.repo || seen.has(e.repo.name)) continue;
+      const commits = (e.payload && e.payload.commits) || [];
+      seen.set(e.repo.name, {
+        repo: e.repo.name,
+        when: e.created_at,
+        count: (e.payload && e.payload.size) || commits.length,
+        last: commits.length ? String(commits[commits.length - 1].message).split('\n')[0] : ''
+      });
+      if (seen.size >= 5) break;
+    }
+    return [...seen.values()];
+  }).then(rows => {
+    if (!Array.isArray(rows) || !rows.length) return;
+    pushList.replaceChildren(...rows.map((p, i) => pushRow(p, i)));
+    pushBox.hidden = false;
+    pushBox.classList.add('is-in');
+  });
+}
+
+function pushRow(p, i) {
   const li = document.createElement('li');
+  li.style.setProperty('--i', i);
 
   const link = document.createElement('a');
   link.className = 'push-repo';
@@ -302,6 +237,79 @@ function pushRow(p) {
   return li;
 }
 
+/* ─────────────────────────── His repos ─────────────────────────── */
+
+/* Commit messages say what changed this week; the repositories say what
+   someone actually spends their time on. Forks are somebody else's work
+   and archived ones are finished, so neither belongs here. */
+
+const workBox = document.getElementById('work');
+const workList = document.getElementById('work-list');
+
+if (workBox && workList) {
+  fromGithub('strohut-repos', `https://api.github.com/users/${GH_USER}/repos?sort=pushed&per_page=100`, repos =>
+    // github answering with the right shape is not the same as github
+    // answering with what was asked for, so the name is checked before it
+    // is read rather than after it throws
+    repos
+      .filter(r => r && typeof r.name === 'string' && !r.fork && !r.archived
+        && r.name.toLowerCase() !== `${GH_USER.toLowerCase()}.github.io`)
+      .slice(0, 6)
+      .map(r => ({
+        name: r.name, url: r.html_url, what: r.description,
+        lang: r.language, stars: r.stargazers_count, when: r.pushed_at
+      }))
+  ).then(rows => {
+    if (!Array.isArray(rows) || !rows.length) return;
+    workList.replaceChildren(...rows.map((repo, i) => workRow(repo, i)));
+    workBox.hidden = false;
+    workBox.classList.add('is-in');
+  });
+}
+
+function workRow(repo, i) {
+  const li = document.createElement('li');
+  li.style.setProperty('--i', i);
+
+  const link = document.createElement('a');
+  link.className = 'work-name';
+  link.href = repo.url;
+  link.textContent = repo.name;
+  li.append(link);
+
+  if (repo.what) {
+    const what = document.createElement('p');
+    what.className = 'work-what';
+    what.textContent = repo.what;
+    li.append(what);
+  }
+
+  const meta = document.createElement('p');
+  meta.className = 'work-meta';
+
+  if (repo.lang) {
+    const lang = document.createElement('span');
+    lang.className = 'work-lang';
+    lang.textContent = repo.lang;
+    meta.append(lang);
+  }
+
+  if (repo.stars) {
+    const stars = document.createElement('span');
+    stars.textContent = `${repo.stars} star${repo.stars === 1 ? '' : 's'}`;
+    meta.append(stars);
+  }
+
+  if (repo.when) {
+    const when = document.createElement('span');
+    when.textContent = ago(repo.when);
+    meta.append(when);
+  }
+
+  if (meta.childElementCount) li.append(meta);
+  return li;
+}
+
 /* ────────────────────── Discord presence ───────────────────────── */
 
 const el = {
@@ -316,33 +324,38 @@ const el = {
   art: document.getElementById('track-art'),
   song: document.getElementById('track-song'),
   artist: document.getElementById('track-artist'),
+  seen: document.getElementById('track-seen'),
+  album: document.getElementById('track-album'),
+  clock: document.getElementById('track-time'),
+  where: document.getElementById('dc-where'),
+  frame: document.getElementById('dc-frame'),
   bar: document.getElementById('track-bar'),
   fill: document.getElementById('track-fill'),
   link: document.getElementById('music-link')
 };
 
-const PINNED = {
-  song: 'nothing playing',
-  artist: '',
-  url: el.link ? el.link.href : ''
-};
+/* The quiet state used to point at one track id that had been carried
+   over from an older design — a favourite nobody had picked, sitting there
+   claiming to be one. What the panel shows instead when nothing is playing
+   is the last thing it actually caught him listening to, which is a true
+   statement about a real song, and gets truer the more often you visit. */
+const LAST_TRACK = 'strohut-track';
 
-/* The pinned track is a bare id in the markup, so the quiet state had
-   nothing to call it. Spotify's oembed endpoint needs no key and no auth
-   and hands back the title; if it is blocked or slow the panel keeps the
-   wording it already had. */
-if (PINNED.url) {
-  fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(PINNED.url)}`)
-    .then(r => (r.ok ? r.json() : null))
-    .then(data => {
-      if (!data || !data.title) return;
-      PINNED.artist = data.title;
-      // only take effect if nothing has started playing in the meantime
-      if (!lastPresence || !lastPresence.listening_to_spotify) showTrack(null);
-    })
-    .catch(() => {
-      /* the wording it already has is true either way */
-    });
+function stash(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* it just won't be there next time */
+  }
+}
+
+function unstash(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
 }
 
 el.art.addEventListener('load', () => { el.art.hidden = false; });
@@ -350,12 +363,19 @@ el.art.addEventListener('error', () => { el.art.hidden = true; });
 
 // The portrait only covers the empty ring once the picture has really
 // loaded, so a blocked CDN leaves the ring rather than a broken image
-el.avatar.addEventListener('load', () => { el.avatar.hidden = false; });
-el.avatar.addEventListener('error', () => { el.avatar.hidden = true; });
+const portrait = el.avatar.closest('.portrait');
+const showPortrait = on => {
+  el.avatar.hidden = !on;
+  if (portrait) portrait.classList.toggle('is-empty', !on);
+};
+showPortrait(false);
+
+el.avatar.addEventListener('load', () => showPortrait(true));
+el.avatar.addEventListener('error', () => showPortrait(false));
 
 const STATUS_TEXT = {
   online: 'online',
-  idle: 'away for a bit',
+  idle: 'idle',
   dnd: 'do not disturb',
   offline: 'offline'
 };
@@ -433,11 +453,33 @@ function render(data) {
     // one, and presence updates arrive on every song change
     if (el.avatar.src !== url) el.avatar.src = url;
   } else {
-    el.avatar.hidden = true;
+    showPortrait(false);
     el.avatar.removeAttribute('src');
   }
 
   el.dot.className = `dot is-${status}`;
+
+  /* Which machine he is at. Discord reports the three separately and one
+     person can be on more than one at once, which is worth saying — being
+     on a phone and being at a desk mean different things about whether a
+     message gets a reply. */
+  const on = [
+    data.active_on_discord_desktop && 'desktop',
+    data.active_on_discord_mobile && 'phone',
+    data.active_on_discord_web && 'browser'
+  ].filter(Boolean);
+  el.where.textContent = status !== 'offline' && on.length ? on.join(' and ') : '';
+  el.where.hidden = !el.where.textContent;
+
+  // the frame around the avatar is its own image, sitting over the picture
+  const frame = user.avatar_decoration_data && user.avatar_decoration_data.asset;
+  el.frame.hidden = !frame;
+  if (frame) {
+    const url = `https://cdn.discordapp.com/avatar-decoration-presets/${frame}.png?size=160`;
+    if (el.frame.src !== url) el.frame.src = url;
+  } else {
+    el.frame.removeAttribute('src');
+  }
 
   // a custom status outranks everything else
   const custom = data.activities.find(a => a.type === 4);
@@ -452,6 +494,18 @@ function render(data) {
 
   el.quiet.hidden = doing.length > 0 || Boolean(spotify) || Boolean(customText);
 }
+
+/* Discord sends far more per activity than a name: what the game itself
+   is reporting on the second line and the third, how big the party is,
+   and which of five kinds of activity it even is. The panel was showing
+   the name and throwing the rest away. */
+const DOING_KIND = {
+  0: 'playing',
+  1: 'streaming',
+  2: 'listening to',
+  3: 'watching',
+  5: 'competing in'
+};
 
 function activityRow(activity) {
   const li = document.createElement('li');
@@ -473,10 +527,27 @@ function activityRow(activity) {
 
   const body = document.createElement('div');
 
+  const kind = DOING_KIND[activity.type];
+  if (kind) {
+    const what = document.createElement('p');
+    what.className = 'doing-what';
+    what.textContent = kind;
+    body.append(what);
+  }
+
   const name = document.createElement('p');
   name.className = 'doing-name';
   name.textContent = activity.name;
   body.append(name);
+
+  // the game's own two lines, whatever it chooses to put there
+  for (const line of [activity.details, partyLine(activity)]) {
+    if (!line) continue;
+    const p = document.createElement('p');
+    p.className = 'doing-line';
+    p.textContent = line;
+    body.append(p);
+  }
 
   const start = activity.timestamps?.start;
   if (start) {
@@ -490,6 +561,15 @@ function activityRow(activity) {
 
   li.append(body);
   return li;
+}
+
+// the second line, with the party count folded in where there is one
+function partyLine(activity) {
+  const size = activity.party && activity.party.size;
+  const crowd = Array.isArray(size) && size.length === 2 && size[1] > 1
+    ? `${size[0]} of ${size[1]}`
+    : '';
+  return [activity.state, crowd].filter(Boolean).join(' · ');
 }
 
 function artworkUrl(activity) {
@@ -516,18 +596,39 @@ function elapsed(startMs) {
 /* Drawn here rather than dropped in as Spotify's own player, which was
    the one thing on the page in somebody else's visual language. */
 function showTrack(track) {
-  el.kicker.textContent = track ? 'playing right now' : 'stuck in my head';
-  el.song.textContent = track ? track.song : PINNED.song;
-  el.artist.textContent = track ? track.artist : PINNED.artist;
-  el.artist.hidden = !el.artist.textContent;
-  el.link.href = track ? `https://open.spotify.com/track/${track.track_id}` : PINNED.url;
-  el.link.textContent = 'open in spotify';
+  if (track && track.song) {
+    stash(LAST_TRACK, {
+      song: track.song, artist: track.artist, album: track.album,
+      id: track.track_id, art: track.album_art_url, at: Date.now()
+    });
+  }
 
-  if (track && track.album_art_url) {
+  // nothing playing: fall back to the last one this page saw
+  const seen = track ? null : unstash(LAST_TRACK);
+  const show = track || seen;
+
+  el.kicker.textContent = track ? 'now playing' : seen ? 'last played' : 'nothing playing';
+  el.song.textContent = show ? show.song : 'nothing playing';
+  el.artist.textContent = show ? show.artist || '' : '';
+  el.artist.hidden = !el.artist.textContent;
+
+  el.seen.textContent = seen && seen.at ? ago(seen.at) : '';
+  el.seen.hidden = !el.seen.textContent;
+
+  // the record it came off, which discord sends and the panel ignored
+  el.album.textContent = show && show.album && show.album !== show.song ? show.album : '';
+  el.album.hidden = !el.album.textContent;
+
+  const id = show && (show.track_id || show.id);
+  el.link.hidden = !id;
+  if (id) el.link.href = `https://open.spotify.com/track/${id}`;
+
+  const art = show && (show.album_art_url || show.art);
+  if (art) {
     // re-assigning the same src restarts the fade, and presence updates
     // arrive far more often than the song changes
-    if (el.art.src !== track.album_art_url) el.art.src = track.album_art_url;
-    el.art.alt = `${track.album || track.song} cover`;
+    if (el.art.src !== art) el.art.src = art;
+    el.art.alt = `${(track && track.album) || show.song} cover`;
   } else {
     el.art.hidden = true;
     el.art.removeAttribute('src');
@@ -538,16 +639,29 @@ function showTrack(track) {
 
   if (!span || span <= 0) {
     el.bar.hidden = true;
+    el.clock.hidden = true;
     return;
   }
 
   el.bar.hidden = false;
+  el.clock.hidden = false;
+
+  // A bar says roughly how far in it is. The numbers say exactly, and they
+  // sit outside the live region — read out every second they would be the
+  // only thing a screen reader ever got to say.
   const tick = () => {
-    const gone = (Date.now() - track.timestamps.start) / span;
-    el.fill.style.width = `${Math.min(100, Math.max(0, gone * 100)).toFixed(2)}%`;
+    const gone = Date.now() - track.timestamps.start;
+    el.fill.style.width = `${Math.min(100, Math.max(0, gone / span * 100)).toFixed(2)}%`;
+    el.clock.textContent = `${clockOf(gone)} / ${clockOf(span)}`;
   };
   tick();
   liveTimers.push(setInterval(tick, 1000));
+}
+
+// minutes and seconds, the way a player shows them
+function clockOf(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
 }
 
 function fail() {
@@ -555,4 +669,13 @@ function fail() {
   el.name.textContent = 'Strohut';
   el.state.textContent = "can't reach discord right now";
   el.quiet.hidden = true;
+
+  /* The track comes from the same socket, so with that unreachable there
+     is nothing to say about what is playing — and the panel used to sit on
+     "checking…" for as long as the tab stayed open. If this page has caught
+     something before, that still stands. If it never has, the region goes,
+     which is the same rule the github ones follow. */
+  const music = document.querySelector('.music');
+  if (unstash(LAST_TRACK)) showTrack(null);
+  else if (music) music.hidden = true;
 }
