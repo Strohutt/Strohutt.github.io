@@ -27,9 +27,10 @@ for (const [name, src] of [['index', html], ['404', lost]]) {
   const want = new Set([...src.matchAll(/href="#([^"]+)"/g)].map(m => m[1]));
   const missing = [...want].filter(w => !have.has(w) && !src.includes(`id="${w}"`));
   check(`${name}: every use has a symbol`, !missing.length, missing.join(','));
-  // the flash symbols are reached from javascript, not from the markup
-  const fromJs = new Set([...(js + flash).matchAll(/#(flash-\$\{[^}]+\}|[a-z0-9-]+)/g)].map(m => m[1]));
-  const dead = [...have].filter(h => !want.has(h) && !(/^flash-\d$/.test(h) && flash.includes('#flash-')));
+  // Symbols reached from javascript arrive as a template, so what is in
+  // the source is a prefix rather than a whole id.
+  const prefixes = [...(js + flash).matchAll(/#([a-z0-9-]+?)-?\$\{/g)].map(m => `${m[1]}-`);
+  const dead = [...have].filter(h => !want.has(h) && !prefixes.some(p => h.startsWith(p)));
   check(`${name}: no symbol is unused`, !dead.length, dead.join(','));
 }
 
@@ -42,7 +43,8 @@ check('appearance is prefixed', !/[^-]appearance: none/.test(css) || css.include
 
 // ── a descendant selector cannot reach inside a <use> shadow tree
 const shadowClasses = ['mg-body', 'mg-lit', 'cb-body', 'cb-curl', 'jr-bone', 'jr-straw',
-  'jr-band', 'jr-hole', 'jr-teeth', 'bf-bolt', 'bf-spark', 'bf-void', 'bf-core', 'bf-hole', 'bf-hot', 'bf-warp'];
+  'jr-band', 'jr-hole', 'jr-teeth', 'bf-bolt', 'bf-spark', 'bf-void', 'bf-core', 'bf-hole', 'bf-hot', 'bf-warp',
+  'cw-body', 'cw-vein'];
 const reached = shadowClasses.filter(c => new RegExp(`[.\\w\\]]\\s+\\.${c}\\b`).test(css));
 check('nothing styles a cloned symbol through a descendant selector', !reached.length, reached.join(','));
 
@@ -57,6 +59,25 @@ check('404 says noindex', /name="robots" content="noindex"/.test(lost));
 
 // ── no leftover pointers to the old font host
 check('nothing points at google fonts', !html.includes('googleapis') && !lost.includes('googleapis'));
+
+// ── the ambient field is baked into the markup, so it has to be complete
+// there. A mote missing one custom property inherits nothing and either
+// stacks on the left edge or animates to a length of zero.
+for (const [name, src] of [['index', html], ['404', lost]]) {
+  const motes = [...src.matchAll(/<span class="mote[^"]*" style="([^"]+)"/g)].map(m => m[1]);
+  check(`${name}: the field has motes`, motes.length >= 20, String(motes.length));
+  const needed = ['--x:', '--w:', '--dur:', '--delay:', '--sway:', '--fade:'];
+  const short = motes.filter(s => needed.some(k => !s.includes(k)));
+  check(`${name}: every mote carries its own timing`, !short.length, short[0] || '');
+  // a positive delay is a mote that has not started yet, which is a gap in
+  // the field for as long as the delay lasts
+  const late = motes.filter(s => !/--delay:-/.test(s));
+  check(`${name}: every mote starts mid-flight`, !late.length, late[0] || '');
+}
+
+// ── motion nobody asked for has to be switchable off
+const still = css.slice(css.indexOf('prefers-reduced-motion'));
+check('reduced motion drops the field', /\.field\s*{\s*display:\s*none/.test(still));
 
 console.log(fails.length ? '\n' + fails.length + ' FAILING: ' + fails.join(' | ') : '\nsource checks pass');
 process.exit(fails.length ? 1 : 0);

@@ -124,6 +124,48 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   check('quiet line appears when nothing is on', !(await p.evaluate(() => document.getElementById('dc-quiet').hidden)));
   await p.close();
 
+  // ── the repository list, which is the other thing github can refuse
+  const REPOS = n => Array.from({ length: n }, (_, i) => ({
+    name: `repo-${i}`, html_url: 'https://example.invalid', description: LONG,
+    language: 'TypeScript', stargazers_count: i, pushed_at: new Date(Date.now() - i * 6e7).toISOString(),
+    fork: false, archived: false
+  }));
+
+  p = await open({ '**/api.github.com/**/repos**': r => r.fulfill({ status: 403, contentType: 'application/json', body: '{}' }) });
+  await p.waitForTimeout(1600);
+  check('repos 403: the panel stays hidden', await p.evaluate(() => document.getElementById('work').hidden));
+  await p.close();
+
+  p = await open({ '**/api.github.com/**/repos**': r => r.fulfill({ status: 200, contentType: 'application/json', body: '[{"fork":true},{},{"name":null}]' }) });
+  await p.waitForTimeout(1600);
+  check('repos with no usable rows: the panel stays hidden',
+    await p.evaluate(() => document.getElementById('work').hidden));
+  await p.close();
+
+  p = await open({ '**/api.github.com/**/repos**': r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(REPOS(40)) }) });
+  await p.waitForTimeout(1600);
+  check('forty repos are cut down to six',
+    await p.evaluate(() => document.querySelectorAll('#work-list li').length) === 6,
+    String(await p.evaluate(() => document.querySelectorAll('#work-list li').length)));
+  check('a 220-char description does not overflow', !(await overflows(p)));
+  await p.close();
+
+  // his own page is where the visitor already is, so listing it is noise
+  p = await open({
+    '**/api.github.com/**/repos**': r => r.fulfill({
+      status: 200, contentType: 'application/json',
+      body: JSON.stringify([{ name: 'Strohutt.github.io', html_url: 'x', fork: false, archived: false },
+        { name: 'kept', html_url: 'x', fork: false, archived: false },
+        { name: 'gone', html_url: 'x', fork: true, archived: false },
+        { name: 'done', html_url: 'x', fork: false, archived: true }])
+    })
+  });
+  await p.waitForTimeout(1600);
+  check('forks, archives and this page itself are left out',
+    JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.work-name')].map(a => a.textContent))) === '["kept"]',
+    JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.work-name')].map(a => a.textContent))));
+  await p.close();
+
   await b.close();
   console.log(fails.length ? '\n' + fails.length + ' FAILING: ' + fails.join(' | ') : '\nall failure modes hold');
   process.exit(fails.length ? 1 : 0);
