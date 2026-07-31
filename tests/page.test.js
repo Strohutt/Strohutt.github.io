@@ -102,19 +102,36 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   await p.setViewportSize({ width: 1340, height: 900 });
   check('nothing is clipped off the right edge', !cut.length, cut.join(' | '));
 
-  // Every hit target has to actually do something. Measuring that the class
-  // was added only proves js ran; these read the value the drawing moves by.
-  for (const [id, probe] of [
+  /* Every hit target has to actually do something. Measuring that the
+     class or the custom property changed only proves the script ran —
+     the cloud's shove was set on a property the drawing never rendered,
+     because the idle drift is an infinite animation on the same
+     transform and an animation beats a declaration. The number went up
+     on every click and nothing moved for a month. So where a hit is
+     supposed to move something, this reads where it ended up.
+
+     The probe is serialised and run in the page, so it cannot close over
+     anything out here — the selector has to be handed across. */
+  const moved = sel => {
+    const el = document.querySelector(sel);
+    // the idle drift would otherwise be read at whatever point of its
+    // twenty-two second cycle the click happened to land on
+    el.getAnimations().forEach(a => { a.pause(); a.currentTime = 0; });
+    const r = el.getBoundingClientRect();
+    return `${Math.round(r.left)},${Math.round(r.top)},${getComputedStyle(el).transform}`;
+  };
+
+  for (const [id, probe, arg] of [
     ['wheel-hit', () => getComputedStyle(document.querySelector('.wheel')).getPropertyValue('--adapt').trim()],
-    ['cloud-hit', () => document.getElementById('cloud-hit').style.getPropertyValue('--shove')],
-    ['cloud-hit-2', () => document.getElementById('cloud-hit-2').style.getPropertyValue('--shove')],
+    ['cloud-hit', moved, '#cloud-hit'],
+    ['cloud-hit-2', moved, '#cloud-hit-2'],
     ['flag-hit', () => document.getElementById('flag-hit').className],
     ['name-hit', () => document.getElementById('brush').innerHTML.length]
   ]) {
-    const before = await p.evaluate(probe);
+    const before = await p.evaluate(probe, arg);
     await p.click('#' + id);
-    await p.waitForTimeout(140);
-    const after = await p.evaluate(probe);
+    await p.waitForTimeout(900);
+    const after = await p.evaluate(probe, arg);
     check(`${id} does something`, before !== after, `stayed ${before}`);
   }
 

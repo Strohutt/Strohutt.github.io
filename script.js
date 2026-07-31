@@ -14,6 +14,30 @@ const DISCORD_ID = '402858450926829568';
 
 /* ───────────────────────── Arriving ────────────────────────────── */
 
+/* Nothing arrives while the barrier is still over it. The regions in view
+   on a first visit used to assemble themselves behind 無量空処 and be
+   sitting there finished when it lifted, which threw away the one moment
+   on the page where everything is about to happen.
+
+   flash.js says when it is gone. If it was never up — a second visit, a
+   machine asked to hold still, no javascript in the curtain at all — then
+   nothing is being waited for and this runs now. */
+const barred = document.documentElement.classList.contains('is-cast');
+const waiting = [];
+
+function whenOpen(fn) {
+  if (!barred) fn();
+  else waiting.push(fn);
+}
+
+if (barred) {
+  addEventListener('strohut:open', () => {
+    while (waiting.length) waiting.shift()();
+  }, { once: true });
+  // the barrier's own failsafe is a timer; this is the failsafe for that
+  setTimeout(() => { while (waiting.length) waiting.shift()(); }, 4000);
+}
+
 const sections = document.querySelectorAll('.reveal');
 
 if (stillPlease.matches || !('IntersectionObserver' in window)) {
@@ -27,7 +51,7 @@ if (stillPlease.matches || !('IntersectionObserver' in window)) {
     });
   }, { rootMargin: '0px 0px -12% 0px', threshold: 0.1 });
 
-  sections.forEach(s => watcher.observe(s));
+  whenOpen(() => sections.forEach(s => watcher.observe(s)));
 }
 
 
@@ -504,9 +528,14 @@ if (likeBox && likeList) {
 
       if (!got.length) return;
 
-      likeList.replaceChildren(...got.map((e, i) => likeRow(e, i)));
-      likeBox.hidden = false;
-      likeBox.classList.add('is-in');
+      /* Not watched by the observer — the region has no box until there
+         is something to put in it, so it says for itself when it arrives.
+         Behind the barrier that would be another arrival nobody sees. */
+      whenOpen(() => {
+        likeList.replaceChildren(...got.map((e, i) => likeRow(e, i)));
+        likeBox.hidden = false;
+        likeBox.classList.add('is-in');
+      });
     })
     .catch(() => {
       /* stays hidden */
