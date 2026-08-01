@@ -745,6 +745,43 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
   check('and the wheel learns from it too', bykey.adapt === '1 of 8', bykey.adapt);
   await p.close();
 
+  /* ── nothing accumulates ───────────────────────────────────────
+     Every attempt builds a ring, and every landing builds waves, a bolt,
+     fourteen shards and a rift, all of which take themselves away again
+     on a timer. One that does not is invisible for the first minute and
+     then the page is carrying a thousand dead elements. So the page is
+     hammered and then counted: the number of elements in it afterwards
+     has to be the number it started with. */
+  p = await fresh();
+  const nodes = () => p.evaluate(() => document.querySelectorAll('*').length);
+  const atRest = await nodes();
+
+  await p.evaluate(() => new Promise(done => {
+    const a = document.getElementById('flash-arena');
+    const r = a.getBoundingClientRect();
+    const x = r.left + r.width / 2, y = r.top + r.height / 2;
+    const fire = (t, buttons) => a.dispatchEvent(new PointerEvent(t, {
+      bubbles: true, clientX: x, clientY: y, button: 0, buttons,
+      pointerId: 1, pointerType: 'mouse', isPrimary: true
+    }));
+    // a spread of holds: far too early, near the window, and past it
+    const holds = [20, 90, 260, 470, 520, 610, 700];
+    let n = 0;
+    const go = () => {
+      if (n >= 60) return done();
+      fire('pointerdown', 1);
+      setTimeout(() => { fire('pointerup', 0); n++; setTimeout(go, 30); }, holds[n % holds.length]);
+    };
+    go();
+  }));
+
+  // everything drawn by a hit is gone within about a second and a half
+  await p.waitForTimeout(3000);
+  const left = await nodes();
+  check('sixty attempts leave nothing behind', left === atRest, `${atRest} → ${left}`);
+  check('and no ring is still standing', await rings(p) === 0, String(await rings(p)));
+  await p.close();
+
   await b.close();
   console.log(fails.length ? '\n' + fails.length + ' FAILING: ' + fails.join(', ') : '\nall flash checks pass');
   process.exit(fails.length ? 1 : 0);
