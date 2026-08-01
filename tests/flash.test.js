@@ -112,6 +112,32 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
   return plan;
 });
 
+/* The same attempt with no pointer anywhere in it. Both edges are driven
+   from inside the page for the reason above — a window tens of
+   milliseconds wide cannot be hit over the debugging protocol. */
+const landKey = p => p.evaluate(() => new Promise((done, fail) => {
+  const key = kind => document.body.dispatchEvent(
+    new KeyboardEvent(kind, { key: 'Enter', bubbles: true }));
+
+  key('keydown');
+  const ring = document.querySelector('.charge:not(.is-landed):not(.is-spent)');
+  if (!ring) return fail(new Error('no ring opened'));
+  const ms = k => parseFloat(ring.style.getPropertyValue(k));
+  const plan = { open: ms('--open-at'), span: ms('--span'), wind: ms('--wind') };
+
+  const t0 = performance.now();
+  const at = plan.open + plan.span / 2;
+  const spin = () => {
+    const left = at - (performance.now() - t0);
+    if (left <= 0) { key('keyup'); done(plan); }
+    else setTimeout(spin, left > 40 ? left - 30 : 1);
+  };
+  spin();
+})).then(async plan => {
+  await p.waitForTimeout(140);
+  return plan;
+});
+
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
 
@@ -595,6 +621,61 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
   await q.waitForTimeout(260);
   check('breaking the run and rebuilding it earns another', (await reading()).on);
   await own.close();
+
+  /* ── played without a pointer ──────────────────────────────────
+     The one thing on this page anybody can get better at was reachable
+     only by holding a mouse down. Enter, with nothing focused, is the
+     same press: a control that has the focus keeps its own Enter, and
+     space is left alone because space is how a keyboard scrolls. */
+  p = await fresh();
+  const ringCount = () => p.evaluate(() => document.querySelectorAll('.charge').length);
+
+  await p.evaluate(() => document.body.dispatchEvent(
+    new KeyboardEvent('keydown', { key: ' ', bubbles: true })));
+  await p.waitForTimeout(200);
+  check('space is not taken away from the page', await ringCount() === 0);
+  await p.evaluate(() => document.body.dispatchEvent(
+    new KeyboardEvent('keyup', { key: ' ', bubbles: true })));
+
+  await p.focus('#wheel-hit');
+  await p.evaluate(() => document.activeElement.dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })));
+  await p.waitForTimeout(200);
+  check('a control keeps its own enter', await ringCount() === 0);
+  await p.evaluate(() => {
+    document.activeElement.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', bubbles: true }));
+    document.activeElement.blur();
+  });
+
+  await p.evaluate(() => document.body.dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })));
+  await p.waitForTimeout(200);
+  check('holding enter winds one up', await ringCount() > 0);
+  /* A held key repeats. Every repeat after the first is the same press
+     still going on, and a second wind-up opening underneath the first is
+     a ring nothing can ever release. */
+  await p.evaluate(() => document.body.dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, repeat: true })));
+  await p.waitForTimeout(200);
+  check('and holding it longer does not open a second', await ringCount() === 1,
+    String(await ringCount()));
+  await p.evaluate(() => document.body.dispatchEvent(
+    new KeyboardEvent('keyup', { key: 'Enter', bubbles: true })));
+  await p.waitForTimeout(300);
+
+  await landKey(p);
+  const bykey = await p.evaluate(() => ({
+    last: document.getElementById('score-last').textContent,
+    total: document.getElementById('score-total').textContent,
+    adapt: document.getElementById('score-adapt').textContent
+  }));
+  /* Landed is landed — the reading beside it is how far off the middle of
+     the window it was, which is a couple of milliseconds either way even
+     when it is aimed from inside the page. */
+  check('and a release lands the same as a pointer would',
+    bykey.total === '1', JSON.stringify(bykey));
+  check('and the wheel learns from it too', bykey.adapt === '1 of 8', bykey.adapt);
+  await p.close();
 
   await b.close();
   console.log(fails.length ? '\n' + fails.length + ' FAILING: ' + fails.join(', ') : '\nall flash checks pass');

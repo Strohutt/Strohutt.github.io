@@ -700,24 +700,22 @@ let countTimer = 0;
 const domainLeft = document.getElementById('domain-left');
 
 if (!stillPlease.matches) {
-  addEventListener('pointerdown', event => {
-    if (event.button !== 0 || charge) return;
-    // not every pointerdown lands on an element — one dispatched at the
-    // window has the window as its target, and asking that what it sits
-    // inside of throws before anything else on the page gets to run
-    if (event.target?.closest?.(OFF_LIMITS)) return;
-
+  /* Winding one up, wherever the press came from. It was written into the
+     pointer handler and could only ever be reached by one, which left the
+     one thing on this page you can get better at unreachable without a
+     mouse. */
+  const hold = (x, y) => {
     const at = performance.now();
     const wind = windUp();
-    const ring = openCharge(event.clientX, event.clientY, wind);
+    const ring = openCharge(x, y, wind);
     document.body.classList.add('is-charging');
 
     charge = {
       ring,
       at,
       wind,
-      x: event.clientX,
-      y: event.clientY,
+      x,
+      y,
       // holding forever is not a pause, it is a miss
       timer: setTimeout(() => {
         if (!charge) return;
@@ -729,6 +727,15 @@ if (!stillPlease.matches) {
         missed('late', HOLD_LIMIT - hw * (WINDOW_AT + windowNow() / 2));
       }, HOLD_LIMIT)
     };
+  };
+
+  addEventListener('pointerdown', event => {
+    if (event.button !== 0 || charge) return;
+    // not every pointerdown lands on an element — one dispatched at the
+    // window has the window as its target, and asking that what it sits
+    // inside of throws before anything else on the page gets to run
+    if (event.target?.closest?.(OFF_LIMITS)) return;
+    hold(event.clientX, event.clientY);
   }, { passive: true });
 
   const release = event => {
@@ -766,6 +773,32 @@ if (!stillPlease.matches) {
   };
 
   addEventListener('pointerup', release, { passive: true });
+
+  /* The same attempt without a pointer. Enter with nothing focused is the
+     keyboard's version of pressing on empty page: every control on the
+     page keeps its own Enter, because a keypress inside one is aimed at
+     it and not at this, and a browser does nothing with it otherwise.
+
+     Not space — space is how a keyboard scrolls a page, and taking that
+     away from somebody for the length of a visit is not worth a game. A
+     held key repeats, and every repeat after the first is the same press
+     still going on rather than a new one. */
+  let onKey = false;
+  addEventListener('keydown', event => {
+    if (event.key !== 'Enter' || event.repeat || onKey || charge) return;
+    if (event.target !== document.body) return;
+    onKey = true;
+    hold(innerWidth / 2, innerHeight / 2);
+  });
+
+  addEventListener('keyup', event => {
+    if (event.key !== 'Enter' || !onKey) return;
+    onKey = false;
+    release(null);
+  });
+
+  // letting go somewhere the page cannot hear it leaves the ring hanging
+  addEventListener('blur', () => { onKey = false; });
   addEventListener('pointercancel', () => {
     if (!charge) return;
     shutCharge(false);
