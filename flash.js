@@ -355,9 +355,18 @@ function graded(loud) {
 
   /* Drawn rather than set: these characters live in three different CJK
      subsets and setting them in the font would pull all three onto the
-     wire for four marks. */
+     wire for four marks.
+
+     The numerals already exist as the chapter set, under ch- rather than
+     kj- — and a use pointing at a symbol that is not there is not an
+     error anywhere, it is an empty box exactly the size of the missing
+     character. 四級 spent a while reading as 級 because of it. */
+  const GLYPH = {
+    '一': '#ch-一', '二': '#ch-二', '三': '#ch-三', '四': '#ch-四',
+    '特': '#kj-特', '準': '#kj-準', '級': '#kj-級'
+  };
   gradeMark.innerHTML = [...now.kanji]
-    .map(ch => `<svg viewBox="0 0 1000 1000"><use href="#kj-${ch}" /></svg>`).join('');
+    .map(ch => `<svg viewBox="0 0 1000 1000"><use href="${GLYPH[ch]}" /></svg>`).join('');
   gradeName.textContent = now.name;
   gradeWhy.textContent = now.why;
   gradeBox.dataset.grade = now.name.replace(/\s+/g, '-');

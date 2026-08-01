@@ -784,6 +784,31 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
   check('and it says why', (await rank()).why === 'nothing landed yet', (await rank()).why);
   check('and the kanji are drawn, not set', (await rank()).marks === 2, String((await rank()).marks));
 
+  /* A use pointing at a symbol that does not exist is not an error
+     anywhere — it is an empty box the size of the missing character,
+     and 四級 spent a while reading as 級 exactly that way. Every mark
+     the rank ever draws has to resolve, at every rank. */
+  const unresolved = await p.evaluate(() => {
+    const out = [];
+    for (const g of GRADES) {
+      total = 99; best = 9; closest = 1; awake = true;   // reachable state for all
+      gradeMark.innerHTML = '';
+      held = '';
+      // force exactly this grade's kanji through the same path
+      const real = GRADES.find(x => x === g);
+      held = '';
+      (function () {
+        const idOf = ch => (`#${'一二三四'.includes(ch) ? 'ch' : 'kj'}-${ch}`);
+        for (const ch of real.kanji) {
+          if (!document.querySelector(idOf(ch))) out.push(`${real.kanji}: ${ch}`);
+        }
+      })();
+    }
+    return out;
+  });
+  check('and every character of every rank has a symbol behind it',
+    !unresolved.length, unresolved.join(' | '));
+
   await stand(1, 1, 0, false);
   check('one landed is grade three', (await rank()).name === 'grade three', (await rank()).name);
 

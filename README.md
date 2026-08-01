@@ -68,7 +68,7 @@ and nothing else.
 Every outline is generated with a fixed seed and shaken off its ideal
 curve, so no two bumps match and nothing sits on a perfect circle.
 
-## Four things that will bite you
+## Six things that will bite you
 
 **`<use>` clones a symbol into a shadow tree, and a descendant selector
 never reaches inside it.** `.puff .cl-body` silently does nothing;
@@ -92,6 +92,19 @@ a wire. `cloudBar()` widens any pair that comes up short.
 **Walking the underside of a lobe chain needs the lower crossing of each
 pair of circles and the opposite sweep direction.** Reusing the top-edge
 maths gives a zigzag with spikes hanging off it.
+
+**A shorthand on `.sea svg` beats a longhand on `.sea-far`.** Class plus
+type outweighs a lone class, so the per-layer `animation-duration` never
+applied and both layers of the sea rolled at one speed for weeks — the
+distance between them simply was not there, and nothing anywhere said
+so. Write the layer rules as `.sea .sea-far` or heavier.
+
+**Forced-colors rules need the same flat classes as everything else.**
+Windows high contrast replaces every colour, and the override rules for
+the drawings were first written as `.wheel *` — a descendant selector
+into a `<use>` shadow tree, which matches nothing, silently, exactly as
+the first trap above says. The `source` suite now checks that no rule in
+the file does this.
 
 ## The six chapters
 

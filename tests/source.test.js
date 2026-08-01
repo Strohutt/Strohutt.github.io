@@ -34,9 +34,12 @@ for (const [name, src] of [['index', html], ['404', lost]]) {
   const missing = [...want].filter(w => !have.has(w) && !src.includes(`id="${w}"`));
   check(`${name}: every use has a symbol`, !missing.length, missing.join(','));
   // Symbols reached from javascript arrive as a template, so what is in
-  // the source is a prefix rather than a whole id.
+  // the source is a prefix rather than a whole id — or, where the ids are
+  // written out in a map, as whole literals. Both count as used: a check
+  // that cannot see them reports the rank's own kanji as corpses.
   const prefixes = [...(js + flash).matchAll(/#([a-z0-9-]+?)-?\$\{/g)].map(m => `${m[1]}-`);
-  const dead = [...have].filter(h => !want.has(h) && !prefixes.some(p => h.startsWith(p)));
+  const literal = new Set([...(js + flash).matchAll(/['"`#]#([^'"`\s{}]+)/gu)].map(m => m[1]));
+  const dead = [...have].filter(h => !want.has(h) && !literal.has(h) && !prefixes.some(p => h.startsWith(p)));
   check(`${name}: no symbol is unused`, !dead.length, dead.join(','));
 }
 
