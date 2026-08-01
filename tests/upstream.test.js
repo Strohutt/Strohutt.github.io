@@ -375,6 +375,27 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
     await p.evaluate(() => (document.querySelector('.like-meta') || {}).textContent || ''));
   await p.close();
 
+  /* The facts about a book run out of room in the column and wrap, and the
+     break has to land between two of them: "1140 episodes" split across
+     two lines reads as two different numbers for a moment. Each fact is
+     one unbreakable run, so a fact drawn over two lines is a failure —
+     and the text has to still read as one sentence to anything copying
+     it, which the runs are built not to disturb. */
+  p = await open({ '**/graphql.anilist.co/**': anilist({ data: {
+    op_book: page(media({ title: { romaji: 'One Piece' }, chapters: 1140, format: 'MANGA' })),
+    op_screen: page({ title: { romaji: 'One Piece' }, episodes: 1140, status: 'RELEASING', genres: [] })
+  } }) }, { viewport: { width: 380, height: 800 } });
+  await p.waitForTimeout(1800);
+  check('the facts about a book read as one sentence',
+    /manga · still going · 1140 chapters · since 2018/.test(
+      await p.evaluate(() => (document.querySelector('.like-meta') || {}).textContent || '')),
+    await p.evaluate(() => (document.querySelector('.like-meta') || {}).textContent || ''));
+  const split = await p.evaluate(() => [...document.querySelectorAll('.like-meta .fact')]
+    .filter(f => f.getClientRects().length > 1).map(f => f.textContent));
+  check('and no one of them is broken over two lines', split.length === 0, JSON.stringify(split));
+  check('and they wrap inside the card rather than past it', !(await overflows(p)));
+  await p.close();
+
   // a title long enough to be a paragraph
   p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk_book: page(media({ title: { romaji: 'Jujutsu Kaisen', native: LONG } })) } }) });
   await p.waitForTimeout(1800);

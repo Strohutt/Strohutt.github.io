@@ -12,6 +12,13 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=27">
   <meta name="theme-color" content="#08080b">
 
+  <!-- the same three faces the front asks for, and for the same reason:
+       waiting on the stylesheet to be parsed before even asking is a
+       flash of fallback type on the one page nobody wanted to land on -->
+  <link rel="preload" href="fonts/shippori-mincho-b1-800-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/zen-kaku-gothic-new-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/zen-kaku-gothic-new-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+
   <link rel="stylesheet" href="fonts.css?v=27">
   <link rel="stylesheet" href="styles.css?v=27">
 </head>
@@ -196,6 +203,13 @@
 
       <footer class="panel foot">
         <svg class="flag" viewBox="0 0 320 300" aria-hidden="true"><use href="#roger" /></svg>
+        <!-- The flag at one end of an empty band reads as a page that ran
+             out. The same line the front says about itself goes at the
+             other end — it is as true here as it is there, and it is not
+             a second copy of the link already sitting above it. -->
+        <div class="foot-text">
+          <p class="colophon">no framework · no build step · no analytics</p>
+        </div>
       </footer>
     </div>
   </main>

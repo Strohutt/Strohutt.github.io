@@ -1655,7 +1655,10 @@ body.is-awake .tally-label .says::after {
     gap: .3rem;
   }
 
-  .who > i:last-of-type {
+  /* the rule the clock leaves stranded at the end of the line — not the
+     one holding two halves of a sentence apart, which is every rule on a
+     line that only has one of them */
+  .who > i:not(:only-of-type):last-of-type {
     display: none;
   }
 
@@ -2177,6 +2180,10 @@ svg.band {
   letter-spacing: .24em;
   text-transform: uppercase;
   color: var(--blood-lit);
+  /* uppercase at a quarter-em of tracking runs out of room on a phone and
+     leaves one word alone on the second line; split evenly instead. Where
+     it is not understood the line simply wraps as it always did. */
+  text-wrap: balance;
 }
 
 .track {
@@ -2598,6 +2605,18 @@ svg.band {
   overflow-wrap: anywhere;
 }
 
+/* A break belongs between two facts, not inside one. Nothing upstream
+   sends a fact wider than the column — they are formats, states, and
+   counts — but nothing here is going to widen a card if one ever does. */
+.like-meta .fact {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+
 /* what it is about, in anilist's words rather than anybody's sentence */
 .like-tags {
   margin: .55rem 0 0;
@@ -2727,16 +2746,6 @@ svg.band {
   background: var(--ruled) 0 0 / 44rem 3.5px repeat-x;
 }
 
-/* the reading is a sentence, not a count, so it does not get the display
-   face at two and a half rem alongside the numbers */
-/* readings, not counts, so they do not get the display face at two and a
-   half rem alongside the numbers */
-#score-last,
-#score-window {
-  font-size: clamp(1rem, 2.4vw, 1.3rem);
-  line-height: 1.25;
-}
-
 .score-list b {
   display: block;
   font-family: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", Georgia, serif;
@@ -2744,6 +2753,17 @@ svg.band {
   font-weight: 800;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+}
+
+/* Readings, not counts, so they do not get the display face at two and a
+   half rem alongside the numbers — and all three of them, not two of the
+   three: one dash drawn at two and a half rem beside two drawn at one is
+   a fat white bar next to two hairlines, and a range like 101–137 ms set
+   that size breaks over three lines and drags its label down with it. */
+.score-read b {
+  font-size: clamp(1rem, 2.4vw, 1.3rem);
+  line-height: 1.25;
+  min-height: 1.25em;
 }
 
 .score-list span {

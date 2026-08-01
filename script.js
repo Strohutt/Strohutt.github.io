@@ -729,6 +729,27 @@ const STATE = {
   CANCELLED: 'cancelled'
 };
 
+/* One line of facts about a book, in a column narrow enough that it wraps.
+   Set as one string it breaks wherever the space happens to fall, which
+   puts "· since 2018" on a line of its own and leaves "1140 episodes"
+   split across two. Each fact is its own unbreakable run instead, with the
+   separator kept on the fact it follows, so a break can only land between
+   two of them. The text reads the same in every other respect — it is
+   still "manga · finished · 271 chapters · since 2018" to anything that
+   copies it or reads it aloud. */
+function facts(list) {
+  const p = document.createElement('p');
+  p.className = 'like-meta';
+  list.forEach((fact, n) => {
+    const run = document.createElement('span');
+    run.className = 'fact';
+    run.textContent = n < list.length - 1 ? `${fact} ·` : fact;
+    if (n) p.append(' ');
+    p.append(run);
+  });
+  return p;
+}
+
 function likeRow(entry, i) {
   const media = entry.book;
   const li = document.createElement('li');
@@ -785,12 +806,7 @@ function likeRow(entry, i) {
     media.startDate && media.startDate.year ? `since ${media.startDate.year}` : ''
   ].filter(Boolean);
 
-  if (bits.length) {
-    const meta = document.createElement('p');
-    meta.className = 'like-meta';
-    meta.textContent = bits.join(' · ');
-    body.append(meta);
-  }
+  if (bits.length) body.append(facts(bits));
 
   // and what was made of it
   const screen = entry.screen;
@@ -801,10 +817,7 @@ function likeRow(entry, i) {
       STATE[screen.status]
     ].filter(Boolean);
 
-    const line = document.createElement('p');
-    line.className = 'like-meta';
-    line.textContent = shown.join(' · ');
-    body.append(line);
+    body.append(facts(shown));
   }
 
   const tags = (media.genres || []).concat(screen ? screen.genres || [] : []);

@@ -139,6 +139,31 @@ check('the braces balance', opens === closes, `${opens} open, ${closes} close`);
   }
 }
 
+/* ── a preload has to be for something that is actually asked for
+   A preload the page never uses is a file fetched at the front of the
+   queue for nothing, and a preload whose url is a character off from the
+   one in the stylesheet is that file fetched twice. Both are silent in
+   every browser but the console. */
+{
+  const faces = read('fonts.css');
+  for (const [name, src] of [['index', html], ['404', lost]]) {
+    const pre = [...src.matchAll(/<link rel="preload" href="([^"]+)"([^>]*)>/g)];
+    check(`${name}: something is preloaded`, pre.length > 0, String(pre.length));
+
+    const gone = pre.map(m => m[1]).filter(f => !fs.existsSync(path.join(root, f.split('?')[0])));
+    check(`${name}: every preload is a file that exists`, !gone.length, gone.join(','));
+
+    // exactly as the stylesheet asks for it, query string and all
+    const unused = pre.map(m => m[1]).filter(f => !faces.includes(`url('${f}')`));
+    check(`${name}: and the url the stylesheet uses`, !unused.length, unused.join(','));
+
+    /* A font is fetched in cors mode however it is served, so a preload
+       without this is a second, separate fetch of the same file. */
+    const bare_ = pre.filter(m => !/crossorigin/.test(m[2])).map(m => m[1]);
+    check(`${name}: every font preload is crossorigin`, !bare_.length, bare_.join(','));
+  }
+}
+
 // ── motion nobody asked for has to be switchable off
 const still = css.slice(css.indexOf('prefers-reduced-motion'));
 check('reduced motion drops the field', /\.field\s*{\s*display:\s*none/.test(still));

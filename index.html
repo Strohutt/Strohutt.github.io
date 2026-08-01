@@ -25,6 +25,14 @@
   <meta property="og:image:alt" content="STROHUT, in white serif on black, over a red brush stroke, with Mahoraga's wheel cropped by the right edge.">
   <meta name="twitter:card" content="summary_large_image">
 
+  <!-- The three faces every visit needs, asked for now rather than after
+       the stylesheet has been fetched and parsed. Everything else in
+       fonts.css is a CJK block behind a unicode-range and is fetched only
+       if something on the page actually reaches into it. -->
+  <link rel="preload" href="fonts/shippori-mincho-b1-800-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/zen-kaku-gothic-new-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/zen-kaku-gothic-new-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+
   <link rel="stylesheet" href="fonts.css?v=27">
   <link rel="stylesheet" href="styles.css?v=27">
 
@@ -716,7 +724,7 @@
       <!-- counts and readings are different things: one only ever goes up,
            the other says where you are right now -->
       <ul class="score-list score-read">
-        <li><b id="score-window">—</b><span>window open for</span></li>
+        <li><b id="score-window">—</b><span>the window</span></li>
         <li><b id="score-last">—</b><span>last attempt</span></li>
         <li><b id="score-close">—</b><span>closest yet</span></li>
       </ul>
