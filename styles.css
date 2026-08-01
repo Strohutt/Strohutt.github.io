@@ -725,6 +725,7 @@ a {
 .likes { grid-column: 1 / -1; }
 .score { grid-column: 1 / -1; }
 .traced { grid-column: 1 / -1; }
+.rules { grid-column: 1 / -1; }
 
 .foot {
   grid-column: 1 / -1;
@@ -2972,6 +2973,7 @@ body.is-charging .arena-says {
 /* the two characters stacked, the way the tally carries them */
 .score .head h2,
 .traced .head h2,
+.rules .head h2,
 .tally-label {
   display: grid;
   justify-items: start;
@@ -2988,6 +2990,7 @@ body.is-charging .arena-says {
    is hidden from the tree rather than labelled twice. */
 .score .head h2 .glyphs,
 .traced .head h2 .glyphs,
+.rules .head h2 .glyphs,
 .tally-label .glyphs {
   display: flex;
   gap: .08em;
@@ -3002,7 +3005,8 @@ body.is-charging .arena-says {
 }
 
 .score .head h2 .says,
-.traced .head h2 .says {
+.traced .head h2 .says,
+.rules .head h2 .says {
   margin-top: 0;
   letter-spacing: .3em;
   text-indent: .3em;
@@ -4711,4 +4715,58 @@ html:not([data-js]) .who > i:last-of-type {
   body {
     transition: none;
   }
+}
+
+/* ══ 心得 ═══════════════════════════════════════════════════════
+   What the chapter above shows, this one explains. Five rules, numbered
+   the way the chapters are — the same drawn numerals, so the list reads
+   as part of the same book rather than as a sidebar bolted to it. */
+.rules-line {
+  max-width: 52ch;
+}
+
+.rule-list {
+  list-style: none;
+  counter-reset: none;
+  margin: 1.4rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(22rem, 100%), 1fr));
+  gap: 1.6rem clamp(1.6rem, 4vw, 3rem);
+}
+
+.rule-list li {
+  padding-top: .9rem;
+  background: var(--ruled) 0 0 / 44rem 3.5px repeat-x;
+}
+
+.rule-mark {
+  display: flex;
+  align-items: baseline;
+  gap: .6rem;
+  margin: 0;
+}
+
+.rule-mark .glyphs {
+  display: flex;
+  /* big enough that 一, 二 and 三 read as numbers rather than as three
+     stray rules lying next to a heading */
+  font-size: 1.7rem;
+  line-height: 1;
+  color: var(--paper-2);
+}
+
+.rule-mark b {
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+
+.rule-says {
+  margin: .55rem 0 0;
+  max-width: 44ch;
+  font-size: .92rem;
+  color: var(--paper-2);
 }

@@ -399,7 +399,7 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
      anywhere, and a chapter added to the page is a mark added to the
      bezel without anybody touching this. */
   const regions = await p.evaluate(() =>
-    ['.now', '.likes', '.score', '.traced', '.foot']
+    ['.now', '.likes', '.score', '.traced', '.rules', '.foot']
       .filter(s => { const el = document.querySelector(s); return el && !el.hidden && el.offsetParent !== null; }).length);
   check('the pose records the islands it has been past', warmSeen > coldSeen && warmSeen === regions,
     `${coldSeen} → ${warmSeen}`);

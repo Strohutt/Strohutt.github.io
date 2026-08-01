@@ -443,6 +443,7 @@ if (pose && poseHit && poseName) {
     ['.likes', 'favourites'],
     ['.score', 'black flash'],
     ['.traced', 'traced from'],
+    ['.rules', 'the rules'],
     ['.foot', 'the sea'],
     ['.hero', 'the top']
   ];
