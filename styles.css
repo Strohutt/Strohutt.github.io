@@ -724,6 +724,7 @@ a {
 
 .likes { grid-column: 1 / -1; }
 .score { grid-column: 1 / -1; }
+.traced { grid-column: 1 / -1; }
 
 .foot {
   grid-column: 1 / -1;
@@ -938,10 +939,18 @@ a {
   transition: opacity .5s ease;
 }
 
+/* Eight, one per principal direction of the bezel, filling clockwise
+   from north as each region is passed. It was four — the cardinals —
+   which was exactly the number of regions the page had at the time,
+   and a fifth chapter had nowhere to land. */
 .lp-seen-0 { opacity: clamp(0, calc(var(--seen, 0) - 0), 1); }
 .lp-seen-1 { opacity: clamp(0, calc(var(--seen, 0) - 1), 1); }
 .lp-seen-2 { opacity: clamp(0, calc(var(--seen, 0) - 2), 1); }
 .lp-seen-3 { opacity: clamp(0, calc(var(--seen, 0) - 3), 1); }
+.lp-seen-4 { opacity: clamp(0, calc(var(--seen, 0) - 4), 1); }
+.lp-seen-5 { opacity: clamp(0, calc(var(--seen, 0) - 5), 1); }
+.lp-seen-6 { opacity: clamp(0, calc(var(--seen, 0) - 6), 1); }
+.lp-seen-7 { opacity: clamp(0, calc(var(--seen, 0) - 7), 1); }
 .lp-glass { fill: #10131b; stroke: var(--paper); stroke-width: 2.6; }
 .lp-shine { fill: none; stroke: var(--paper); stroke-width: 5; stroke-opacity: .3; stroke-linecap: round; }
 .lp-shine-2 { stroke-width: 2.6; stroke-opacity: .5; }
@@ -1814,14 +1823,17 @@ svg.band {
 .cb-body {
   fill: var(--ink);
   stroke: var(--paper);
-  stroke-width: 3;
+  /* Set from outside where the drawing is used small. A custom property
+     is the only thing that reaches into a cloned symbol — a descendant
+     selector never gets in there. */
+  stroke-width: var(--cloud-line, 3);
   stroke-linejoin: round;
 }
 
 .cb-curl {
   fill: none;
   stroke: var(--paper);
-  stroke-width: 2;
+  stroke-width: var(--cloud-curl, 2);
   stroke-opacity: .55;
   stroke-linecap: round;
 }
@@ -2496,7 +2508,8 @@ svg.band {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  /* the floor has to be able to give — see the note on the traced list */
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
   gap: 1.6rem clamp(1.6rem, 4vw, 3rem);
   /* the depth the cards turn in. shallow — at 400 the far corner of a
      card this wide swings far enough to read as a page curling */
@@ -2929,6 +2942,7 @@ body.is-charging .arena-says {
 
 /* the two characters stacked, the way the tally carries them */
 .score .head h2,
+.traced .head h2,
 .tally-label {
   display: grid;
   justify-items: start;
@@ -2944,6 +2958,7 @@ body.is-charging .arena-says {
    The words underneath are real text and carry the name, so the drawing
    is hidden from the tree rather than labelled twice. */
 .score .head h2 .glyphs,
+.traced .head h2 .glyphs,
 .tally-label .glyphs {
   display: flex;
   gap: .08em;
@@ -2957,7 +2972,8 @@ body.is-charging .arena-says {
   fill: currentColor;
 }
 
-.score .head h2 .says {
+.score .head h2 .says,
+.traced .head h2 .says {
   margin-top: 0;
   letter-spacing: .3em;
   text-indent: .3em;
@@ -4304,4 +4320,168 @@ html:not([data-js]) .who > i:last-of-type {
   .like-list li {
     break-inside: avoid;
   }
+}
+
+/* ══ 出典 ═══════════════════════════════════════════════════════
+   Six things are drawn on this page and until this chapter not one of
+   them said what it was. Somebody who has read all three works
+   recognises every one of them; somebody who has read none sees a
+   wheel, a stick and a cloud and has no way in.
+
+   The drawings in here are the same symbols the page itself uses, at a
+   size somebody can actually look at — not pictures of them. A page
+   that shows its own parts twice, once working and once explained, has
+   to show the same parts both times or the second one is a lie. */
+.traced-line {
+  max-width: 52ch;
+}
+
+.traced-list {
+  list-style: none;
+  margin: 1.4rem 0 0;
+  padding: 0;
+  display: grid;
+  /* min() on the floor, or the track cannot shrink below it: at 320px a
+     twenty-rem minimum is wider than the column it is in, and the whole
+     row hangs off the right edge. */
+  grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
+  gap: 1.8rem clamp(1.6rem, 4vw, 3rem);
+}
+
+.traced-list li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 1.1rem;
+  align-items: start;
+  padding-top: .9rem;
+  background: var(--ruled) 0 0 / 44rem 3.5px repeat-x;
+}
+
+/* Each drawing gets the same square to sit in whatever shape it is, so
+   the column of them reads as a column rather than as six things that
+   happen to be near each other. A wheel is round, a cloud is a band and
+   a staff is a line — meet, never slice, and never stretched. */
+.traced-art {
+  display: grid;
+  place-items: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  opacity: .82;
+}
+
+/* Not the staff: that one is three boxes in a row and each of them has
+   its own width to keep. */
+.traced-art:not(.traced-rig) > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The staff is three drawings and only the middle of it stretches, the
+   same as the one in the header. The height sets everything: each end
+   keeps its own proportions and takes what it needs, and the middle gets
+   what is left — so at two and a half rem tall the two ends alone came
+   to more than the box is wide and the middle was squeezed to nothing. */
+.traced-rig {
+  display: flex;
+  align-items: center;
+  height: 1.3rem;
+  align-self: center;
+}
+
+.traced-rig .traced-cap {
+  width: auto;
+  height: 100%;
+  aspect-ratio: 140 / 120;
+  flex: none;
+}
+
+.traced-rig .traced-mid {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  /* the same hairline overlap the header rig uses: three boxes in a row
+     laid out in fractions of a pixel leave the page showing between them */
+  margin-inline: -1px;
+}
+
+.traced-flip {
+  scale: -1 1;
+}
+
+.traced-name {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .1rem .6rem;
+}
+
+.traced-name b {
+  font-family: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--paper);
+}
+
+.traced-name span {
+  font-size: .68rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--paper-3);
+}
+
+/* which panel it was traced off, in the face the rest of the page uses
+   for a citation rather than a sentence */
+.traced-work {
+  margin: .35rem 0 0;
+  font-size: .72rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--blood-lit);
+  opacity: .85;
+}
+
+.traced-does {
+  margin: .5rem 0 0;
+  max-width: 42ch;
+  font-size: .92rem;
+  color: var(--paper-2);
+}
+
+/* Narrow enough and a five-and-a-half rem column beside forty characters
+   of text is two thin columns. The drawing goes above the words. */
+@media (max-width: 30rem) {
+  .traced-list li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: .7rem;
+  }
+
+  .traced-rig {
+    width: 100%;
+  }
+}
+
+/* Drawn small, these are the same paths at an eighth of the size, and a
+   stroke measured in user units goes down with them until it is a
+   hairline nobody can see. The wheel takes its line from the element it
+   sits in — it always has — and the cloud is told through a variable,
+   which is the only thing that reaches inside a cloned symbol. */
+.traced-art > svg {
+  stroke: var(--paper-2);
+  stroke-width: 9;
+}
+
+.traced-art {
+  --cloud-line: 9;
+  --cloud-curl: 6;
+}
+
+/* a band nine hundred wide and a hundred and twenty tall is not a square,
+   and squeezing it into one leaves it the size of a full stop */
+.traced-cloud {
+  width: 100%;
+  height: auto;
 }

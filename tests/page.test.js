@@ -291,11 +291,48 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   await p.evaluate(() => scrollTo(0, document.body.scrollHeight));
   await p.waitForTimeout(800);
   const warmSeen = await poseSeen();
-  check('the pose records the islands it has been past', warmSeen > coldSeen && warmSeen === 4,
+  /* ── 出典 ────────────────────────────────────────────────────
+     Six things are drawn on this page and this is the chapter that says
+     what they are. The drawings in it have to be the page's own symbols
+     rather than copies — a page that shows its own parts twice, once
+     working and once explained, is lying the second time if they are not
+     the same parts. */
+  {
+    const traced = await p.evaluate(() => {
+      const list = [...document.querySelectorAll('#traced .traced-list li')];
+      // the drawings, not the chapter's own heading glyphs
+      const ids = [...document.querySelectorAll('#traced .traced-art use')]
+        .map(u => (u.getAttribute('href') || '').replace('#', ''));
+      return {
+        count: list.length,
+        // every one names the thing, the work it is from, and what it does
+        whole: list.filter(li => li.querySelector('.traced-name b') &&
+          li.querySelector('.traced-work') && li.querySelector('.traced-does')).length,
+        uses: ids,
+        // and every symbol it points at is one the rest of the page draws
+        elsewhere: ids.filter(id => [...document.querySelectorAll('use')]
+          .filter(u => (u.getAttribute('href') || '') === `#${id}` && !u.closest('#traced')).length > 0)
+      };
+    });
+    check('the chapter names six drawn things', traced.count === 6, String(traced.count));
+    check('and each of them says what it is, where it is from, and what it does',
+      traced.whole === traced.count, `${traced.whole} of ${traced.count}`);
+    check('and every drawing in it is one the page itself uses',
+      traced.elsewhere.length === traced.uses.length,
+      traced.uses.filter(u => !traced.elsewhere.includes(u)).join(','));
+  }
+
+  /* However many regions the page has — the count is not written down
+     anywhere, and a chapter added to the page is a mark added to the
+     bezel without anybody touching this. */
+  const regions = await p.evaluate(() =>
+    ['.now', '.likes', '.score', '.traced', '.foot']
+      .filter(s => { const el = document.querySelector(s); return el && !el.hidden && el.offsetParent !== null; }).length);
+  check('the pose records the islands it has been past', warmSeen > coldSeen && warmSeen === regions,
     `${coldSeen} → ${warmSeen}`);
   await p.reload();
   await p.waitForTimeout(1600);
-  check('and still knows them after a reload', await poseSeen() === 4, String(await poseSeen()));
+  check('and still knows them after a reload', await poseSeen() === regions, String(await poseSeen()));
 
   /* A phone turned on its side is four hundred pixels tall, and a compass
      fixed to the bottom left of that lands on the staff's name in the

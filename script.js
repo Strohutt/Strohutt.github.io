@@ -430,6 +430,7 @@ if (pose && poseHit && poseName) {
     ['.now', 'right now'],
     ['.likes', 'favourites'],
     ['.score', 'black flash'],
+    ['.traced', 'traced from'],
     ['.foot', 'the sea'],
     ['.hero', 'the top']
   ];
@@ -442,11 +443,13 @@ if (pose && poseHit && poseName) {
      bezel, one per region, and each lights as that region is reached —
      kept for the visit like everything else the page remembers. */
   const SEEN_KEY = 'strohut-seen-islands';
+  // one per principal direction of the bezel
+  const MARKS = 8;
   let seen = 0;
-  try { seen = Math.min(4, Math.max(0, parseInt(sessionStorage.getItem(SEEN_KEY), 10) || 0)); } catch { /* fine */ }
+  try { seen = Math.min(MARKS, Math.max(0, parseInt(sessionStorage.getItem(SEEN_KEY), 10) || 0)); } catch { /* fine */ }
   const record = n => {
     if (n <= seen) return;
-    seen = Math.min(4, n);
+    seen = Math.min(MARKS, n);
     pose.style.setProperty('--seen', seen);
     try { sessionStorage.setItem(SEEN_KEY, String(seen)); } catch { /* fine */ }
   };
@@ -495,9 +498,13 @@ if (pose && poseHit && poseName) {
     /* what it has recorded: every island whose middle you have been past.
        Counted off the list rather than off the target, so arriving by the
        button or by a link marks everything it went by. */
-    const reached = list.filter(([el, name]) =>
-      name !== 'the top' && el.getBoundingClientRect().top <= mid).length;
-    record(landed ? 4 : reached);
+    const ahead = list.filter(([, name]) => name !== 'the top');
+    const reached = ahead.filter(([el]) => el.getBoundingClientRect().top <= mid).length;
+    /* At the foot of the page every one of them is behind you, however
+       the boxes happen to fall — and how many there are is however many
+       regions the page has today, not a number written down once when
+       there were four. */
+    record(landed ? ahead.length : reached);
 
     /* Measured from the middle of the screen rather than from the dial
        in the corner. The dial is pinned to the foot of the window, so
