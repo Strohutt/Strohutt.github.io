@@ -560,14 +560,20 @@ if (pose && poseHit && poseName) {
        at the foot of the page there is no further scroll to come back on. */
     if (ahead.length && seen >= ahead.length && !pose.classList.contains('is-full')) {
       pose.classList.add('is-full');
+      if (poseTo) poseTo.textContent = 'logged';
       poseName.textContent = 'the log is full';
       pose.classList.add('is-saying');
       clearTimeout(saying);
-      saying = setTimeout(() => pose.classList.remove('is-saying'), 3000);
+      /* Said, then handed back. The name line belongs to the target, and
+         nothing rewrites it until the target changes — so without this
+         the dial reads "next: the log is full" for the rest of the
+         visit, which is a sentence nobody meant. */
+      saying = setTimeout(() => {
+        pose.classList.remove('is-saying');
+        poseName.textContent = found[1];
+      }, 3000);
       /* the target itself is left alone: the needle is still pointing at
-         wherever it was, and the next region reached rewrites the name on
-         its own. Clearing it here reads as tidy and takes the rest of this
-         pass with it — everything below measures the angle off it. */
+         wherever it was, and everything below measures the angle off it */
     }
 
     /* Measured from the middle of the screen rather than from the dial
