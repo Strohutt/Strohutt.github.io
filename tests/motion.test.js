@@ -335,6 +335,66 @@ const json = body => ({ status: 200, contentType: 'application/json', body: JSON
   check('and nothing is left running on a loop', stillFrames === 0, String(stillFrames));
   await q.close();
 
+  /* ── his hour ──────────────────────────────────────────────────
+     The header says "a light on a porch", and a porch light is a thing
+     that is on at night. The hour the clock is already reading is
+     written where css can reach it, and what hangs off it is a matter of
+     degree: the field is thick with sparks after dark and nearly clear
+     at noon, and the sea takes its time.
+
+     Measured with transitions off, so a reading is the value rather than
+     a frame on the way to it. */
+  {
+    const h = await b.newPage({ viewport: { width: 1200, height: 800 } });
+    h.on('pageerror', e => fails.push('hour pageerror: ' + e.message));
+    await h.addInitScript(() => {
+      try { sessionStorage.setItem('strohut-seen', '1'); } catch { /* fine */ }
+    });
+    await h.goto(BASE + '/index.html');
+    await h.waitForTimeout(1500);
+
+    const sun = await h.evaluate(() =>
+      parseFloat(getComputedStyle(document.body).getPropertyValue('--sun')));
+    check('the page knows what hour it is where he is',
+      sun >= 0 && sun <= 1, String(sun));
+
+    await h.addStyleTag({ content: '*, *::before, *::after { transition: none !important }' });
+    const at = async v => {
+      await h.evaluate(x => document.body.style.setProperty('--sun', x), v);
+      await h.waitForTimeout(80);
+      return h.evaluate(() => ({
+        field: parseFloat(getComputedStyle(document.querySelector('.field')).opacity),
+        near: getComputedStyle(document.querySelector('.sea-near')).animationDuration,
+        far: getComputedStyle(document.querySelector('.sea-far')).animationDuration,
+        sheet: getComputedStyle(document.body).backgroundColor
+      }));
+    };
+
+    const dark = await at(0);
+    const noon = await at(1);
+    check('the field is thicker after dark than at noon', dark.field > noon.field + .3,
+      `${dark.field} vs ${noon.field}`);
+    check('and the sea takes its time', parseFloat(dark.near) > parseFloat(noon.near),
+      `${dark.near} vs ${noon.near}`);
+    check('and the sheet is not the same colour at both', dark.sheet !== noon.sheet,
+      `${dark.sheet} vs ${noon.sheet}`);
+
+    /* Two layers at unrelated speeds is what makes the sea read as
+       distance rather than as one texture — and for a long time it was
+       one texture, because the shorthand on .sea svg is a class and a
+       type and outweighed the class on its own that set each layer. */
+    check('the two layers of the sea run at different speeds',
+      parseFloat(noon.near) !== parseFloat(noon.far), `${noon.near} vs ${noon.far}`);
+
+    // the domain is its own weather and does not answer to the hour
+    await h.evaluate(() => { document.body.classList.add('is-domain'); });
+    await h.waitForTimeout(80);
+    const inside = await h.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    await h.evaluate(() => { document.body.classList.remove('is-domain'); });
+    check('and the domain keeps its own', inside !== noon.sheet, `${inside} vs ${noon.sheet}`);
+    await h.close();
+  }
+
   await b.close();
   console.log(fails.length ? `\n${fails.length} FAILING: ${fails.join(' | ')}` : '\nall of it moves');
   process.exit(fails.length ? 1 : 0);

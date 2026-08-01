@@ -3080,17 +3080,26 @@ body.is-charging .arena-says {
 }
 
 /* Two layers at unrelated speeds and depths. One sea rolling on its own
-   is a texture; two at different rates is distance. */
-.sea-far {
+   is a texture; two at different rates is distance.
+
+   Written as .sea .sea-far rather than .sea-far: the shorthand above sets
+   a duration on .sea svg, which is a class and a type and outweighs a
+   class on its own — so the far layer had been quietly rolling at the
+   same speed as the near one, and the distance between them was never
+   there at all.
+
+   And both of them take their time after dark. See --sun below. */
+.sea .sea-far {
   opacity: .2;
   scale: 1 .72;
   transform-origin: 50% 100%;
-  animation-duration: 67s;
+  animation-duration: calc(67s + (1 - var(--sun, 0)) * 30s);
   animation-direction: reverse;
 }
 
-.sea-near {
+.sea .sea-near {
   opacity: .38;
+  animation-duration: calc(46s + (1 - var(--sun, 0)) * 22s);
 }
 
 /* One tile exactly, then back to nothing — the drawing is built to tile,
@@ -4652,4 +4661,54 @@ html:not([data-js]) .who > i:last-of-type {
   --cloud-line: 22;
   --cloud-curl: 14;
   opacity: .85;
+}
+
+/* ══ his hour ══════════════════════════════════════════════════
+   --sun runs from nought in the small hours to one at midday, written by
+   the same tick that draws the clock, and it is his hour rather than the
+   reader's: the page is about where he is, so somebody reading it over
+   breakfast in Seoul is looking at his night.
+
+   Everything hanging off it is a matter of degree. Nothing appears and
+   nothing goes away — a page that rearranges itself at six in the
+   evening is a page nobody trusts — but the field is thick with sparks
+   after dark and nearly clear at noon, the sea takes its time at night,
+   and the sheet cools a shade. Half of it is only ever noticed by
+   somebody who comes back at a different hour, which is the point.
+
+   The fallback in every var() is the value the page had before any of
+   this, so a page whose clock never ran looks exactly as it did. */
+.field {
+  opacity: calc(1 - var(--sun, 0) * .72);
+  transition: opacity 4s linear;
+}
+
+/* the sea is heavier and slower at night; the rules that do it live with
+   the two layers, where they can outweigh the shorthand */
+
+/* And the paper cools after dark. A hundredth of a turn either way —
+   enough to feel different on a second visit, not enough to look like a
+   different site.
+
+   On a screen only. Print swaps the two colours to put ink on paper, and
+   a rule further down the file that sets a background on the body wins
+   against it however that rule was arrived at — which turned every
+   printed page black again. */
+@media screen {
+  body {
+    background: color-mix(in srgb, var(--ink), #0a1020 calc((1 - var(--sun, 0)) * 22%));
+    transition: background-color 6s linear;
+  }
+
+  /* not while the domain has the page: that is its own weather */
+  body.is-domain {
+    background: var(--ink);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field,
+  body {
+    transition: none;
+  }
 }

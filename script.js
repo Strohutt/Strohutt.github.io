@@ -589,7 +589,33 @@ if (clock) {
      changes on its own, and when it does it turns over rather than being
      swapped out — a digit that changes with no motion at all is a digit
      nobody ever notices changing. */
+  /* And the page knows whether it is night where he is.
+
+     The header says "a light on a porch", and a porch light is a thing
+     that is on at night. The hour is already being read for the clock,
+     so the sky answers to it: one number, nought in the small hours and
+     one at midday, written where css can reach it. Everything that hangs
+     off it is a matter of degree — the field of stars is thicker after
+     dark and nearly gone at noon, the sea slows down, the sheet cools a
+     shade. Nothing appears or disappears, because a page that rearranges
+     itself at six in the evening is a page nobody trusts.
+
+     It is his hour, not the reader's: the page is about where he is, and
+     a visitor in Seoul reading it at breakfast is looking at his night. */
+  const hourOf = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Berlin', hour: 'numeric', hour12: false
+  });
+
+  /* Noon is one, midnight is nought, and it moves as a curve rather than
+     a step so nothing lurches on the hour. */
+  const sun = () => {
+    const h = (Number(hourOf.format(new Date())) || 0) % 24;
+    return Number(((Math.cos((h - 13) / 24 * Math.PI * 2) + 1) / 2).toFixed(3));
+  };
+
   const tick = () => {
+    document.body.style.setProperty('--sun', sun());
+
     const now = face.format(new Date());
     if (clock.textContent === now) return;
     clock.textContent = now;
