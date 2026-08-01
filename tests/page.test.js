@@ -38,7 +38,7 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   }, sel);
 
   const offered = [];
-  for (const sel of ['#flash-arena', '.score-list', '.score-marks', '.score .kicker', '.pose', '#clock']) {
+  for (const sel of ['#flash-arena', '.score-list', '.score-marks', '.score .kicker', '.grade', '.pose', '#clock']) {
     if (await drawn(sel)) offered.push(sel);
   }
 
