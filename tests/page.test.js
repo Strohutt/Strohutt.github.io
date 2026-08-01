@@ -338,6 +338,36 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   await p.evaluate(() => scrollTo(0, document.body.scrollHeight));
   await p.waitForTimeout(800);
   const warmSeen = await poseSeen();
+  /* ── and it locks on
+     A log pose locks on once it has taken a full reading, which is the
+     whole of what the instrument does. Every region on the page gone
+     past is that reading. */
+  {
+    const poseFull = () => p.evaluate(() => ({
+      full: document.getElementById('pose').classList.contains('is-full'),
+      says: document.getElementById('pose-name').textContent
+    }));
+
+    await p.evaluate(() => scrollTo(0, 0));
+    await p.waitForTimeout(200);
+    await p.evaluate(() => {
+      try { sessionStorage.removeItem('strohut-seen-islands'); } catch { /* fine */ }
+    });
+    await p.reload();
+    await p.waitForTimeout(1400);
+    check('the log is not full at the top', !(await poseFull()).full, JSON.stringify(await poseFull()));
+
+    const far = await p.evaluate(() => document.body.scrollHeight);
+    for (let y = 0; y <= far; y += 500) {
+      await p.evaluate(v => scrollTo(0, v), y);
+      await p.waitForTimeout(240);
+    }
+    await p.waitForTimeout(400);
+    const locked = await poseFull();
+    check('and it is once every region has been gone past', locked.full, JSON.stringify(locked));
+    check('and it says so', /log is full/.test(locked.says), locked.says);
+  }
+
   /* ── 航海日誌, at the foot
      A log pose records islands, and this is the page saying back what it
      recorded. Nothing in it is a number that was not earned in this tab,

@@ -544,11 +544,31 @@ if (pose && poseHit && poseName) {
        button or by a link marks everything it went by. */
     const ahead = list.filter(([, name]) => name !== 'the top');
     const reached = ahead.filter(([el]) => el.getBoundingClientRect().top <= mid).length;
+
     /* At the foot of the page every one of them is behind you, however
        the boxes happen to fall — and how many there are is however many
        regions the page has today, not a number written down once when
        there were four. */
     record(landed ? ahead.length : reached);
+
+    /* A log pose locks on once it has taken a full reading, which is the
+       whole of what the instrument does. Every region gone past is that
+       reading, and the dial says so — once, and then it stays said.
+
+       After the reading has been written down, not before: on the pass
+       that takes the last region the count has not been raised yet, and
+       at the foot of the page there is no further scroll to come back on. */
+    if (ahead.length && seen >= ahead.length && !pose.classList.contains('is-full')) {
+      pose.classList.add('is-full');
+      poseName.textContent = 'the log is full';
+      pose.classList.add('is-saying');
+      clearTimeout(saying);
+      saying = setTimeout(() => pose.classList.remove('is-saying'), 3000);
+      /* the target itself is left alone: the needle is still pointing at
+         wherever it was, and the next region reached rewrites the name on
+         its own. Clearing it here reads as tidy and takes the rest of this
+         pass with it — everything below measures the angle off it. */
+    }
 
     /* Measured from the middle of the screen rather than from the dial
        in the corner. The dial is pinned to the foot of the window, so

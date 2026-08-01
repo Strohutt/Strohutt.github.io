@@ -595,6 +595,19 @@ function openCharge(x, y, wind) {
   ring.style.setProperty('--wind', `${Math.round(wind)}ms`);
   ring.style.setProperty('--open-at', `${Math.round(wind * opensAt())}ms`);
   ring.style.setProperty('--span', `${Math.round(wind * windowNow())}ms`);
+
+  /* Where the window will be, drawn before it opens. The ring closes
+     from full size to .6 of it linearly, so a moment in the wind-up is a
+     radius — and the window is a band between two of them. Painting that
+     band lets somebody aim at a place instead of reacting to a colour,
+     which is the difference between the second attempt and the tenth.
+     The band is in the box's own percentages so it costs one gradient. */
+  /* closest-side runs to half the box, and so does the circle: a ring at
+     scale s has radius s of that half — s of 100%, not s of 50%. */
+  const at = t => (1 - .4 * t) * 100;
+  ring.style.setProperty('--gate-out', `${at(opensAt()).toFixed(1)}%`);
+  ring.style.setProperty('--gate-in', `${at(opensAt() + windowNow()).toFixed(1)}%`);
+
   strikes.append(ring);
   return ring;
 }
@@ -1268,18 +1281,35 @@ if (staff && staffGrip && staffRig) {
         const at = (atLen * i) / 14;
         const x = px + cos * at, y = py + sin * at;
         if (x < box.left || x > box.right || y < box.top || y > box.bottom) continue;
-        found.push([at, el]);
+        found.push([at, el, x, y]);
         break;
       }
     }
 
-    // in the order the pole reached them: a bar going through three
-    // things is three sounds, not one
+    /* In the order the pole reached them: a bar going through three
+       things is three sounds, not one. And each contact leaves a mark at
+       the point of it — the thing shaking on its own said something was
+       hit, and nothing said where. */
     found.sort((a, b) => a[0] - b[0]);
-    found.forEach(([, el], n) => setTimeout(() => {
+    found.forEach(([, el, x, y], n) => setTimeout(() => {
       knock(el.matches('.band, .flag') ? el.querySelector('svg') || el : el, 'is-struck');
+      poke(x, y);
       if (el.classList.contains('wheel')) dispatchEvent(new Event('strohut:struck'));
     }, n * 70));
+  };
+
+  /* The contact itself: a ring snapping open and two short tears along
+     the pole's line of travel. Paper-white — red belongs to the stroke
+     and the flash and nothing else. */
+  const poke = (x, y) => {
+    if (!strikes || stillPlease.matches) return;
+    const mark = document.createElement('div');
+    mark.className = 'poke';
+    mark.style.left = `${x}px`;
+    mark.style.top = `${y}px`;
+    mark.innerHTML = '<span class="poke-ring"></span><span class="poke-tear"></span><span class="poke-tear poke-tear-2"></span>';
+    strikes.append(mark);
+    setTimeout(() => mark.remove(), 500);
   };
 
   /* When the last real pull ended. A drag that ends on the grip is
