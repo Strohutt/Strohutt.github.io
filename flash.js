@@ -372,6 +372,10 @@ function graded(loud) {
 }
 
 function tell(bump) {
+  /* Anything that keeps its own reading of the run hears about it here.
+     The log at the foot of the page is written by the other file, which
+     has no way of knowing when a flash lands. */
+  dispatchEvent(new Event('strohut:score'));
   post(score.best, best, bump);
   post(score.total, total, bump);
   post(score.adapt, `${learned} of ${LEARNS}`, bump);

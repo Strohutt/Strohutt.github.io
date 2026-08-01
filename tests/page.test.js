@@ -338,6 +338,53 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   await p.evaluate(() => scrollTo(0, document.body.scrollHeight));
   await p.waitForTimeout(800);
   const warmSeen = await poseSeen();
+  /* ── 航海日誌, at the foot
+     A log pose records islands, and this is the page saying back what it
+     recorded. Nothing in it is a number that was not earned in this tab,
+     and it is not shown at all until there is something in it — a
+     visitor who scrolled straight to the foot is not owed a row of
+     noughts. */
+  {
+    const logOf = () => p.evaluate(() => {
+      const l = document.getElementById('log');
+      return { hidden: l.hidden, text: l.textContent };
+    });
+
+    /* From nothing: the page has been scrolled up and down by everything
+       above this, and what the compass recorded is kept for the visit.
+       Back to the top before the reload, not after — a reload keeps the
+       scroll position, and one that lands at the foot has been past every
+       region before anything here can look. */
+    await p.evaluate(() => scrollTo(0, 0));
+    await p.waitForTimeout(200);
+    await p.evaluate(() => { try { sessionStorage.removeItem('strohut-seen-islands'); } catch { /* fine */ } });
+    await p.reload();
+    await p.waitForTimeout(1400);
+    const cold = await logOf();
+    check('the log says nothing before there is anything to say',
+      cold.hidden && !cold.text, JSON.stringify(cold));
+
+    // read the page the way anybody would
+    const deep = await p.evaluate(() => document.body.scrollHeight);
+    for (let y = 0; y <= deep; y += 600) {
+      await p.evaluate(v => scrollTo(0, v), y);
+      await p.waitForTimeout(220);
+    }
+    const walked = await logOf();
+    check('and counts the regions once they have been gone past',
+      !walked.hidden && /\d+ regions gone past/.test(walked.text), JSON.stringify(walked));
+
+    /* The counts belong to the other file, which has no way of knowing
+       when the compass moves; the regions belong to this one, which has
+       no way of knowing when a flash lands. Each has to tell the other. */
+    await p.evaluate(() => { total = 7; best = 4; tell(false); });
+    await p.waitForTimeout(300);
+    const played = await logOf();
+    check('and hears about the run without being asked',
+      /7 flashes landed/.test(played.text) && /4 in a row at best/.test(played.text),
+      played.text);
+  }
+
   /* ── the two halves of the page, joined
      The favourites and the drawings were two lists that never met: three
      works named in one chapter and six things traced off them drawn in

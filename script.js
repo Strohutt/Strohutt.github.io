@@ -465,8 +465,39 @@ if (pose && poseHit && poseName) {
     seen = Math.min(MARKS, n);
     pose.style.setProperty('--seen', seen);
     try { sessionStorage.setItem(SEEN_KEY, String(seen)); } catch { /* fine */ }
+    written();
   };
   pose.style.setProperty('--seen', seen);
+
+  /* 航海日誌 — what this visit came to, at the foot of the page.
+
+     A log pose records islands, and this is the page saying back what it
+     recorded: how many regions were gone past, how many flashes landed,
+     the longest run. Nothing here is a number that was not earned in
+     this tab, and all of it goes with the tab.
+
+     The counts belong to the other file, which has no way of knowing
+     when the compass moves; the regions belong to this one, which has no
+     way of knowing when a flash lands. So each tells the other. */
+  const log = document.getElementById('log');
+
+  const written = () => {
+    if (!log) return;
+
+    const bits = [];
+    if (seen) bits.push(`${seen} ${seen === 1 ? 'region' : 'regions'} gone past`);
+    // the game's own tally, if this file can see it at all
+    const landed = typeof total === 'number' ? total : 0;
+    const run = typeof best === 'number' ? best : 0;
+    if (landed) bits.push(`${landed} ${landed === 1 ? 'flash' : 'flashes'} landed`);
+    if (run > 1) bits.push(`${run} in a row at best`);
+
+    log.textContent = bits.length ? `this visit — ${bits.join(' · ')}` : '';
+    log.hidden = !bits.length;
+  };
+
+  addEventListener('strohut:score', written);
+  written();
 
   const islands = () => ISLANDS
     .map(([sel, name]) => [document.querySelector(sel), name])

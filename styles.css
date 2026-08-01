@@ -4781,3 +4781,14 @@ html:not([data-js]) .who > i:last-of-type {
   font-size: .92rem;
   color: var(--paper-2);
 }
+
+/* 航海日誌 — what the visit came to, at the foot of the page. Quieter
+   than the line under it, because it is a note rather than a statement:
+   nobody came here to be told what they just did. */
+.log {
+  margin: 0 0 .5rem;
+  font-size: .7rem;
+  letter-spacing: .1em;
+  color: var(--paper-3);
+  opacity: .85;
+}
