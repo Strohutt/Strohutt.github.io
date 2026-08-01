@@ -1043,6 +1043,23 @@ if (wheelHit && wheel) {
   wheelHit.addEventListener('click', event => {
     if (event.detail === 0) step(1);
   });
+
+  /* And the staff goes through it. The pole is drawn across the page and
+     the wheel is the largest thing on it, so a swing that reaches the
+     header passes through the wheel — and a wheel that a bar has just
+     gone through and did not move is a picture of a wheel.
+
+     An event rather than a call: the staff has no way to reach in here,
+     and the wheel has no business knowing what a staff is. */
+  addEventListener('strohut:struck', () => {
+    if (grip) return;                        // it is being held; leave it alone
+    cancelAnimationFrame(frame);
+    frame = 0;
+    spin = 0;
+    drag = 0;
+    paint();
+    step(1);
+  });
 }
 
 
@@ -1211,14 +1228,73 @@ if (staff && staffGrip && staffRig) {
     setTimeout(() => mark.remove(), 900);
   };
 
+  /* What the far end of it went through.
+
+     A staff that grows to the width of the page and leaves nothing
+     behind is a spring with a drawing on it. Everything else on this
+     page answers to being hit — the wheel takes a tooth, the cloud gets
+     shoved, the flag swings — so the tip does what a hand does, and the
+     things it goes through answer the same way.
+
+     Measured along the pole rather than at the point: it is a bar, not a
+     dart, and the whole length of it is what passes through. Twelve
+     steps is close enough at any length the page allows and costs one
+     hit test each. */
+  const HITTABLE = '.band, .flag, .wheel, .brush';
+  const swept = (px, py, atLen, atTurn, power) => {
+    if (power < .22) return;
+
+    const rad = atTurn * Math.PI / 180;
+    const cos = Math.cos(rad), sin = Math.sin(rad);
+
+    /* Against the boxes rather than through elementFromPoint. Every one
+       of these drawings takes no pointer — that is the whole reason the
+       pole itself is not a wall between the reader and the page — and a
+       hit test that asks what is under a point never sees any of them.
+       Their boxes are right there on the same screen. */
+    const found = [];
+    for (const el of document.querySelectorAll(HITTABLE)) {
+      const box = el.getBoundingClientRect();
+      if (!box.width || !box.height) continue;
+      if (box.bottom < 0 || box.top > innerHeight) continue;
+
+      // sampled along the pole: it is a bar, not a dart, and the whole
+      // length of it is what passes through
+      for (let i = 3; i <= 14; i++) {
+        const at = (atLen * i) / 14;
+        const x = px + cos * at, y = py + sin * at;
+        if (x < box.left || x > box.right || y < box.top || y > box.bottom) continue;
+        found.push([at, el]);
+        break;
+      }
+    }
+
+    // in the order the pole reached them: a bar going through three
+    // things is three sounds, not one
+    found.sort((a, b) => a[0] - b[0]);
+    found.forEach(([, el], n) => setTimeout(() => {
+      knock(el.matches('.band, .flag') ? el.querySelector('svg') || el : el, 'is-struck');
+      if (el.classList.contains('wheel')) dispatchEvent(new Event('strohut:struck'));
+    }, n * 70));
+  };
+
+  /* When the last real pull ended. A drag that ends on the grip is
+     followed by a click, and the click path is the press — so one gesture
+     was going out twice: once where it was pulled to, and again straight
+     across the header a moment later. */
+  let pulled = 0;
+
   const letGo = event => {
     if (!held) return;
     held = false;
+    pulled = performance.now();
     staff.classList.remove('is-out');
     /* read before the spring is let go, because by the time it has run
        there is nothing left to say where the far end had been */
     const [px, py] = pivot();
-    swung(px, py, len, turn, Math.min(1, (len - REST_LEN) / Math.max(1, reach() - REST_LEN) * 2.2));
+    const power = Math.min(1, (len - REST_LEN) / Math.max(1, reach() - REST_LEN) * 2.2);
+    swung(px, py, len, turn, power);
+    swept(px, py, len, turn, power);
     if (event && event.pointerId != null && staffGrip.hasPointerCapture(event.pointerId)) {
       staffGrip.releasePointerCapture(event.pointerId);
     }
@@ -1250,7 +1326,7 @@ if (staff && staffGrip && staffRig) {
      drag: it goes out on its own and comes back, so the drawing is not
      something only a pointer can see. */
   staffGrip.addEventListener('click', () => {
-    if (held) return;
+    if (held || performance.now() - pulled < 400) return;
     cancelAnimationFrame(frame);
     if (stillPlease.matches) return;
     const far = Math.min(reach(), innerWidth * .78);
@@ -1267,7 +1343,9 @@ if (staff && staffGrip && staffRig) {
       // are the same move rather than two different ones
       setTimeout(() => {
         const [px, py] = pivot();
-        swung(px, py, len, turn, Math.min(1, (len - REST_LEN) / Math.max(1, reach() - REST_LEN) * 2.2));
+        const power = Math.min(1, (len - REST_LEN) / Math.max(1, reach() - REST_LEN) * 2.2);
+        swung(px, py, len, turn, power);
+        swept(px, py, len, turn, power);
         settle();
       }, 220);
     };

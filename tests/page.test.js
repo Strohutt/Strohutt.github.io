@@ -237,6 +237,53 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
     Math.abs(home.len - parked.len) <= 2 && Math.abs(parseFloat(home.turn) - parseFloat(parked.turn)) < .05,
     `${JSON.stringify(home)} vs ${JSON.stringify(parked)}`);
 
+  /* ── and what it went through
+     A staff that grows to the width of the page and leaves nothing
+     behind is a spring with a drawing on it. Everything else here
+     answers to being hit, so the things the pole passes through answer
+     the same way — and the wheel, which is the largest of them, takes a
+     tooth for it. */
+  await p.evaluate(() => scrollTo(0, 0));
+  await p.waitForTimeout(400);
+  const adaptOf = () => p.evaluate(() =>
+    parseInt(getComputedStyle(document.querySelector('.wheel')).getPropertyValue('--adapt'), 10) || 0);
+
+  const before = await adaptOf();
+  const swung = await p.evaluate(() => {
+    const r = document.querySelector('.staff-grip').getBoundingClientRect();
+    return [Math.round(r.left + r.width / 2), Math.round(r.top + r.height / 2)];
+  });
+  await p.mouse.move(swung[0], swung[1]);
+  await p.mouse.down();
+  // across the header, through the wheel at the far end of it
+  await p.mouse.move(await p.evaluate(() => innerWidth - 60), swung[1] - 140, { steps: 8 });
+  await p.waitForTimeout(140);
+  const marked = p.waitForFunction(() => document.querySelector('.wheel.is-struck'), null, { timeout: 3000 })
+    .then(() => true).catch(() => false);
+  await p.mouse.up();
+  check('a swing through the wheel strikes it', await marked);
+  await p.waitForTimeout(1400);
+  check('and the wheel takes a tooth for it', await adaptOf() > before,
+    `${before} → ${await adaptOf()}`);
+
+  /* One gesture, one swing. A drag that ends on the grip is followed by
+     a click, and the click is the press — so a pull was going out twice,
+     once where it was pulled to and again across the header. */
+  const after = await adaptOf();
+  await p.waitForTimeout(900);
+  check('and it does not go out a second time on its own', await adaptOf() === after,
+    `${after} → ${await adaptOf()}`);
+
+  // a nudge is not a swing
+  const nudged = await adaptOf();
+  await p.mouse.move(swung[0], swung[1]);
+  await p.mouse.down();
+  await p.mouse.move(swung[0] + 30, swung[1], { steps: 3 });
+  await p.mouse.up();
+  await p.waitForTimeout(1200);
+  check('and a nudge goes through nothing', await adaptOf() === nudged,
+    `${nudged} → ${await adaptOf()}`);
+
   /* ── ログポース ─────────────────────────────────────────────────
      The one piece of navigation on the page. It has to name where it
      is taking you, change as the page goes by, actually take you
