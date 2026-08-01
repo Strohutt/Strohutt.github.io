@@ -1460,7 +1460,14 @@ if (staff && staffGrip && staffRig) {
   staffGrip.addEventListener('click', () => {
     if (held || performance.now() - pulled < 400) return;
     cancelAnimationFrame(frame);
-    if (stillPlease.matches) return;
+    if (stillPlease.matches) {
+      /* A drag under reduced motion still sweeps — its knocks are state
+         changes and the wheel still takes its tooth. A press gets the
+         same sweep with the travel left out, rather than nothing. */
+      const [px, py] = pivot();
+      swept(px, py, Math.min(reach(), innerWidth * .78), REST_TURN - 9, .8);
+      return;
+    }
     const far = Math.min(reach(), innerWidth * .78);
     let t = 0;
     vLen = vTurn = 0;

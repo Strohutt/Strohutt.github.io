@@ -284,6 +284,30 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   check('and a nudge goes through nothing', await adaptOf() === nudged,
     `${nudged} → ${await adaptOf()}`);
 
+  /* ── and the press is not less than the pull under reduced motion.
+     A drag there still sweeps — its knocks are state changes, and the
+     wheel still takes its tooth. The press used to bail out before the
+     sweep, which made the keyboard the one place the staff did
+     nothing at all. */
+  {
+    const still = await b.newContext({ viewport: { width: 1340, height: 900 }, reducedMotion: 'reduce' });
+    const s = await still.newPage();
+    await s.addInitScript(seen);
+    await s.goto(BASE + '/index.html');
+    await s.waitForTimeout(1400);
+    const teeth = () => s.evaluate(() =>
+      parseInt(getComputedStyle(document.querySelector('.wheel')).getPropertyValue('--adapt'), 10) || 0);
+    const cold = await teeth();
+    await s.evaluate(() => document.querySelector('.staff-grip').click());
+    // the sweep staggers its knocks, and the tooth follows the event
+    await s.waitForFunction(was =>
+      (parseInt(getComputedStyle(document.querySelector('.wheel')).getPropertyValue('--adapt'), 10) || 0) > was,
+      cold, { timeout: 3000 }).catch(() => null);
+    check('a press under reduced motion still sweeps', await teeth() > cold,
+      `${cold} → ${await teeth()}`);
+    await still.close();
+  }
+
   /* ── ログポース ─────────────────────────────────────────────────
      The one piece of navigation on the page. It has to name where it
      is taking you, change as the page goes by, actually take you
