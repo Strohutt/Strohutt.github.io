@@ -163,8 +163,10 @@ holding a key on it is the same press as holding a pointer, and every
 attempt says what it came to in a live region for anybody who cannot see
 the ring shut.
 
-Hold, and let go as the ring shuts. Land one and the next window opens a
-little wider and stays open; eight of them and it is half again the size
+Hold, and let go as the ring meets the gate — the band it will be red
+inside is drawn from the first frame of the hold, so the window is a
+place to aim at rather than a colour to react to. Land one and the next
+window opens a little wider and stays open; eight of them and it is half again the size
 it started at, and the page says so out loud once. Five in a row opens
 the domain for seven seconds, in which nothing misses — once per run,
 and the wheel learns from every hit it gives you, which is what those

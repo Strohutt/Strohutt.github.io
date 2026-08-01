@@ -367,6 +367,9 @@ function graded(loud) {
   gradeBox.classList.remove('is-up');
   void gradeBox.offsetWidth;
   gradeBox.classList.add('is-up');
+  // and it marks itself, the same mark the staff leaves on what it hits
+  const box = gradeMark.getBoundingClientRect();
+  if (box.width) poke(box.left + box.width / 2, box.top + box.height / 2);
   // it lands at the end of a sentence about the landing, so it starts one
   aloud(`${now.name[0].toUpperCase()}${now.name.slice(1)} — ${now.why}.`, true);
 }
@@ -935,6 +938,21 @@ if (!stillPlease.matches) {
 
 /* ─────────────────── the one control both pages share ──────────── */
 
+/* A contact mark: a ring snapping open and two short tears. Paper-white —
+   red belongs to the stroke and the flash and nothing else. The staff
+   leaves one wherever the pole crossed something, and the rank leaves one
+   on itself when it goes up. */
+function poke(x, y) {
+  if (!strikes || stillPlease.matches) return;
+  const mark = document.createElement('div');
+  mark.className = 'poke';
+  mark.style.left = `${x}px`;
+  mark.style.top = `${y}px`;
+  mark.innerHTML = '<span class="poke-ring"></span><span class="poke-tear"></span><span class="poke-tear poke-tear-2"></span>';
+  strikes.append(mark);
+  setTimeout(() => mark.remove(), 500);
+}
+
 function knock(el, cls) {
   if (!el) return;
   el.classList.remove(cls);
@@ -1296,20 +1314,6 @@ if (staff && staffGrip && staffRig) {
       poke(x, y);
       if (el.classList.contains('wheel')) dispatchEvent(new Event('strohut:struck'));
     }, n * 70));
-  };
-
-  /* The contact itself: a ring snapping open and two short tears along
-     the pole's line of travel. Paper-white — red belongs to the stroke
-     and the flash and nothing else. */
-  const poke = (x, y) => {
-    if (!strikes || stillPlease.matches) return;
-    const mark = document.createElement('div');
-    mark.className = 'poke';
-    mark.style.left = `${x}px`;
-    mark.style.top = `${y}px`;
-    mark.innerHTML = '<span class="poke-ring"></span><span class="poke-tear"></span><span class="poke-tear poke-tear-2"></span>';
-    strikes.append(mark);
-    setTimeout(() => mark.remove(), 500);
   };
 
   /* When the last real pull ended. A drag that ends on the grip is
