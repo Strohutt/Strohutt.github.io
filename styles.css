@@ -3487,6 +3487,17 @@ svg.flag {
   animation: close var(--wind, 620ms) linear forwards;
 }
 
+/* The moment the ring is inside the gate, the whole instrument lifts a
+   step — same clock as the red coming on, so the band, the ring and the
+   colour read as one event rather than three. */
+.charge {
+  animation: gate-lit var(--span, 80ms) var(--open-at, 496ms) linear;
+}
+
+@keyframes gate-lit {
+  from, to { filter: brightness(1.7); }
+}
+
 /* The red one is a shade wider than the grey it rides on, and it carries
    a glow, so the moment it comes on there is a bright line moving
    outwards away from whatever is covering the middle. Colour alone was
