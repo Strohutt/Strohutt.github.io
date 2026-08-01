@@ -2710,9 +2710,16 @@ svg.band {
     grid-column: 1 / -1;
   }
 
+  /* the rank is the one line that says where somebody is rather than
+     what they have done, so it sits above everything that counts */
+  .score > .grade {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
   .score > .score-marks {
     grid-column: 2;
-    grid-row: 3;
+    grid-row: 4;
     margin-top: 0;
   }
 
@@ -2721,17 +2728,17 @@ svg.band {
      over the numbers. */
   .score > .score-list {
     grid-column: 1;
-    grid-row: 3;
+    grid-row: 4;
   }
 
   .score > .score-read {
     grid-column: 2;
-    grid-row: 4;
+    grid-row: 5;
   }
 
   .score > .arena {
     grid-column: 1 / -1;
-    grid-row: 5;
+    grid-row: 6;
   }
 }
 
@@ -2777,7 +2784,7 @@ svg.band {
   /* under the counts, level with the readings beside it */
   .score > .score-line {
     grid-column: 1;
-    grid-row: 4;
+    grid-row: 5;
   }
 }
 
@@ -4484,4 +4491,71 @@ html:not([data-js]) .who > i:last-of-type {
 .traced-cloud {
   width: 100%;
   height: auto;
+}
+
+/* ══ 等級 ═══════════════════════════════════════════════════════
+   The rank, under the instruction and over the numbers, because it is
+   the one line in the panel that says where somebody is rather than what
+   they have done. Kanji drawn at a size that can carry three characters,
+   the words beside them for everybody else. */
+.grade {
+  display: flex;
+  align-items: baseline;
+  gap: .7rem;
+  margin: 0 0 1.1rem;
+}
+
+.grade-mark {
+  display: flex;
+  gap: .06em;
+  align-items: baseline;
+  font-size: clamp(1.5rem, 4.2vw, 2.1rem);
+  line-height: 1;
+  color: var(--paper);
+}
+
+.grade-mark svg {
+  display: block;
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+}
+
+.grade-says {
+  display: grid;
+  gap: .1rem;
+}
+
+.grade-says b {
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  color: var(--paper-2);
+}
+
+.grade-says > span {
+  font-size: .78rem;
+  color: var(--paper-3);
+}
+
+/* Special grade is the only one that asks for accuracy as well as nerve,
+   and it is the only one that is red. */
+.grade[data-grade="special-grade"] .grade-mark {
+  color: var(--blood-lit);
+}
+
+/* going up is worth a moment; arriving already there is not */
+.grade.is-up .grade-mark {
+  animation: rankup .7s cubic-bezier(.2, .9, .2, 1);
+}
+
+@keyframes rankup {
+  0% { opacity: 0; scale: 1.35; color: var(--blood-lit); }
+  60% { opacity: 1; }
+  100% { scale: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grade.is-up .grade-mark { animation: none; }
 }

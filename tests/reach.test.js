@@ -64,11 +64,23 @@ const AUDIT = () => {
     return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
   };
 
-  /* getComputedStyle answers with rgb() for some values and color(srgb …)
-     for others — anything that went through color-mix comes back in the
-     second form, where the channels run nought to one rather than nought
-     to 255. Reading those as 8-bit turns white into black. */
-  const parse = str => {
+  /* getComputedStyle does not answer in one syntax. Plain values come
+     back as rgb(); anything that went through color-mix comes back as
+     color(srgb …) with channels from nought to one; and inside the
+     domain, where the mix is against a colour the browser resolves in a
+     different space, it comes back as oklab(). Three formats read as
+     8-bit gives two wrong answers, and the wrong answers are the ones
+     that say a light letter is black.
+
+     So the browser is asked to do it. A canvas parses every colour
+     syntax it supports and hands back the pixel it painted, which is the
+     same conversion the compositor did. The hand parse stays as the
+     fallback for anything the canvas refuses. */
+  const nib = document.createElement('canvas');
+  nib.width = nib.height = 1;
+  const ctx = nib.getContext('2d', { willReadFrequently: true });
+
+  const byHand = str => {
     const s = String(str).trim();
     const n = (s.match(/[\d.]+(?:e[-+]?\d+)?/g) || []).map(Number);
     if (!n.length) return [];
@@ -78,6 +90,26 @@ const AUDIT = () => {
       return out;
     }
     return n.slice(0, 4);
+  };
+
+  const parse = str => {
+    const s = String(str).trim();
+    if (!s || s === 'none') return [];
+    // transparent has to stay transparent: a canvas would report it as
+    // black with an alpha of nought, which is a colour
+    if (/^(transparent|rgba?\(0,\s*0,\s*0,\s*0\))$/.test(s)) return [0, 0, 0, 0];
+    try {
+      ctx.clearRect(0, 0, 1, 1);
+      ctx.fillStyle = '#000';
+      ctx.fillStyle = s;
+      // a syntax it does not know leaves the previous value in place
+      if (ctx.fillStyle === '#000' && !/^(#000|black|rgb\(0,\s*0,\s*0\))$/i.test(s)) return byHand(str);
+      ctx.fillRect(0, 0, 1, 1);
+      const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+      return a === 255 ? [r, g, b] : [r, g, b, a / 255];
+    } catch {
+      return byHand(str);
+    }
   };
 
   const over = (fg, bg) => {

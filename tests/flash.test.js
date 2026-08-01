@@ -729,8 +729,13 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
      two of those separately is how "1 in a row" quietly becomes 2. */
   await landKey(p);
   const landSaid = await said();
+  /* And whatever else that landing brought with it — the first one ever
+     is also a rank, and two announcements a frame apart means the first
+     is never read, so they go out as one line. */
   check('a landed one says so, and how many in a row',
-    /^Landed, .+\. 1 in a row\.$/.test(landSaid), landSaid);
+    /^Landed, .+\. 1 in a row\./.test(landSaid), landSaid);
+  check('and the rank it earned goes out with it',
+    /Grade three — one landed\.$/.test(landSaid), landSaid);
 
   const bykey = await p.evaluate(() => ({
     last: document.getElementById('score-last').textContent,
@@ -743,6 +748,55 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
   check('and a release lands the same as a pointer would',
     bykey.total === '1', JSON.stringify(bykey));
   check('and the wheel learns from it too', bykey.adapt === '1 of 8', bykey.adapt);
+  await p.close();
+
+  /* ── 等級 ──────────────────────────────────────────────────────
+     Eight sparks was the whole of it and then there was nothing left to
+     be. Every step of the rank is a thing somebody actually did, and
+     each one asks for something different: land at all, hold a run, hold
+     one long enough to open a domain, finish the wheel, and then be
+     accurate rather than merely persistent. */
+  p = await fresh();
+  const rank = () => p.evaluate(() => ({
+    name: document.getElementById('grade-name').textContent,
+    why: document.getElementById('grade-why').textContent,
+    marks: document.querySelectorAll('#grade-mark svg').length
+  }));
+  const stand = (t, bst, cls, awk) => p.evaluate(([t, bst, cls, awk]) => {
+    total = t; best = bst; closest = cls; awake = awk; tell(true);
+  }, [t, bst, cls, awk]);
+
+  check('cold, it is the bottom rank', (await rank()).name === 'grade four', (await rank()).name);
+  check('and it says why', (await rank()).why === 'nothing landed yet', (await rank()).why);
+  check('and the kanji are drawn, not set', (await rank()).marks === 2, String((await rank()).marks));
+
+  await stand(1, 1, 0, false);
+  check('one landed is grade three', (await rank()).name === 'grade three', (await rank()).name);
+
+  await stand(4, 3, 0, false);
+  check('three in a row is grade two', (await rank()).name === 'grade two', (await rank()).name);
+
+  await stand(8, 5, 0, false);
+  const semi = await rank();
+  check('a domain of your own is semi-grade one', semi.name === 'semi-grade one', semi.name);
+  check('and that one is three characters', semi.marks === 3, String(semi.marks));
+
+  await stand(12, 6, 30, true);
+  check('all eight sparks is grade one', (await rank()).name === 'grade one', (await rank()).name);
+
+  /* The top asks for both: a run nobody gets by luck, and a reading that
+     says the timing behind it was real. Either alone is not it. */
+  await stand(20, 9, 40, true);
+  check('eight in a row alone is not the top', (await rank()).name === 'grade one', (await rank()).name);
+  await stand(20, 6, 3, true);
+  check('nor is being three milliseconds out', (await rank()).name === 'grade one', (await rank()).name);
+  await stand(20, 9, 3, true);
+  check('both together is special grade', (await rank()).name === 'special grade', (await rank()).name);
+
+  // and it is the one rank drawn in red
+  check('and it is the one drawn in red', await p.evaluate(() =>
+    getComputedStyle(document.querySelector('.grade-mark')).color) !== await p.evaluate(() =>
+    getComputedStyle(document.querySelector('.score-line')).color));
   await p.close();
 
   /* ── nothing accumulates ───────────────────────────────────────

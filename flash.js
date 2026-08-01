@@ -307,11 +307,76 @@ function heat() {
   if (scorePanel) scorePanel.style.setProperty('--streak', streak);
 }
 
+/* ── 等級 ──────────────────────────────────────────────────────
+   Eight sparks was the whole of it and then there was nothing left to
+   be: a counter that fills up and stops. Sorcerers are graded in the
+   source, so this is graded the same way.
+
+   Every step is a thing somebody did rather than a number that went up
+   on its own, and each one is a different thing — land at all, hold a
+   run, hold a run long enough to open a domain, finish the wheel, and
+   then be genuinely accurate rather than merely persistent. The last one
+   is the only one that asks for both.
+
+   Highest first, so the first that answers is the answer. */
+const GRADES = [
+  { kanji: '特級', name: 'special grade',
+    why: 'eight in a row, and inside five milliseconds',
+    at: () => best >= 8 && closest && closest <= 5 },
+  { kanji: '一級', name: 'grade one',
+    why: 'all eight sparks',
+    at: () => awake },
+  { kanji: '準一級', name: 'semi-grade one',
+    why: 'a domain of your own',
+    at: () => best >= DOMAIN_AT },
+  { kanji: '二級', name: 'grade two',
+    why: 'three in a row',
+    at: () => best >= 3 },
+  { kanji: '三級', name: 'grade three',
+    why: 'one landed',
+    at: () => total >= 1 },
+  { kanji: '四級', name: 'grade four',
+    why: 'nothing landed yet',
+    at: () => true }
+];
+
+const gradeBox = document.getElementById('grade');
+const gradeMark = document.getElementById('grade-mark');
+const gradeName = document.getElementById('grade-name');
+const gradeWhy = document.getElementById('grade-why');
+let held = '';
+
+function graded(loud) {
+  if (!gradeBox) return;
+  const now = GRADES.find(g => g.at());
+  if (now.kanji === held) return;
+  const first = held === '';
+  held = now.kanji;
+
+  /* Drawn rather than set: these characters live in three different CJK
+     subsets and setting them in the font would pull all three onto the
+     wire for four marks. */
+  gradeMark.innerHTML = [...now.kanji]
+    .map(ch => `<svg viewBox="0 0 1000 1000"><use href="#kj-${ch}" /></svg>`).join('');
+  gradeName.textContent = now.name;
+  gradeWhy.textContent = now.why;
+  gradeBox.dataset.grade = now.name.replace(/\s+/g, '-');
+
+  // going up is worth a moment; arriving already there is not
+  if (first || !loud || stillPlease.matches) return;
+  gradeBox.classList.remove('is-up');
+  void gradeBox.offsetWidth;
+  gradeBox.classList.add('is-up');
+  // it lands at the end of a sentence about the landing, so it starts one
+  aloud(`${now.name[0].toUpperCase()}${now.name.slice(1)} — ${now.why}.`, true);
+}
+
 function tell(bump) {
   post(score.best, best, bump);
   post(score.total, total, bump);
   post(score.adapt, `${learned} of ${LEARNS}`, bump);
   post(score.close, closest ? `${closest} ms` : '—', bump);
+  graded(bump);
   heat();
   said();
 }
@@ -603,10 +668,15 @@ function say(word) {
    a reading beside a word that says whether it landed, and read on its
    own it is only a number. Said once per release — the three readings in
    the panel all change at once and none of them is worth interrupting
-   anybody for on its own. */
-function aloud(what) {
+   anybody for on its own.
+
+   A rank arrives on the back of a landing rather than on its own, so it
+   is added to what that landing already said instead of replacing it.
+   Two announcements a frame apart and the first one is never read. */
+function aloud(what, andThen) {
   const said = document.getElementById('flash-said');
-  if (said) said.textContent = what;
+  if (!said) return;
+  said.textContent = andThen && said.textContent ? `${said.textContent} ${what}` : what;
 }
 
 function landed(dev, sure) {
