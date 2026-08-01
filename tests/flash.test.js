@@ -583,9 +583,23 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
      it has no business in the record of the best anybody has managed. */
   check('but a given hit is not a reading', sure.close === open.close, `${open.close} → ${sure.close}`);
 
+  /* planted before the close so the door can be seen from outside: the
+     exit runs through a sealing beat, and reading the class after the
+     fact would always be too late */
+  await q.evaluate(() => {
+    window.__sealed = false;
+    new MutationObserver(() => {
+      if (document.body.classList.contains('is-sealing')) window.__sealed = true;
+    }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  });
+
   await q.waitForTimeout(7400);
   const done = await reading();
   check('the domain closes on its own', !done.on && done.left === '', JSON.stringify(done));
+  check('and it closes its own door rather than cutting the power',
+    await q.evaluate(() => window.__sealed));
+  check('and the door does not stay in the doorway',
+    await q.evaluate(() => !document.body.classList.contains('is-sealing')));
   check('and the page comes back out of it',
     (await paper()).paper === '#efece4', JSON.stringify(await paper()));
 

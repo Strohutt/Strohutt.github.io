@@ -4900,3 +4900,22 @@ html:not([data-js]) .who > i:last-of-type {
 @media (prefers-reduced-motion: reduce) {
   .poke { display: none; }
 }
+
+/* ── the door closing ────────────────────────────────────────────
+   The last half-second of a domain: the veil pulses once more and the
+   palette turns back underneath it at the peak, where the change cannot
+   be seen happening. The container has to be kept on screen for it —
+   its display is otherwise tied to the class that is being taken away. */
+body.is-sealing .domain {
+  display: block;
+}
+
+body.is-sealing .domain-field {
+  animation: seal .58s ease-out forwards;
+}
+
+@keyframes seal {
+  0% { opacity: 0; scale: 1.02; }
+  36% { opacity: .5; scale: 1; }
+  100% { opacity: 0; scale: .99; }
+}

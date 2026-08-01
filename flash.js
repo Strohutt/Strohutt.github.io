@@ -782,8 +782,20 @@ function shut() {
   domainUntil = 0;
   clearTimeout(domainTimer);
   clearTimeout(countTimer);
-  document.body.classList.remove('is-domain');
   if (domainLeft) domainLeft.textContent = '';
+
+  /* The door closes the way it opened. Dropping the class snaps the
+     whole palette back in one frame, which reads as the power being cut
+     rather than the technique ending — so the veil pulses once more and
+     the colours turn back underneath it, at its peak, where the change
+     cannot be seen happening. */
+  if (stillPlease.matches || !document.body.classList.contains('is-domain')) {
+    document.body.classList.remove('is-domain');
+    return;
+  }
+  document.body.classList.add('is-sealing');
+  setTimeout(() => document.body.classList.remove('is-domain'), 200);
+  setTimeout(() => document.body.classList.remove('is-sealing'), 620);
 }
 
 /* A domain nobody can see the end of is a domain nobody spends. */
@@ -931,7 +943,10 @@ if (!stillPlease.matches) {
 
   document.body.addEventListener('animationend', event => {
     if (event.animationName === 'room') document.body.classList.remove('is-flashing');
-    if (event.animationName === 'domain') document.body.classList.remove('is-domain');
+    /* the timer owns the exit; this is the failsafe for a throttled tab
+       where the timeout never came back, and it goes through the same
+       door so the closing looks the same */
+    if (event.animationName === 'domain' && document.body.classList.contains('is-domain')) shut();
   });
 }
 
