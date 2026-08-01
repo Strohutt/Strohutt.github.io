@@ -139,6 +139,34 @@ check('the braces balance', opens === closes, `${opens} open, ${closes} close`);
   }
 }
 
+/* ── the structured data has to be true and has to parse
+   It is the one thing on the page nobody ever looks at, which is exactly
+   why it drifts: a link changes in the header and the copy of it down
+   here goes on saying the old thing to every search engine that asks.
+   So every account it claims has to be one the page actually links to,
+   and the whole thing has to be json a parser will take. */
+{
+  const block = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+  check('the page carries structured data', !!block);
+  if (block) {
+    let card = null;
+    let why = '';
+    try { card = JSON.parse(block[1]); } catch (e) { why = e.message; }
+    check('and it parses', !!card, why);
+
+    if (card) {
+      check('it is a person', card['@type'] === 'Person', String(card['@type']));
+      check('with the name the page says', html.includes(`>${card.name}<`) || html.includes(card.name),
+        String(card.name));
+      const claimed = Array.isArray(card.sameAs) ? card.sameAs : [];
+      const unlinked = claimed.filter(u => !html.includes(u));
+      check('and every account it claims is linked on the page', !unlinked.length, unlinked.join(','));
+      check('and it claims all of them', [...html.matchAll(/href="(https:\/\/(?:discord|steamcommunity|www\.instagram|twitter)\.com[^"]*)"/g)]
+        .map(m => m[1]).every(u => claimed.includes(u)));
+    }
+  }
+}
+
 /* ── a preload has to be for something that is actually asked for
    A preload the page never uses is a file fetched at the front of the
    queue for nothing, and a preload whose url is a character off from the

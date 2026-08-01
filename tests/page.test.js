@@ -25,10 +25,33 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
     .filter(p => getComputedStyle(p).opacity === '0').map(p => p.className));
   // the field is markup, not script, so it has to be there without js too
   const motesNoJs = await n.evaluate(() => document.querySelectorAll('.mote').length);
+
+  /* A control that does nothing when it is pressed is worse than no
+     control. Without javascript the field cannot take a hold, the run
+     can never move, the compass has nothing to point at and the clock
+     has no time to show — so none of them are offered. */
+  const drawn = sel => n.evaluate(s => {
+    const el = document.querySelector(s);
+    if (!el) return false;
+    const st = getComputedStyle(el);
+    return st.display !== 'none' && st.visibility !== 'hidden';
+  }, sel);
+
+  const offered = [];
+  for (const sel of ['#flash-arena', '.score-list', '.score-marks', '.score .kicker', '.pose', '#clock']) {
+    if (await drawn(sel)) offered.push(sel);
+  }
+
+  /* What does stay is the heading and the sentence under it: they
+     describe a thing this page does when it is allowed to run, which is
+     worth reading either way. */
+  const kept = await drawn('.score-line') && await drawn('.score .head');
   await nojs.close();
 
   check('no js: nothing is stuck invisible', !hiddenNoJs.length, hiddenNoJs.join(' | '));
   check('no js: the field is still running', motesNoJs >= 20, String(motesNoJs));
+  check('no js: nothing dead is offered', !offered.length, offered.join(' | '));
+  check('no js: but the panel still says what it is', kept);
 
   const p = await b.newPage({ viewport: { width: 1340, height: 900 } });
   await p.addInitScript(seen);

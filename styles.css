@@ -3857,6 +3857,26 @@ body.is-domain .wheel {
   border: 0;
 }
 
+/* ── with no javascript at all ───────────────────────────────────
+   Everything on this page that is fed by something is already hidden
+   without it. What was left was worse: a field saying HOLD that cannot
+   take a hold, a run of noughts that can never move, a compass whose
+   needle has nothing to point at and a clock reading an em dash. A
+   control that does nothing when it is pressed is the one thing worse
+   than not being there.
+
+   The heading and the sentence stay. They describe a thing this page
+   does when it is allowed to run, which is worth reading either way. */
+html:not([data-js]) .arena,
+html:not([data-js]) .score-marks,
+html:not([data-js]) .score-list,
+html:not([data-js]) .score .kicker,
+html:not([data-js]) .pose,
+html:not([data-js]) #clock,
+html:not([data-js]) .who > i:last-of-type {
+  display: none;
+}
+
 /* A readout, not a control — and it floats over the bottom right corner,
    which at the end of the page is where the one link in the footer is.
    Taking no clicks means it can sit on top of that link without being in

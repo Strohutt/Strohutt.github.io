@@ -717,6 +717,9 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
   const missSaid = await said();
   check('a miss says so, and by how much', /^Missed, \d+ ms (early|late)\./.test(missSaid), missSaid);
 
+  /* One landing, read three ways: what it said out loud, what the panel
+     counted, and what the wheel took from it. Landing twice here to ask
+     two of those separately is how "1 in a row" quietly becomes 2. */
   await landKey(p);
   const landSaid = await said();
   check('a landed one says so, and how many in a row',
