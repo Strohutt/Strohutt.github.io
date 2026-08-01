@@ -862,20 +862,26 @@ const el = {
    over from an older design — a favourite nobody had picked, sitting there
    claiming to be one. What the panel shows instead when nothing is playing
    is the last thing it actually caught him listening to, which is a true
-   statement about a real song, and gets truer the more often you visit. */
+   statement about a real song.
+
+   For the visit and no longer. It was on the shelf that survives the
+   browser being closed, so coming back after a fortnight was met with a
+   song and the words "17 days ago" — a true statement nobody wanted, and
+   the same shelf the game was taken off for the same reason. Nothing on
+   this page is kept past the visit. */
 const LAST_TRACK = 'strohut-track';
 
 function stash(key, value) {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    sessionStorage.setItem(key, JSON.stringify(value));
   } catch {
-    /* it just won't be there next time */
+    /* it just won't be there later in the visit */
   }
 }
 
 function unstash(key) {
   try {
-    const raw = localStorage.getItem(key);
+    const raw = sessionStorage.getItem(key);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
@@ -918,7 +924,34 @@ fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`)
     /* the socket gets its turn either way */
   });
 
+/* Lanyard is somebody else's free service, and this page can be left open
+   on a second monitor all day. A socket that will not open was retried
+   every twelve seconds for as long as the tab lived — three hundred
+   attempts an hour at an upstream that is already having a bad time.
+
+   So it backs off, up to two minutes, and resets the moment a connection
+   actually opens. And because backing off makes coming back slow, the two
+   moments that mean somebody is looking again — the tab being brought
+   forward, and the network returning — try immediately instead of waiting
+   out whatever the delay had grown to. */
+const RETRY_MIN = 4000;
+const RETRY_MAX = 120000;
+let retryIn = RETRY_MIN;
+let retryTimer = 0;
+let live = null;
+
 connect();
+
+// nothing to reconnect if one is already up or on its way
+const tryNow = () => {
+  if (live && (live.readyState === WebSocket.OPEN || live.readyState === WebSocket.CONNECTING)) return;
+  clearTimeout(retryTimer);
+  retryIn = RETRY_MIN;
+  connect();
+};
+
+addEventListener('online', tryNow);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) tryNow(); });
 
 function connect() {
   let socket;
@@ -930,8 +963,10 @@ function connect() {
     fail();
     return;
   }
+  live = socket;
 
   socket.addEventListener('open', () => {
+    retryIn = RETRY_MIN;
     socket.send(JSON.stringify({ op: 2, d: { subscribe_to_id: DISCORD_ID } }));
   });
 
@@ -948,7 +983,9 @@ function connect() {
 
   socket.addEventListener('close', () => {
     clearInterval(heartbeat);
-    setTimeout(connect, 12000);
+    clearTimeout(retryTimer);
+    retryTimer = setTimeout(connect, retryIn);
+    retryIn = Math.min(RETRY_MAX, Math.round(retryIn * 1.8));
   });
 
   socket.addEventListener('error', () => {

@@ -151,6 +151,78 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   await p.waitForTimeout(1500);
   check('localStorage blocked: page still works',
     await p.evaluate(() => !!document.querySelector('.name')) && !(await overflows(p)));
+
+  await p.close();
+
+  /* Session storage refusing is the one that matters, because it is the
+     one everything here uses: the barrier, the run, the islands, the last
+     track. A browser in a locked-down mode throws on the property itself,
+     not on the write — and every one of those reads happens before
+     anything is drawn. */
+  p = await b.newPage({ viewport: { width: 1340, height: 900 } });
+  const broke = [];
+  p.on('pageerror', e => broke.push(e.message));
+  await p.addInitScript(() => {
+    Object.defineProperty(window, 'sessionStorage', { get() { throw new DOMException('denied'); } });
+  });
+  await p.goto(BASE + '/index.html');
+  await p.waitForTimeout(2400);
+  check('sessionStorage blocked: nothing throws', !broke.length, broke.join(' | '));
+  check('sessionStorage blocked: the page is still there',
+    await p.evaluate(() => !!document.querySelector('.name')) && !(await overflows(p)));
+  check('sessionStorage blocked: and the field still takes a hold', await p.evaluate(() => {
+    const a = document.getElementById('flash-arena');
+    a.scrollIntoView({ block: 'center' });
+    const r = a.getBoundingClientRect();
+    a.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, buttons: 1,
+      clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, pointerId: 1, isPrimary: true }));
+    const on = document.querySelectorAll('.charge').length > 0;
+    dispatchEvent(new PointerEvent('pointerup', { bubbles: true, button: 0 }));
+    return on;
+  }));
+  await p.close();
+
+  /* the last track it caught goes with the tab, the same as the run and
+     the islands — coming back a fortnight later to a song and "17 days
+     ago" is a true statement nobody wanted */
+  p = await open();
+  await p.waitForTimeout(1600);
+  const shelves = await p.evaluate(() => ({
+    session: Object.keys(sessionStorage),
+    local: Object.keys(localStorage)
+  }));
+  check('the visit is remembered in session storage', shelves.session.length > 0, JSON.stringify(shelves));
+  check('and nothing at all outlives it', shelves.local.length === 0, JSON.stringify(shelves));
+  await p.close();
+
+  /* ── an upstream that is having a bad time
+     The socket was retried every twelve seconds for as long as the tab
+     lived, which against a service that is down is three hundred attempts
+     an hour from one page left open on a second monitor. It backs off
+     now — and because backing off makes coming back slow, bringing the
+     tab forward tries at once rather than waiting out the delay. */
+  p = await b.newPage({ viewport: { width: 1340, height: 900 } });
+  await p.addInitScript(seen);
+  const tries = [];
+  p.on('websocket', () => tries.push(Date.now()));
+  await p.route('**/api.lanyard.rest/v1/**', r => r.abort());
+  await p.goto(BASE + '/index.html');
+  await p.waitForTimeout(15000);
+
+  const gaps = tries.slice(1).map((t, i) => t - tries[i]);
+  check('a socket that will not open is tried again', tries.length >= 2, JSON.stringify(gaps));
+  check('and each wait is longer than the last',
+    gaps.length >= 2 && gaps.every((g, i) => i === 0 || g > gaps[i - 1] * 1.2), JSON.stringify(gaps));
+  check('and it is not hammered', tries.length <= 6, `${tries.length} in 15s`);
+
+  const before = tries.length;
+  await p.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => false });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await p.waitForTimeout(1200);
+  check('coming back to the tab tries at once', tries.length > before,
+    `${before} → ${tries.length}`);
   await p.close();
 
   // ── the socket drops and comes back
@@ -192,9 +264,13 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
     `${ticking} → ${await p.evaluate(() => document.getElementById('track-time').textContent)}`);
   await p.close();
 
-  /* What the page remembers between visits. Nothing playing is not the
-     same as nothing ever playing, and the panel should not have to choose
-     between claiming silence and saying nothing. */
+  /* What the page remembers for the length of a visit. Nothing playing is
+     not the same as nothing ever playing, and the panel should not have to
+     choose between claiming silence and saying nothing.
+
+     For the visit and no further: a tab of its own is somebody arriving,
+     and a reload is not, which is the whole difference between the two
+     shelves — and the only one worth keeping this on. */
   const SONG = playing => ({
     status: 200, contentType: 'application/json',
     body: JSON.stringify({ success: true, data: {
@@ -209,19 +285,16 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   p = await jar.newPage();
   await p.addInitScript(seen);
   p.on('pageerror', e => fails.push('pageerror(cache 1): ' + e.message));
-  await p.route('**/api.lanyard.rest/**', r => r.fulfill(SONG(true)));
+  let stopped = false;
+  await p.route('**/api.lanyard.rest/**', r => r.fulfill(SONG(!stopped)));
   await p.goto(BASE + '/index.html');
   await p.waitForTimeout(1600);
   check('a track that is playing says so',
     await p.evaluate(() => document.getElementById('music-kicker').textContent) === 'now playing');
-  await p.close();
 
-  // same visitor, back later, and the music has stopped
-  p = await jar.newPage();
-  await p.addInitScript(seen);
-  p.on('pageerror', e => fails.push('pageerror(cache 2): ' + e.message));
-  await p.route('**/api.lanyard.rest/**', r => r.fulfill(SONG(false)));
-  await p.goto(BASE + '/index.html');
+  // same visit, a little later, and the music has stopped
+  stopped = true;
+  await p.reload();
   await p.waitForTimeout(1600);
   check('nothing playing falls back to the last one caught',
     await p.evaluate(() => document.getElementById('music-kicker').textContent) === 'last played' &&
@@ -231,6 +304,19 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
     await p.evaluate(() => document.getElementById('track-seen').textContent));
   check('the fallback links at the track it actually names',
     /abc123/.test(await p.evaluate(() => document.getElementById('music-link').href)));
+  await p.close();
+
+  /* And a tab of its own starts at nothing, which is the whole point of
+     the shelf it is on: the song is not carried into next month. */
+  p = await jar.newPage();
+  await p.addInitScript(seen);
+  p.on('pageerror', e => fails.push('pageerror(cache 3): ' + e.message));
+  await p.route('**/api.lanyard.rest/**', r => r.fulfill(SONG(false)));
+  await p.goto(BASE + '/index.html');
+  await p.waitForTimeout(1600);
+  check('a new tab is somebody arriving, and knows of no last track',
+    await p.evaluate(() => document.getElementById('track-song').textContent) === 'nothing caught yet',
+    await p.evaluate(() => document.getElementById('track-song').textContent));
   await p.close();
   await jar.close();
 
