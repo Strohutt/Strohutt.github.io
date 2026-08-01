@@ -62,7 +62,7 @@ and nothing else.
 | **The cloud scarf** | Crossing the gutter under the header. The band that hangs round Luffy in gear 5 — white where every other zoan awakening billows black. |
 | **黒閃** | Cursed energy landing inside a millionth of a second of the hit; it is named for the black, so the bolts are black and the red is only the edge. It has a field of its own in its own panel — see below. |
 | **여의봉** | Yeoui, in the header, and on the 404. Take hold of the grip and pull and it goes wherever the pointer goes; let go and it comes back, leaving what it swung through behind it. Three drawings, not one: two ends and a middle, and only the middle stretches. |
-| **The log pose** | Bottom left, once the page has been scrolled. The needle points at whichever region is coming next, swinging as you pass each one, and the four marks on the bezel light as you go by them. |
+| **The log pose** | Bottom left, once the page has been scrolled. The needle points at whichever region is coming next, swinging as you pass each one, and the bezel fills clockwise from north — one mark per principal direction, one region each — the way a log pose records islands. |
 | **Jolly Roger** | At the foot, over the sea, for the name. |
 
 Every outline is generated with a fixed seed and shaken off its ideal
@@ -92,6 +92,35 @@ a wire. `cloudBar()` widens any pair that comes up short.
 **Walking the underside of a lobe chain needs the lower crossing of each
 pair of circles and the opposite sweep direction.** Reusing the top-edge
 maths gives a zigzag with spikes hanging off it.
+
+## The six chapters
+
+The page is a book: every region is a chapter, numbered in the corner of
+its own heading, and the compass in the bottom left counts them off as
+you go past.
+
+| | |
+| --- | --- |
+| 第一話 · **right now** | Discord presence — the custom status, then every activity, each with its own timer counting up |
+| 第二話 · **in my ears** | What Spotify is playing, drawn here rather than embedded |
+| 第三話 · **favourites** | Three titles and what AniList says about each, plus what each of them left drawn on this page |
+| 第四話 · **black flash** | The one thing here anybody can get better at: a rank, a field to hold, and eight sparks to earn |
+| 第五話 · **traced from** | What the six drawn things are, which panel each was traced off, and what it does here |
+| 第六話 · **the rules** | The five rules every drawing on the page is held to, so the page can be judged against them |
+
+## His hour
+
+The clock reads Berlin, and so does the sky. One number — nought in the
+small hours, one at midday, moving as a curve so nothing lurches on the
+hour — and everything hanging off it is a matter of degree: the field of
+sparks is thick after dark and nearly clear at noon, the sea takes twenty
+seconds longer to roll through, the sheet cools a shade. Nothing appears
+and nothing goes away, because a page that rearranges itself at six in
+the evening is a page nobody trusts.
+
+It is his hour rather than the reader's. Somebody in Seoul reading this
+over breakfast is looking at his night, which is the whole point of a
+light on a porch.
 
 ## The clock
 
@@ -140,6 +169,20 @@ it started at, and the page says so out loud once. Five in a row opens
 the domain for seven seconds, in which nothing misses — once per run,
 and the wheel learns from every hit it gives you, which is what those
 seven seconds cost. None of it is kept past the visit.
+
+And it is graded, the way sorcerers are graded in the source. Every step
+is a thing somebody did rather than a number that went up on its own, and
+each asks for something different: land one at all, hold three, hold five
+which is a domain of your own, finish the wheel — and then 特級, which
+asks for eight in a row *and* a reading inside five milliseconds, because
+a long run is nerve and a close reading is timing and the top should not
+be either one alone.
+
+The staff goes through things. It grew to the width of the page and
+changed nothing, which is a spring with a drawing on it; now whatever the
+pole passes through answers the way it answers to any other hit, one
+after another in the order it reached them, and the wheel takes a tooth
+for it.
 
 Both live panels are hidden when JavaScript is off. They are fed by a
 socket, and without it they would sit on "reaching discord" forever, which

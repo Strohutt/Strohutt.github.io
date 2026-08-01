@@ -884,7 +884,17 @@ a {
   position: absolute;
   inset: -.7rem;
   z-index: -1;
-  background: radial-gradient(56% 56% at 50% 50%, rgb(8 8 11 / .97) 46%, rgb(8 8 11 / 0) 82%);
+  /* Opaque out to most of its width and only then fading. A gradient
+     that starts giving way at the halfway mark leaves whatever is
+     underneath legible round the edges — and what is underneath is a
+     paragraph, because this thing is fixed to the corner of the screen
+     and the page flows past behind it.
+
+     var(--ink) rather than the value: the sheet cools after dark and
+     turns over inside a domain, and a plate that stayed one colour
+     through either would be a grey card lying on the page. */
+  background: radial-gradient(closest-side,
+    var(--ink) 62%, color-mix(in srgb, var(--ink), transparent 35%) 84%, transparent 100%);
 }
 
 .pose-art {
@@ -995,9 +1005,10 @@ a {
 .pose-text::before {
   content: "";
   position: absolute;
-  inset: -.7rem -1.4rem -.7rem -1rem;
+  inset: -.8rem -1.8rem -.8rem -1.2rem;
   z-index: -1;
-  background: radial-gradient(62% 62% at 44% 50%, rgb(8 8 11 / .9), rgb(8 8 11 / 0) 78%);
+  background: radial-gradient(closest-side,
+    var(--ink) 58%, color-mix(in srgb, var(--ink), transparent 30%) 82%, transparent 100%);
 }
 
 .pose-to {
