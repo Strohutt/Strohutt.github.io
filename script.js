@@ -51,7 +51,19 @@ if (stillPlease.matches || !('IntersectionObserver' in window)) {
     });
   }, { rootMargin: '0px 0px -12% 0px', threshold: 0.1 });
 
-  whenOpen(() => sections.forEach(s => watcher.observe(s)));
+  whenOpen(() => {
+    sections.forEach(s => watcher.observe(s));
+    /* The first one arrives whatever the window is. A region is at
+       nothing until it has been seen, and the observer is asked for the
+       lower twelve percent of the screen — so on a short window the top
+       of the page sits below that line and the first region stays blank
+       until somebody scrolls a pixel to prove they are there. Everything
+       below it can wait to be reached; the first one cannot. */
+    if (sections[0]) {
+      sections[0].classList.add('is-in');
+      watcher.unobserve(sections[0]);
+    }
+  });
 }
 
 

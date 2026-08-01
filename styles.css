@@ -733,6 +733,12 @@ a {
 }
 
 /* ══ the hero panel ═════════════════════════════════════════ */
+/* On a laptop the whole of the first screen was the header: name, line,
+   sentence, tags, staff, and then a cloud — and the first region started
+   a few pixels below the fold, which is the one place it cannot start.
+   A page whose first screen has nothing on it but its own title is a
+   splash screen. The reserved height goes when there is no room for it,
+   and the room the drawings take comes down with it. */
 .hero {
   align-content: center;
   min-height: min(42vh, 20rem);
@@ -1580,8 +1586,12 @@ body.is-awake .tally-label .says::after {
   animation: arrive .5s cubic-bezier(.22, .8, .3, 1) .82s backwards;
 }
 
+[data-js] .sub {
+  animation: arrive .5s cubic-bezier(.22, .8, .3, 1) .88s backwards;
+}
+
 [data-js] .links a {
-  animation: arrive .5s cubic-bezier(.22, .8, .3, 1) calc(.94s + var(--n, 0) * .09s) backwards;
+  animation: arrive .5s cubic-bezier(.22, .8, .3, 1) calc(1s + var(--n, 0) * .09s) backwards;
 }
 
 [data-js] .links a:nth-child(2) { --n: 1; }
@@ -1601,6 +1611,7 @@ body.is-awake .tally-label .says::after {
 [data-js].is-cast .name button > span,
 [data-js].is-cast .brush,
 [data-js].is-cast .who,
+[data-js].is-cast .sub,
 [data-js].is-cast .links a {
   animation-play-state: paused;
 }
@@ -1672,6 +1683,17 @@ body.is-awake .tally-label .says::after {
   font-weight: 700;
   letter-spacing: .3em;
   text-transform: uppercase;
+  color: var(--paper-2);
+}
+
+/* What the page is, under the name and over the links. Set at the size
+   of the body rather than the size of a caption: it is the only sentence
+   in the header and the first thing anybody reads after the word. */
+.sub {
+  max-width: 42ch;
+  margin: 0 0 1.1rem;
+  font-size: clamp(.92rem, 2.2vw, 1.02rem);
+  line-height: 1.5;
   color: var(--paper-2);
 }
 
@@ -3916,6 +3938,29 @@ body.is-domain .wheel {
    thing, and everything it points at is a scroll away regardless. */
 @media (max-height: 30rem) {
   .pose { display: none; }
+}
+
+/* A laptop window: wide, and not tall enough for a full header with the
+   top of the page still under it. Nothing is taken away — the sentence,
+   the staff and the cloud all stay — they are given the room they need
+   rather than the room they would like.
+
+   Short and narrow is a phone held upright, where the page is a column
+   and there is nothing to win: the width has to be in here or the cloud
+   comes up over the line under the record. */
+@media (max-height: 54rem) and (min-width: 48rem) {
+  .hero {
+    min-height: 0;
+    padding-block: clamp(.4rem, 1vw, .8rem);
+  }
+
+  .sub {
+    margin-bottom: .8rem;
+  }
+
+  .staff {
+    margin-top: .6rem;
+  }
 }
 
 /* ── with no javascript at all ───────────────────────────────────

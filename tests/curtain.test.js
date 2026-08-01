@@ -59,8 +59,15 @@ const up = p => p.evaluate(() => {
 
   /* .now only. Nothing is mocked here, so the music region has hidden
      itself and the favourites never appeared — both correctly. */
-  check('and then what is in view arrives',
-    await p.evaluate(() => document.querySelector('.now').classList.contains('is-in')));
+  /* Waited for rather than read off a stopwatch. The regions start
+     watching for themselves the moment the barrier says it is done, and
+     how long the observer then takes to answer is not a number this
+     check has any business knowing — a header one line longer was enough
+     to put it on the wrong side of a fixed wait. */
+  const arrived = await p.waitForFunction(
+    () => document.querySelector('.now').classList.contains('is-in'),
+    null, { timeout: 4000 }).then(() => true).catch(() => false);
+  check('and then what is in view arrives', arrived);
   check('and the header is drawn',
     await p.evaluate(() => ['.name button > span', '.brush', '.who', '.links a']
       .every(s => {
@@ -112,7 +119,8 @@ const up = p => p.evaluate(() => {
      anybody impatient enough to skip the barrier gets a page that never
      arrives at all. */
   check('and clicking through it still lets the page arrive',
-    await p.evaluate(() => document.querySelector('.now').classList.contains('is-in')));
+    await p.waitForFunction(() => document.querySelector('.now').classList.contains('is-in'),
+      null, { timeout: 4000 }).then(() => true).catch(() => false));
   await p.close();
 
   p = await c.newPage();
