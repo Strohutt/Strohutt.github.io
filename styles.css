@@ -4121,3 +4121,106 @@ html:not([data-js]) .who > i:last-of-type {
     animation: none !important;
   }
 }
+
+/* ══ high contrast ═════════════════════════════════════════════
+   Windows' high contrast mode throws away every colour on the page and
+   substitutes its own pair, which for text is exactly right — black on
+   white, links in the system's link colour, all of it legible. For the
+   drawings it is not: they are line art built out of a light stroke and
+   a dark fill, and the substitution flattens every one of them into a
+   solid black lump sitting in the middle of the text.
+
+   So in that mode they are drawn the way they are drawn everywhere else,
+   with the values swapped: no fill, and the system's own text colour for
+   the line. Line art on paper, which is what it always was.
+
+   Every selector in here is a plain class rather than a descendant of
+   anything. These shapes live inside symbols, and a symbol reached
+   through <use> is a shadow tree that a descendant selector never gets
+   into — .wheel * matches nothing at all, silently. */
+@media (forced-colors: active) {
+  .mg-body,
+  .mg-lit,
+  .cb-body,
+  .cb-curl,
+  .cw-body,
+  .cw-vein,
+  .sea-line,
+  .sea-crest,
+  .sea-face,
+  .sea-vein,
+  .sea-dash,
+  .sea-spray,
+  .ye-fill,
+  .ye-edge,
+  .ye-dark,
+  .ye-shade,
+  .ye-lit,
+  .ye-grain,
+  .ye-crack,
+  .ye-cut,
+  .ye-pit,
+  .ye-chip,
+  .lp-brass,
+  .lp-brass-dark,
+  .lp-brass-lit,
+  .lp-glass,
+  .lp-strap,
+  .lp-stitch,
+  .lp-under,
+  .lp-wire,
+  .lp-tick,
+  .lp-shine,
+  .vn-body,
+  .vn-groove,
+  .vn-shine,
+  .brush {
+    forced-color-adjust: none;
+    fill: none;
+    stroke: CanvasText;
+    stroke-width: 2;
+    opacity: 1;
+  }
+
+  /* the few marks that are meant to be solid, and the ones that mark a
+     place rather than draw a thing */
+  .jr-ink,
+  .jr-bone,
+  .jr-straw,
+  .jr-teeth,
+  .lp-point,
+  .lp-pin,
+  .lp-needle-lit,
+  .vn-label,
+  .vn-hole {
+    forced-color-adjust: none;
+    fill: CanvasText;
+    stroke: none;
+  }
+
+  .jr-hole,
+  .jr-band {
+    forced-color-adjust: none;
+    fill: Canvas;
+    stroke: CanvasText;
+  }
+
+  /* A box-shadow is not drawn at all in this mode, and the field's edge
+     was one — so the one thing on the page you are meant to press had
+     nothing round it but the word in the middle. */
+  .arena {
+    border: 1px solid CanvasText;
+  }
+
+  /* Texture that carries nothing and cannot survive being reduced to one
+     colour: the field of motes, the speed lines, the screentone behind
+     the panels, the mark burning in the floor of the arena. */
+  .field,
+  .speed,
+  .score-sigil,
+  .staff-air,
+  .swing,
+  .wake {
+    display: none;
+  }
+}
