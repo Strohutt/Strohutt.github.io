@@ -38,7 +38,7 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   }, sel);
 
   const offered = [];
-  for (const sel of ['#flash-arena', '.score-list', '.score-marks', '.score .kicker', '.grade', '.pose', '#clock']) {
+  for (const sel of ['#flash-arena', '.score-list', '.score-marks', '.score .kicker', '.grade', '.pose', '#clock', '.cut-fig']) {
     if (await drawn(sel)) offered.push(sel);
   }
 
@@ -472,11 +472,61 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
       traced.uses.filter(u => !traced.elsewhere.includes(u)).join(','));
   }
 
+  /* ── 作画 ────────────────────────────────────────────────────
+     Chapter seven's figures are readings, not copy: every stamp claims
+     to be a count of the live document, so every stamp is compared to
+     the document it sits in. A page that publishes measurements of
+     itself gets held to them. */
+  {
+    await p.evaluate(() => document.getElementById('making').scrollIntoView({ block: 'center' }));
+    const truthy = await p.waitForFunction(() => {
+      const want = {
+        'fig-paths': document.querySelectorAll('path').length,
+        'fig-glyphs': document.querySelectorAll('symbol[id^="ch-"], symbol[id^="kj-"]').length,
+        'fig-pics': [...document.images].filter(i => i.getAttribute('src') && !i.hidden).length,
+        'fig-held': (() => { try { return sessionStorage.length; } catch { return 0; } })(),
+        'fig-scripts': document.querySelectorAll('script[src]').length
+      };
+      return Object.entries(want).every(([id, n]) =>
+        document.getElementById(id) && document.getElementById(id).textContent === String(n)) ? want : false;
+    }, { timeout: 6000 }).then(h => h.jsonValue()).catch(() => null);
+    check('chapter seven: every stamp says what the page measures', !!truthy, JSON.stringify(truthy));
+
+    const cuts = await p.evaluate(() => ({
+      count: document.querySelectorAll('.cut-list li').length,
+      whole: [...document.querySelectorAll('.cut-list li')].filter(li =>
+        li.querySelector('.cut-mark b') && li.querySelector('.cut-says')).length,
+      stamps: document.querySelectorAll('.cut-fig').length
+    }));
+    check('and the sheet is six cuts, each named and explained',
+      cuts.count === 6 && cuts.whole === 6, JSON.stringify(cuts));
+    check('and five of them carry a stamp — the suite is not the page\'s to count',
+      cuts.stamps === 5, String(cuts.stamps));
+
+    /* the reading follows the page: something lands in storage, the game
+       says so, and the stamp is already right again */
+    const heldBefore = await p.evaluate(() => document.getElementById('fig-held').textContent);
+    await p.evaluate(() => {
+      sessionStorage.setItem('strohut-proof', '1');
+      dispatchEvent(new Event('strohut:score'));
+    });
+    const heldAfter = await p.waitForFunction(before => {
+      const now = document.getElementById('fig-held').textContent;
+      return now !== before ? now : false;
+    }, heldBefore, { timeout: 3000 }).then(h => h.jsonValue()).catch(() => null);
+    check('and a stamp follows the page when it changes',
+      heldAfter !== null && Number(heldAfter) === Number(heldBefore) + 1, `${heldBefore} → ${heldAfter}`);
+    await p.evaluate(() => {
+      sessionStorage.removeItem('strohut-proof');
+      dispatchEvent(new Event('strohut:score'));
+    });
+  }
+
   /* However many regions the page has — the count is not written down
      anywhere, and a chapter added to the page is a mark added to the
      bezel without anybody touching this. */
   const regions = await p.evaluate(() =>
-    ['.now', '.likes', '.score', '.traced', '.rules', '.foot']
+    ['.now', '.music', '.likes', '.score', '.traced', '.rules', '.making', '.foot']
       .filter(s => { const el = document.querySelector(s); return el && !el.hidden && el.offsetParent !== null; }).length);
   check('the pose records the islands it has been past', warmSeen > coldSeen && warmSeen === regions,
     `${coldSeen} → ${warmSeen}`);

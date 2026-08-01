@@ -726,6 +726,7 @@ a {
 .score { grid-column: 1 / -1; }
 .traced { grid-column: 1 / -1; }
 .rules { grid-column: 1 / -1; }
+.making { grid-column: 1 / -1; }
 
 .foot {
   grid-column: 1 / -1;
@@ -2994,6 +2995,7 @@ body.is-charging .arena {
 .score .head h2,
 .traced .head h2,
 .rules .head h2,
+.making .head h2,
 .tally-label {
   display: grid;
   justify-items: start;
@@ -3011,6 +3013,7 @@ body.is-charging .arena {
 .score .head h2 .glyphs,
 .traced .head h2 .glyphs,
 .rules .head h2 .glyphs,
+.making .head h2 .glyphs,
 .tally-label .glyphs {
   display: flex;
   gap: .08em;
@@ -3026,7 +3029,8 @@ body.is-charging .arena {
 
 .score .head h2 .says,
 .traced .head h2 .says,
-.rules .head h2 .says {
+.rules .head h2 .says,
+.making .head h2 .says {
   margin-top: 0;
   letter-spacing: .3em;
   text-indent: .3em;
@@ -4041,6 +4045,7 @@ html:not([data-js]) .score .kicker,
 html:not([data-js]) .grade,
 html:not([data-js]) .pose,
 html:not([data-js]) #clock,
+html:not([data-js]) .cut-fig,
 html:not([data-js]) .who > i:last-of-type {
   display: none;
 }
@@ -4823,6 +4828,113 @@ html:not([data-js]) .who > i:last-of-type {
 }
 
 .rule-says {
+  margin: .55rem 0 0;
+  max-width: 44ch;
+  font-size: .92rem;
+  color: var(--paper-2);
+}
+
+/* ══ 作画 ═══════════════════════════════════════════════════════
+   The making-of chapter, set like a cut sheet: number in the corner,
+   name on the line, the count stamped against the right edge. The stamps
+   are empty in the markup on purpose — script.js measures the document
+   and writes them in, so a figure can never say more than the page it
+   sits inside. Without script the whole stamp column is hidden with the
+   other dead controls, and the sentences carry the section alone. */
+.making-line {
+  max-width: 52ch;
+}
+
+.cut-list {
+  list-style: none;
+  margin: 1.4rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(22rem, 100%), 1fr));
+  gap: 1.6rem clamp(1.6rem, 4vw, 3rem);
+}
+
+.cut-list li {
+  padding-top: .9rem;
+  background: var(--ruled) 0 0 / 44rem 3.5px repeat-x;
+}
+
+.cut-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.cut-mark {
+  display: flex;
+  align-items: baseline;
+  gap: .6rem;
+  margin: 0;
+}
+
+.cut-no {
+  font-size: .68rem;
+  letter-spacing: .14em;
+  font-variant-numeric: tabular-nums;
+  color: var(--paper-3);
+  /* a cut number is one mark — it never breaks, and it never gives up
+     its width to a long name beside it */
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cut-mark b {
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+
+.cut-fig {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: .45rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* the count in the chapter face: these are display figures, not body
+   copy, and they sit against body copy — the change of face is what
+   makes them read as stamps */
+.cut-num {
+  font-family: "Shippori Mincho B1", Georgia, serif;
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--paper);
+}
+
+.cut-of {
+  font-size: .62rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--paper-3);
+}
+
+/* a reading that changed pops once, in paper — red is spoken for */
+.cut-num.is-restamped {
+  animation: restamp .5s ease-out;
+}
+
+@keyframes restamp {
+  0% { transform: translateY(-.12em); filter: brightness(1.6); }
+  100% { transform: none; filter: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cut-num.is-restamped { animation: none; }
+}
+
+.cut-says {
   margin: .55rem 0 0;
   max-width: 44ch;
   font-size: .92rem;
