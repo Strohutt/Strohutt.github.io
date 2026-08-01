@@ -144,6 +144,28 @@ check('the braces balance', opens === closes, `${opens} open, ${closes} close`);
   }
 }
 
+/* ── the runner cannot ask for a suite that is not there
+   It listed one for a while that had never been added to the repository.
+   Everything passed, because the file was sitting on the disk it was
+   written on — and a fresh clone got a runner spawning node against a
+   path that does not exist, which reads as a suite failing for a reason
+   nobody can see in the diff. */
+{
+  const runner = read('tests/run.js');
+  const want = (runner.match(/SUITES = \[([^\]]+)\]/) || [, ''])[1]
+    .split(',').map(s => s.trim().replace(/['"]/g, '')).filter(Boolean);
+  check('the runner names some suites', want.length >= 5, want.join(' '));
+  const gone = want.filter(s => !fs.existsSync(path.join(root, 'tests', `${s}.test.js`)));
+  check('and every one of them is a file in the repository', !gone.length, gone.join(','));
+
+  // and nothing written is quietly never run
+  const orphan = fs.readdirSync(path.join(root, 'tests'))
+    .filter(f => f.endsWith('.test.js'))
+    .map(f => f.replace('.test.js', ''))
+    .filter(s => !want.includes(s));
+  check('and nothing in there is never run', !orphan.length, orphan.join(','));
+}
+
 /* ── both pages have to say that javascript is there
    The stylesheet holds a set of things back until it is — the hero
    arriving a piece at a time, and the controls that are only offered
