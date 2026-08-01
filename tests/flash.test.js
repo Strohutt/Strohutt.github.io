@@ -450,9 +450,10 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
      the rule under test. */
   const own = await b.newContext({ viewport: { width: 1200, height: 800 } });
   const q = await own.newPage();
-  /* the record lives in session storage, so the clear has to happen
-     before the barrier is marked as seen — the barrier lives there too */
-  await q.addInitScript(() => { try { sessionStorage.clear(); } catch { /* fine */ } });
+  /* No clearing here. An init script runs on every navigation, not just
+     the first, so a clear would quietly wipe the record on the reload
+     further down — which is the one place that record is checked for
+     surviving one. A context of its own already starts at nothing. */
   await q.addInitScript(seen);
   q.on('pageerror', e => fails.push('game pageerror: ' + e.message));
   await q.goto(BASE + '/index.html');
@@ -548,6 +549,32 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
   check('the domain closes on its own', !done.on && done.left === '', JSON.stringify(done));
   check('and the page comes back out of it',
     (await paper()).paper === '#efece4', JSON.stringify(await paper()));
+
+  /* ── 覚醒 ────────────────────────────────────────────────────────
+     Eight sparks in and it is finished: the window is at its widest and
+     the field can be opened more than once in a run. It is the only
+     thing on this page that has an end, and a counter quietly reaching
+     its top is not one — so it is said out loud, once. */
+  await q.evaluate(() => { learned = LEARNS - 1; write('strohut-learned', learned); show(); });
+  await land(q, ground);
+  await q.waitForTimeout(300);
+  const woke = await q.evaluate(() => ({
+    awake: document.body.classList.contains('is-awake'),
+    said: !document.getElementById('woke').hidden,
+    adapt: document.getElementById('score-adapt').textContent,
+    label: document.querySelector('#score-adapt + span').textContent
+  }));
+  check('the eighth spark wakes it', woke.awake && woke.adapt === '8 of 8', JSON.stringify(woke));
+  check('and it is said out loud, once', woke.said, JSON.stringify(woke));
+  check('and the panel says what that is worth', /all in you/.test(woke.label), woke.label);
+
+  await q.waitForTimeout(2800);
+  check('and then it goes', await q.evaluate(() => document.getElementById('woke').hidden));
+
+  await q.reload();
+  await q.waitForTimeout(900);
+  check('being awake survives a reload',
+    await q.evaluate(() => document.body.classList.contains('is-awake')));
 
   /* One per run, and the run is still going here — six in a row and
      climbing. Without this a streak that has been past five once re-opens

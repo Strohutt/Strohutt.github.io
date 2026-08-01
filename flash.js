@@ -217,6 +217,11 @@ function write(key, value) {
 let adapted = readNum('strohut-adapt');   // where it points, either way
 let turns = readNum('strohut-turns');     // how far it has been moved, ever
 let learned = Math.min(LEARNS, readNum('strohut-learned'));
+/* Eight sparks in, and it is done: the window is at its widest and the
+   field can be opened more than once in a run. Nothing else on this
+   page has an end, and a counter quietly reaching its top is not one —
+   so it is said out loud, once, the moment the eighth lands. */
+let awake = learned >= LEARNS;
 let best = readNum('strohut-flash');
 let total = readNum('strohut-landed');
 /* The closest anybody has come to the middle of the window, ever. A
@@ -242,6 +247,21 @@ function learn() {
   learned += 1;
   write('strohut-learned', learned);
   show();
+  if (learned >= LEARNS) woken(true);
+}
+
+/* said on arrival too, quietly, so a reload does not undo it */
+function woken(loud) {
+  awake = true;
+  document.body.classList.add('is-awake');
+  if (score.adaptSays) score.adaptSays.textContent = 'the sparks are all in you';
+  if (!loud || !woke || stillPlease.matches) return;
+  woke.hidden = false;
+  woke.classList.remove('is-said');
+  void woke.offsetWidth;
+  woke.classList.add('is-said');
+  clearTimeout(wokeTimer);
+  wokeTimer = setTimeout(() => { woke.hidden = true; }, 2600);
 }
 
 function show() {
@@ -255,8 +275,12 @@ show();
 /* The score panel. The corner tally comes and goes with a run; this is
    what is left over afterwards, and it is the only part of the page that
    is about the person reading it rather than the one who wrote it. */
+const woke = document.getElementById('woke');
+let wokeTimer = 0;
+
 const score = {
   best: document.getElementById('score-best'),
+  adaptSays: document.querySelector('#score-adapt + span'),
   total: document.getElementById('score-total'),
   adapt: document.getElementById('score-adapt'),
   last: document.getElementById('score-last'),
@@ -302,6 +326,7 @@ function said() {
 }
 
 tell(false);
+if (awake) woken(false);
 
 /* The row of tally marks. A number tells you how you have done; twelve
    marks tell you how the last two minutes went, which is the thing you
@@ -623,7 +648,7 @@ function landed(dev, sure) {
   document.body.classList.add('is-flashing');
 
   // five in a row and the field is yours for a while
-  if (streak >= DOMAIN_AT && !spent) cast();
+  if (streak >= DOMAIN_AT && (!spent || awake)) cast();
 }
 
 /* 領域展開. A flash over the page was the whole of it before, which is a
@@ -887,5 +912,203 @@ if (wheelHit && wheel) {
   // with no click count behind it
   wheelHit.addEventListener('click', event => {
     if (event.detail === 0) step(1);
+  });
+}
+
+
+/* ─────────────────────────── 여의봉 ────────────────────────────── */
+
+/* Yeoui: a stone staff with a gold band at each end that grows to
+   whatever length is asked of it. Which is the interaction — take hold
+   of the grip and pull, and it goes wherever the pointer goes, however
+   far. Let go and it comes back.
+
+   Only the grip takes a pointer. The pole is drawn across the page and
+   would otherwise be a wall between the reader and everything under it,
+   and the same goes for the barrier the black flash listens on: the
+   grip is a button, which that game already treats as off limits.
+
+   Coming back is a spring rather than a transition, for two reasons.
+   Custom properties cannot be interpolated without registering them,
+   which is a newer thing than this page leans on anywhere else — and a
+   spring overshoots, which is what a staff of that weight snapping back
+   into a hand actually does. */
+const staff = document.querySelector('.staff');
+const staffGrip = document.getElementById('staff-hit');
+const staffRig = document.querySelector('.staff-rig');
+
+if (staff && staffGrip && staffRig) {
+  const REST_LEN = staffRig.offsetWidth || 240;
+  const REST_TURN = parseFloat(getComputedStyle(staffRig).rotate) || 0;
+  const MIN_LEN = REST_LEN * .82;
+  // far enough to cross whatever screen it is on, corner to corner
+  const reach = () => Math.hypot(innerWidth, innerHeight) * 1.02;
+
+  let len = REST_LEN, turn = REST_TURN;
+  let vLen = 0, vTurn = 0;             // where the spring is, mid-flight
+  let held = false, frame = 0;
+
+  const paint = () => {
+    staff.style.setProperty('--len', `${len.toFixed(1)}px`);
+    staff.style.setProperty('--turn', `${turn.toFixed(2)}deg`);
+    const far = reach();
+    staff.style.setProperty('--pull',
+      Math.max(0, Math.min(1, (len - REST_LEN) / Math.max(1, far - REST_LEN) * 2.6)).toFixed(3));
+  };
+
+  /* the origin the pole turns about, in page coordinates. Read off the
+     rig's own transform-origin rather than guessed at, so moving it in
+     the stylesheet cannot put the maths out of step with the drawing. */
+  const pivot = () => {
+    const box = staff.getBoundingClientRect();
+    const [ox, oy] = getComputedStyle(staffRig).transformOrigin.split(' ').map(parseFloat);
+    return [box.left + staffRig.offsetLeft + ox, box.top + staffRig.offsetTop + oy];
+  };
+
+  const reachFor = (x, y) => {
+    const [px, py] = pivot();
+    const dx = x - px, dy = y - py;
+    len = Math.max(MIN_LEN, Math.min(reach(), Math.hypot(dx, dy)));
+    /* it never comes back over its own shoulder. Straight up is as far
+       round as it goes, and a little below level the other way — past
+       that it lies across the name, which is not somewhere a staff
+       should be able to be parked. */
+    turn = Math.max(-96, Math.min(38, Math.atan2(dy, dx) * 180 / Math.PI));
+    paint();
+  };
+
+  /* Back to rest under its own weight: stiff, and damped just short of
+     critical, so it overshoots once. */
+  const settle = () => {
+    frame = 0;
+    /* Against the clock rather than counted in frames. A spring stepped
+       once per frame takes twice as long on a machine drawing thirty a
+       second as on one drawing sixty, which is exactly backwards — the
+       slower machine is the one that must not be left holding a staff
+       halfway home. */
+    let last = performance.now();
+    const step = now => {
+      /* Caught up in whole steps rather than by scaling one of them.
+         Scaling the step is what an explicit spring cannot survive: at
+         three frames' worth in one go it puts nearly the whole distance
+         in at once and then rings for a second and a half. */
+      let owed = Math.min(12, Math.max(1, Math.round((now - last) / 16.667)));
+      last = now;
+      while (owed--) {
+        vLen = (vLen + (REST_LEN - len) * .24) * .55;
+        vTurn = (vTurn + (REST_TURN - turn) * .24) * .55;
+        // it cannot come back shorter than its own two ends
+        len = Math.max(MIN_LEN, len + vLen);
+        turn += vTurn;
+      }
+      paint();
+      if (Math.abs(REST_LEN - len) > 1 || Math.abs(vLen) > 1 ||
+          Math.abs(REST_TURN - turn) > .15 || Math.abs(vTurn) > .15) {
+        frame = requestAnimationFrame(step);
+      } else {
+        len = REST_LEN; turn = REST_TURN; vLen = vTurn = 0;
+        paint();
+      }
+    };
+    frame = requestAnimationFrame(step);
+  };
+
+  /* ── what the swing leaves behind ────────────────────────────────
+     The one rule worth taking from how these fights are drawn: the
+     moment of contact is not the panel. What is drawn is the wind-up
+     and the aftermath — sometimes the aftermath alone, with the blow
+     itself never shown at all.
+
+     The wind-up is the pole going out, which is under your hand. This
+     is the other half: the air it tore on the way back, three ghosts
+     of it along the arc it swept, and the mark left where the far end
+     had been. None of it is on the pole — it is all in the strike
+     layer, which is fixed, takes no pointer and is already there. */
+  const swung = (px, py, atLen, atTurn, power) => {
+    if (!strikes || stillPlease.matches || power < .18) return;
+    const mark = document.createElement('div');
+    mark.className = 'swing';
+    mark.style.left = `${px}px`;
+    mark.style.top = `${py}px`;
+    mark.style.setProperty('--turn', `${atTurn.toFixed(2)}deg`);
+    mark.style.setProperty('--len', `${Math.round(atLen)}px`);
+    mark.style.setProperty('--power', power.toFixed(3));
+
+    let bits = '';
+    // the ghosts, each one a little further round the arc it came from
+    for (let i = 0; i < 3; i++) bits += `<span class="swing-ghost" style="--i:${i}"></span>`;
+    // and the air at the far end, torn along the line it was travelling
+    for (let i = 0; i < 5; i++) {
+      bits += `<span class="swing-air" style="--i:${i};--off:${(i - 2) * 9}deg;` +
+        `--far:${(.5 + Math.random() * .7).toFixed(2)}"></span>`;
+    }
+    bits += '<span class="swing-hit"></span>';
+    mark.innerHTML = bits;
+
+    strikes.append(mark);
+    setTimeout(() => mark.remove(), 900);
+  };
+
+  const letGo = event => {
+    if (!held) return;
+    held = false;
+    staff.classList.remove('is-out');
+    /* read before the spring is let go, because by the time it has run
+       there is nothing left to say where the far end had been */
+    const [px, py] = pivot();
+    swung(px, py, len, turn, Math.min(1, (len - REST_LEN) / Math.max(1, reach() - REST_LEN) * 2.2));
+    if (event && event.pointerId != null && staffGrip.hasPointerCapture(event.pointerId)) {
+      staffGrip.releasePointerCapture(event.pointerId);
+    }
+    if (stillPlease.matches) { len = REST_LEN; turn = REST_TURN; paint(); return; }
+    settle();
+  };
+
+  staffGrip.addEventListener('pointerdown', event => {
+    if (event.button !== 0) return;
+    held = true;
+    cancelAnimationFrame(frame);
+    vLen = vTurn = 0;
+    staff.classList.add('is-out');
+    staffGrip.setPointerCapture(event.pointerId);
+    reachFor(event.clientX, event.clientY);
+    event.preventDefault();
+  });
+
+  staffGrip.addEventListener('pointermove', event => {
+    if (!held) return;
+    reachFor(event.clientX, event.clientY);
+  });
+
+  staffGrip.addEventListener('pointerup', letGo);
+  staffGrip.addEventListener('pointercancel', letGo);
+  addEventListener('blur', letGo);
+
+  /* Keyboard and anything else that reaches it as a press rather than a
+     drag: it goes out on its own and comes back, so the drawing is not
+     something only a pointer can see. */
+  staffGrip.addEventListener('click', () => {
+    if (held) return;
+    cancelAnimationFrame(frame);
+    if (stillPlease.matches) return;
+    const far = Math.min(reach(), innerWidth * .78);
+    let t = 0;
+    vLen = vTurn = 0;
+    const out = () => {
+      t += 1 / 14;
+      const e = t < 1 ? 1 - Math.pow(1 - t, 3) : 1;
+      len = REST_LEN + (far - REST_LEN) * e;
+      turn = REST_TURN - 9 * e;
+      paint();
+      if (t < 1) return void (frame = requestAnimationFrame(out));
+      // the same aftermath a released drag leaves, so a press and a pull
+      // are the same move rather than two different ones
+      setTimeout(() => {
+        const [px, py] = pivot();
+        swung(px, py, len, turn, Math.min(1, (len - REST_LEN) / Math.max(1, reach() - REST_LEN) * 2.2));
+        settle();
+      }, 220);
+    };
+    frame = requestAnimationFrame(out);
   });
 }

@@ -861,7 +861,7 @@ a {
   position: absolute;
   inset: -.7rem;
   z-index: -1;
-  background: radial-gradient(58% 58% at 50% 50%, rgb(8 8 11 / .9), rgb(8 8 11 / 0) 78%);
+  background: radial-gradient(56% 56% at 50% 50%, rgb(8 8 11 / .97) 46%, rgb(8 8 11 / 0) 82%);
 }
 
 .pose-art {
@@ -904,6 +904,29 @@ a {
 .lp-brass-dark { fill: none; stroke: #2a1f05; stroke-width: 8; stroke-opacity: .55; stroke-linecap: round; }
 .lp-tick { fill: none; stroke: var(--paper); stroke-width: 2; stroke-opacity: .5; stroke-linecap: round; }
 .lp-tick-big { stroke-width: 3.4; stroke-opacity: .8; }
+
+/* A log pose records the island it has been on. The four cardinal
+   marks are the four regions of this page, and each one lights when
+   that region has been reached — so the bezel is a record of where you
+   have been rather than twelve marks that mean nothing.
+
+   Written as one count rather than four flags: a class selector is the
+   only kind that reaches inside a cloned symbol and a custom property
+   is the only value that crosses into one, so each mark asks whether
+   the count has got as far as it. */
+.lp-seen {
+  fill: none;
+  stroke: var(--blood-lit);
+  stroke-width: 4.6;
+  stroke-linecap: round;
+  opacity: 0;
+  transition: opacity .5s ease;
+}
+
+.lp-seen-0 { opacity: clamp(0, calc(var(--seen, 0) - 0), 1); }
+.lp-seen-1 { opacity: clamp(0, calc(var(--seen, 0) - 1), 1); }
+.lp-seen-2 { opacity: clamp(0, calc(var(--seen, 0) - 2), 1); }
+.lp-seen-3 { opacity: clamp(0, calc(var(--seen, 0) - 3), 1); }
 .lp-glass { fill: #10131b; stroke: var(--paper); stroke-width: 2.6; }
 .lp-shine { fill: none; stroke: var(--paper); stroke-width: 5; stroke-opacity: .3; stroke-linecap: round; }
 .lp-shine-2 { stroke-width: 2.6; stroke-opacity: .5; }
@@ -964,6 +987,100 @@ a {
 
 .pose-hit:hover .pose-name,
 .pose-hit:focus-visible .pose-name { color: var(--blood-lit); }
+
+/* ══ 覚醒 ═════════════════════════════════════════════════════
+   Eight sparks in and the wheel is awake — the window is at its widest
+   and the field can be opened more than once in a run. It is the only
+   thing on this page that can be finished, and a counter quietly
+   reaching its top is not an ending, so it gets said once. */
+.woke {
+  position: fixed;
+  left: 50%;
+  top: 42%;
+  z-index: 43;
+  margin: 0;
+  translate: -50% -50%;
+  display: grid;
+  justify-items: center;
+  gap: .1rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+.woke[hidden] { display: none; }
+
+.woke::before {
+  content: "";
+  position: absolute;
+  inset: -2.4rem -7rem;
+  z-index: -1;
+  background: radial-gradient(52% 58% at 50% 50%, rgb(8 8 11 / .95) 38%, rgb(8 8 11 / 0) 80%);
+}
+
+.woke-kanji {
+  display: flex;
+  gap: .12em;
+  font-size: clamp(2.6rem, 9vw, 4.6rem);
+}
+
+.woke-kanji svg {
+  display: block;
+  width: 1em;
+  height: 1em;
+  fill: var(--paper);
+}
+
+.woke .says {
+  margin-top: .5rem;
+  font-size: clamp(.62rem, 1.7vw, .8rem);
+  color: var(--blood-lit);
+}
+
+.woke-what {
+  margin-top: .7rem;
+  font-size: .74rem;
+  letter-spacing: .04em;
+  color: var(--paper-2);
+}
+
+.woke.is-said {
+  animation: woke 2.6s cubic-bezier(.15, .9, .3, 1) forwards;
+}
+
+.woke.is-said .woke-kanji { animation: woke-glyph 2.6s cubic-bezier(.15, .9, .3, 1) forwards; }
+.woke.is-said .says { animation: woke-said .5s ease-out .5s backwards; }
+.woke.is-said .woke-what { animation: woke-said .5s ease-out .78s backwards; }
+
+@keyframes woke {
+  0% { opacity: 0; }
+  6% { opacity: 1; }
+  84% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes woke-glyph {
+  0% { scale: .78; filter: blur(6px); }
+  9% { scale: 1.04; filter: blur(0); }
+  22% { scale: 1; }
+  100% { scale: 1.02; }
+}
+
+@keyframes woke-said {
+  from { opacity: 0; letter-spacing: .8em; }
+}
+
+/* Once it is awake the wheel runs at better than twice its resting
+   ratchet for the rest of the visit — the one permanent difference on
+   the page. Its own animation, sped up: a second one on top would fight
+   the first for the same transform and win in the wrong direction. */
+body.is-awake .wheel-turn {
+  animation-duration: 38s;
+}
+
+body.is-awake .tally-label .says::after {
+  content: " · awakened";
+  color: var(--blood-lit);
+}
 
 /* ══ 여의봉 ═══════════════════════════════════════════════════
    Yeoui, the staff, which grows to whatever length is asked of it. So
@@ -1091,6 +1208,16 @@ a {
 
 .staff-grip:active { cursor: grabbing; }
 
+/* On a touch screen the thing being taken hold of is a thumb's width
+   and there is no hover to find it with, so it is bigger than the pole
+   it belongs to rather than the same size. */
+@media (pointer: coarse) {
+  .staff-grip {
+    width: clamp(6rem, 22vw, 8rem);
+    height: max(58px, var(--rig-h));
+  }
+}
+
 /* what it is, under the grip, the way every other drawn thing here is
    named — small, and it goes as soon as the staff is moving */
 .staff-says {
@@ -1120,6 +1247,89 @@ a {
   text-indent: .28em;
   text-align: left;
   color: var(--paper-3);
+}
+
+/* ── the aftermath ───────────────────────────────────────────────
+   The rule worth taking from how these fights are drawn: the moment of
+   contact is not the panel. What gets drawn is the wind-up and what is
+   left afterwards — sometimes only the second one, with the blow never
+   shown at all.
+
+   The wind-up is the pole going out, which is under your hand. This is
+   the other half, and none of it is on the pole: it lives in the strike
+   layer, which is fixed, takes no pointer, and was already there for
+   the flash. */
+.swing {
+  position: absolute;
+  translate: 0 -50%;
+  width: var(--len, 20rem);
+  height: 0;
+  rotate: var(--turn, 0deg);
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+
+/* Three of it along the way back. A pole snapping into a hand mostly
+   shortens rather than swings, so the ghosts are the length it was
+   passing through rather than a fan of angles — which is what the first
+   pass drew, and it read as a rake. */
+.swing-ghost {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 6px;
+  translate: 0 -50%;
+  background: linear-gradient(to right,
+    transparent, rgb(239 236 228 / .18) 8%, rgb(239 236 228 / .72) 88%, rgb(239 236 228 / .9) 99%, transparent);
+  transform-origin: 1.6rem 50%;
+  animation: swing-ghost .38s cubic-bezier(.3, .9, .35, 1) forwards;
+  animation-delay: calc(var(--i, 0) * 34ms);
+}
+
+@keyframes swing-ghost {
+  from { opacity: calc(var(--power, 1) * .85); scale: 1 1; }
+  to { opacity: 0; scale: calc(.42 - var(--i, 0) * .1) .5; }
+}
+
+/* the air at the far end, torn along the line it was travelling */
+.swing-air {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  width: calc(var(--far, 1) * 7rem);
+  height: 2px;
+  translate: -8% -50%;
+  transform-origin: 0 50%;
+  rotate: var(--off, 0deg);
+  background: linear-gradient(to right, rgb(239 236 228 / .8), transparent 82%);
+  animation: swing-air .5s cubic-bezier(.1, .9, .3, 1) forwards;
+  animation-delay: calc(var(--i, 0) * 14ms);
+}
+
+@keyframes swing-air {
+  from { opacity: calc(var(--power, 1) * .9); translate: -8% -50%; }
+  to { opacity: 0; translate: 46% -50%; }
+}
+
+/* and the mark where the far end had been */
+.swing-hit {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  width: calc(2.4rem + var(--power, 0) * 3.4rem);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  rotate: calc(var(--turn, 0deg) * -1);
+  border: 3px solid var(--paper);
+  border-radius: 50%;
+  box-shadow: 0 0 14px 1px rgb(239 236 228 / .3);
+  animation: swing-hit .46s cubic-bezier(.1, .85, .25, 1) forwards;
+}
+
+@keyframes swing-hit {
+  from { opacity: calc(var(--power, 1) * .9); scale: .18; }
+  to { opacity: 0; scale: 1.6; }
 }
 
 /* The air it moves. Park Yongje draws the wind-up and the aftermath of
@@ -3695,6 +3905,19 @@ body.is-domain .wheel {
 }
 
 @media (max-width: 34rem) {
+  /* the flag and what is written beside it were sharing a line three
+     hundred and fifty pixels wide, which put four words of it under
+     the skull's jaw */
+  .foot {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .foot-text {
+    text-align: left;
+    flex: none;
+  }
+
   .presence {
     grid-template-columns: auto minmax(0, 1fr);
   }

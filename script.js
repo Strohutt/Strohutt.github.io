@@ -438,6 +438,20 @@ if (pose && poseHit && poseName) {
   let queued = false;
   let saying = 0;
 
+  /* A log pose records the island it has been on. Four marks on the
+     bezel, one per region, and each lights as that region is reached —
+     kept for the visit like everything else the page remembers. */
+  const SEEN_KEY = 'strohut-seen-islands';
+  let seen = 0;
+  try { seen = Math.min(4, Math.max(0, parseInt(sessionStorage.getItem(SEEN_KEY), 10) || 0)); } catch { /* fine */ }
+  const record = n => {
+    if (n <= seen) return;
+    seen = Math.min(4, n);
+    pose.style.setProperty('--seen', seen);
+    try { sessionStorage.setItem(SEEN_KEY, String(seen)); } catch { /* fine */ }
+  };
+  pose.style.setProperty('--seen', seen);
+
   const islands = () => ISLANDS
     .map(([sel, name]) => [document.querySelector(sel), name])
     // a region whose upstream never answered takes itself off the page,
@@ -478,6 +492,13 @@ if (pose && poseHit && poseName) {
     const on = !landed && found[0].getBoundingClientRect().top <= mid;
     if (poseTo) poseTo.textContent = on ? 'here' : 'next';
 
+    /* what it has recorded: every island whose middle you have been past.
+       Counted off the list rather than off the target, so arriving by the
+       button or by a link marks everything it went by. */
+    const reached = list.filter(([el, name]) =>
+      name !== 'the top' && el.getBoundingClientRect().top <= mid).length;
+    record(landed ? 4 : reached);
+
     /* Measured from the middle of the screen rather than from the dial
        in the corner. The dial is pinned to the foot of the window, so
        reading the angle off it has the needle pointing up at a region
@@ -517,156 +538,6 @@ if (pose && poseHit && poseName) {
 }
 
 
-/* ─────────────────────────── 여의봉 ────────────────────────────── */
-
-/* Yeoui: a stone staff with a gold band at each end that grows to
-   whatever length is asked of it. Which is the interaction — take hold
-   of the grip and pull, and it goes wherever the pointer goes, however
-   far. Let go and it comes back.
-
-   Only the grip takes a pointer. The pole is drawn across the page and
-   would otherwise be a wall between the reader and everything under it,
-   and the same goes for the barrier the black flash listens on: the
-   grip is a button, which that game already treats as off limits.
-
-   Coming back is a spring rather than a transition, for two reasons.
-   Custom properties cannot be interpolated without registering them,
-   which is a newer thing than this page leans on anywhere else — and a
-   spring overshoots, which is what a staff of that weight snapping back
-   into a hand actually does. */
-const staff = document.querySelector('.staff');
-const staffGrip = document.getElementById('staff-hit');
-const staffRig = document.querySelector('.staff-rig');
-
-if (staff && staffGrip && staffRig) {
-  const REST_LEN = staffRig.offsetWidth || 240;
-  const REST_TURN = parseFloat(getComputedStyle(staffRig).rotate) || 0;
-  const MIN_LEN = REST_LEN * .82;
-  // far enough to cross whatever screen it is on, corner to corner
-  const reach = () => Math.hypot(innerWidth, innerHeight) * 1.02;
-
-  let len = REST_LEN, turn = REST_TURN;
-  let vLen = 0, vTurn = 0;             // where the spring is, mid-flight
-  let held = false, frame = 0;
-
-  const paint = () => {
-    staff.style.setProperty('--len', `${len.toFixed(1)}px`);
-    staff.style.setProperty('--turn', `${turn.toFixed(2)}deg`);
-    const far = reach();
-    staff.style.setProperty('--pull',
-      Math.max(0, Math.min(1, (len - REST_LEN) / Math.max(1, far - REST_LEN) * 2.6)).toFixed(3));
-  };
-
-  /* the origin the pole turns about, in page coordinates. Read off the
-     rig's own transform-origin rather than guessed at, so moving it in
-     the stylesheet cannot put the maths out of step with the drawing. */
-  const pivot = () => {
-    const box = staff.getBoundingClientRect();
-    const [ox, oy] = getComputedStyle(staffRig).transformOrigin.split(' ').map(parseFloat);
-    return [box.left + staffRig.offsetLeft + ox, box.top + staffRig.offsetTop + oy];
-  };
-
-  const reachFor = (x, y) => {
-    const [px, py] = pivot();
-    const dx = x - px, dy = y - py;
-    len = Math.max(MIN_LEN, Math.min(reach(), Math.hypot(dx, dy)));
-    /* it never comes back over its own shoulder. Straight up is as far
-       round as it goes, and a little below level the other way — past
-       that it lies across the name, which is not somewhere a staff
-       should be able to be parked. */
-    turn = Math.max(-96, Math.min(38, Math.atan2(dy, dx) * 180 / Math.PI));
-    paint();
-  };
-
-  /* Back to rest under its own weight: stiff, and damped just short of
-     critical, so it overshoots once. */
-  const settle = () => {
-    frame = 0;
-    /* Against the clock rather than counted in frames. A spring stepped
-       once per frame takes twice as long on a machine drawing thirty a
-       second as on one drawing sixty, which is exactly backwards — the
-       slower machine is the one that must not be left holding a staff
-       halfway home. */
-    let last = performance.now();
-    const step = now => {
-      /* Caught up in whole steps rather than by scaling one of them.
-         Scaling the step is what an explicit spring cannot survive: at
-         three frames' worth in one go it puts nearly the whole distance
-         in at once and then rings for a second and a half. */
-      let owed = Math.min(12, Math.max(1, Math.round((now - last) / 16.667)));
-      last = now;
-      while (owed--) {
-        vLen = (vLen + (REST_LEN - len) * .24) * .55;
-        vTurn = (vTurn + (REST_TURN - turn) * .24) * .55;
-        // it cannot come back shorter than its own two ends
-        len = Math.max(MIN_LEN, len + vLen);
-        turn += vTurn;
-      }
-      paint();
-      if (Math.abs(REST_LEN - len) > 1 || Math.abs(vLen) > 1 ||
-          Math.abs(REST_TURN - turn) > .15 || Math.abs(vTurn) > .15) {
-        frame = requestAnimationFrame(step);
-      } else {
-        len = REST_LEN; turn = REST_TURN; vLen = vTurn = 0;
-        paint();
-      }
-    };
-    frame = requestAnimationFrame(step);
-  };
-
-  const letGo = event => {
-    if (!held) return;
-    held = false;
-    staff.classList.remove('is-out');
-    if (event && event.pointerId != null && staffGrip.hasPointerCapture(event.pointerId)) {
-      staffGrip.releasePointerCapture(event.pointerId);
-    }
-    if (still) { len = REST_LEN; turn = REST_TURN; paint(); return; }
-    settle();
-  };
-
-  staffGrip.addEventListener('pointerdown', event => {
-    if (event.button !== 0) return;
-    held = true;
-    cancelAnimationFrame(frame);
-    vLen = vTurn = 0;
-    staff.classList.add('is-out');
-    staffGrip.setPointerCapture(event.pointerId);
-    reachFor(event.clientX, event.clientY);
-    event.preventDefault();
-  });
-
-  staffGrip.addEventListener('pointermove', event => {
-    if (!held) return;
-    reachFor(event.clientX, event.clientY);
-  });
-
-  staffGrip.addEventListener('pointerup', letGo);
-  staffGrip.addEventListener('pointercancel', letGo);
-  addEventListener('blur', letGo);
-
-  /* Keyboard and anything else that reaches it as a press rather than a
-     drag: it goes out on its own and comes back, so the drawing is not
-     something only a pointer can see. */
-  staffGrip.addEventListener('click', () => {
-    if (held) return;
-    cancelAnimationFrame(frame);
-    if (still) return;
-    const far = Math.min(reach(), innerWidth * .78);
-    let t = 0;
-    vLen = vTurn = 0;
-    const out = () => {
-      t += 1 / 14;
-      const e = t < 1 ? 1 - Math.pow(1 - t, 3) : 1;
-      len = REST_LEN + (far - REST_LEN) * e;
-      turn = REST_TURN - 9 * e;
-      paint();
-      if (t < 1) frame = requestAnimationFrame(out);
-      else setTimeout(settle, 220);
-    };
-    frame = requestAnimationFrame(out);
-  });
-}
 
 const nameHit = document.getElementById('name-hit');
 const brushSvg = document.getElementById('brush');

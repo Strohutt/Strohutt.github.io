@@ -207,6 +207,50 @@ const up = p => p.evaluate(() => {
   await p.close();
   await c.close();
 
+  /* The 404 has the staff too. It is the page somebody lands on by mistake,
+     so it is the one that most needs something to do. Same rig, same pull. */
+  c = await b.newContext({ viewport: view });
+  p = await c.newPage();
+  await p.goto(BASE + '/404.html');
+  await p.waitForTimeout(600);
+
+  const rigLen = () => p.evaluate(() => {
+    const rig = document.querySelector('.staff-rig');
+    return rig ? Math.round(rig.offsetWidth) : -1;
+  });
+
+  const rest = await rigLen();
+  check('the 404 has a staff at rest', rest > 100);
+
+  const grip = await p.evaluate(() => {
+    const g = document.querySelector('.staff-grip');
+    if (!g) return null;
+    const r = g.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  });
+  check('and a grip to take hold of', !!grip);
+
+  if (grip) {
+    await p.mouse.move(grip.x, grip.y);
+    await p.mouse.down();
+    await p.mouse.move(grip.x + 700, grip.y, { steps: 12 });
+    await p.waitForTimeout(120);
+    const pulled = await rigLen();
+    check('it stretches when it is pulled on the 404', pulled > rest + 200);
+
+    /* Nothing it does may make the page scroll sideways — the staff reaches
+       further than the window on purpose, so it has to be clipped. */
+    check('and pulling it never widens the page', await p.evaluate(() =>
+      document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1));
+
+    await p.mouse.up();
+    await p.waitForTimeout(900);
+    const back = await rigLen();
+    check('and it snaps back after letting go', Math.abs(back - rest) < 60);
+  }
+  await p.close();
+  await c.close();
+
   await b.close();
   console.log(fails.length ? `\n${fails.length} FAILING: ${fails.join(' | ')}` : '\nthe barrier always lifts');
   process.exit(fails.length ? 1 : 0);

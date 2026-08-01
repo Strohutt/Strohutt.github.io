@@ -252,6 +252,28 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   check('and takes you back there', await p.evaluate(() => scrollY) < 120,
     String(await p.evaluate(() => Math.round(scrollY))));
 
+  /* A log pose records the island it has been on. Four marks on the
+     bezel, one per region, and the count is kept for the visit — so a
+     reload inside the same tab still knows where you have been. */
+  /* The page has already been to the foot of itself by here, so the count
+     has to be put back to nothing to watch it climb at all. */
+  await p.evaluate(() => { try { sessionStorage.removeItem('strohut-seen-islands'); } catch { /* fine */ } });
+  await p.reload();
+  await p.waitForTimeout(1200);
+  await p.evaluate(() => scrollTo(0, 0));
+  await p.waitForTimeout(400);
+  const poseSeen = () => p.evaluate(() =>
+    Number(getComputedStyle(document.getElementById('pose')).getPropertyValue('--seen')) || 0);
+  const coldSeen = await poseSeen();
+  await p.evaluate(() => scrollTo(0, document.body.scrollHeight));
+  await p.waitForTimeout(800);
+  const warmSeen = await poseSeen();
+  check('the pose records the islands it has been past', warmSeen > coldSeen && warmSeen === 4,
+    `${coldSeen} → ${warmSeen}`);
+  await p.reload();
+  await p.waitForTimeout(1600);
+  check('and still knows them after a reload', await poseSeen() === 4, String(await poseSeen()));
+
   // scrolling has to reach the drawings, not just the text
   await p.evaluate(() => scrollTo(0, 900));
   await p.waitForTimeout(400);
