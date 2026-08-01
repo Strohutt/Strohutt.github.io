@@ -4224,3 +4224,71 @@ html:not([data-js]) .who > i:last-of-type {
     display: none;
   }
 }
+
+/* ══ on paper ══════════════════════════════════════════════════
+   Printed, every word of this page came out white on white. Browsers
+   drop background colours by default, and the ink here is the light
+   half of the pair — so the sheet stayed white, the text stayed paper,
+   and what came out of the printer was blank.
+
+   The whole page is drawn out of two colours and a red, and it is only
+   ever "which of the two is the background". So they swap. Everything
+   built on them — the ruled lines, the panels, the drawings, the type —
+   follows without a single rule of its own, and what prints is the same
+   page in ink on paper, which is where it came from. */
+@media print {
+  :root {
+    color-scheme: light;
+
+    --ink: #fff;
+    --ink-2: #fff;
+    --ink-3: #e6e4de;
+
+    --paper: #14141a;
+    --paper-2: #3a3a42;
+    --paper-3: #5c5c64;
+
+    /* red survives the trip; it is only ever a mark, never a background */
+    --blood: #c8102e;
+    --blood-lit: #c8102e;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  /* Things that are motion, a control, or a corner of the screen. None of
+     them mean anything on a sheet of paper, and the last two would print
+     over whatever they were floating above. */
+  .field,
+  .speed,
+  .curtain,
+  .curtain-white,
+  .arena,
+  .pose,
+  .tally,
+  .strikes,
+  .woke,
+  .score-sigil,
+  .staff {
+    display: none !important;
+  }
+
+  /* a printed page has no hover and no focus, so a link is only useful if
+     it says where it goes */
+  .links a::after,
+  .foot-text a::after,
+  .like-name a::after {
+    content: " (" attr(href) ")";
+    font-size: .72em;
+    letter-spacing: .04em;
+    color: var(--paper-3);
+  }
+
+  /* and nothing should be cut in half by a page break */
+  .panel,
+  .doing li,
+  .like-list li {
+    break-inside: avoid;
+  }
+}
