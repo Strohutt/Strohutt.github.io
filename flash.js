@@ -384,10 +384,6 @@ function graded(loud) {
 }
 
 function tell(bump) {
-  /* Anything that keeps its own reading of the run hears about it here.
-     The log at the foot of the page is written by the other file, which
-     has no way of knowing when a flash lands. */
-  dispatchEvent(new Event('strohut:score'));
   post(score.best, best, bump);
   post(score.total, total, bump);
   post(score.adapt, `${learned} of ${LEARNS}`, bump);
@@ -395,6 +391,12 @@ function tell(bump) {
   graded(bump);
   heat();
   said();
+  /* Last, once everything above has been written, so a listener reads
+     the state this tell produced rather than the one before it. The log
+     at the foot of the page lives in the other file, which has no way of
+     knowing when a flash lands — and it names the rank, which graded()
+     has only just decided. */
+  dispatchEvent(new Event('strohut:score'));
 }
 
 /* How long the window is open for, right now. It is a fraction of the

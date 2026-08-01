@@ -492,6 +492,12 @@ if (pose && poseHit && poseName) {
     if (landed) bits.push(`${landed} ${landed === 1 ? 'flash' : 'flashes'} landed`);
     if (run > 1) bits.push(`${run} in a row at best`);
 
+    /* and the rank those numbers earned, read off the panel that decides
+       it — the bottom rank is the state of having none, not a thing the
+       visit did */
+    const rank = document.getElementById('grade-name');
+    if (rank && rank.textContent && rank.textContent !== 'grade four') bits.push(rank.textContent);
+
     log.textContent = bits.length ? `this visit — ${bits.join(' · ')}` : '';
     log.hidden = !bits.length;
   };
