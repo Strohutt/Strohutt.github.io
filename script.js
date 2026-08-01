@@ -671,8 +671,16 @@ if (clock) {
     return Number(((Math.cos((h - 13) / 24 * Math.PI * 2) + 1) / 2).toFixed(3));
   };
 
+  let lastSun = -1;
   const tick = () => {
-    document.body.style.setProperty('--sun', sun());
+    /* written only when it moves — the same value five times a minute is
+       five chances for the style system to do work about nothing, and
+       the background carries a six-second transition off this number */
+    const s = sun();
+    if (s !== lastSun) {
+      lastSun = s;
+      document.body.style.setProperty('--sun', s);
+    }
 
     const now = face.format(new Date());
     if (clock.textContent === now) return;

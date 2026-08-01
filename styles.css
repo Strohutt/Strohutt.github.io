@@ -4572,8 +4572,17 @@ html:not([data-js]) .who > i:last-of-type {
     gap: .7rem;
   }
 
-  .traced-rig {
+  /* The two lengthwise drawings stretch across the column the way they
+     stretch across the page; a band starved into a five-rem square is a
+     full stop with lumps. The square ones get a step more room. */
+  .traced-rig,
+  .traced-wide {
     width: 100%;
+  }
+
+  .traced-art:not(.traced-rig):not(.traced-wide) {
+    width: 6.5rem;
+    height: 6.5rem;
   }
 }
 
