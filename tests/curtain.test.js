@@ -308,24 +308,22 @@ const up = p => p.evaluate(() => {
 
   const asked = async where => {
     // the server here has no 404 handler, so the address is put in the
-    // bar the way pages does it: the same document, a different url
+    // bar the way pages does it: the same document, a different url —
+    // and then the page's own code is run against it, not a copy of it
     await p.goto(BASE + '/404.html');
     await p.waitForTimeout(400);
     return p.evaluate(url => {
       history.replaceState(null, '', url);
+      lostSaid();
       const el = document.getElementById('lost-path');
-      el.hidden = true;
-      el.textContent = '';
-      // exactly what flash.js does on load, run again against this url
-      const raw = location.pathname + location.search;
-      let path = raw;
-      try { path = decodeURI(raw); } catch { /* show it as it came */ }
-      path = path.replace(/\s+/g, ' ').trim();
-      if (path && path !== '/' && !/^\/404(\.html)?$/.test(path)) {
-        el.textContent = `nothing at ${path.length > 64 ? `${path.slice(0, 63)}…` : path}`;
-        el.hidden = false;
-      }
-      return { text: el.textContent, hidden: el.hidden, html: el.innerHTML };
+      const guess = document.getElementById('lost-guess');
+      const link = guess && guess.querySelector('a');
+      return {
+        text: el.textContent, hidden: el.hidden, html: el.innerHTML,
+        guessed: guess && !guess.hidden ? guess.textContent : null,
+        to: link ? link.getAttribute('href') : null,
+        guessHtml: guess ? guess.innerHTML : ''
+      };
     }, where);
   };
 
@@ -343,6 +341,29 @@ const up = p => p.evaluate(() => {
   said = await asked('/a?<img src=x onerror=alert(1)>');
   check('markup in the address is printed, not run',
     said.html.includes('&lt;img') && !said.html.includes('<img'), said.html.slice(0, 40));
+
+  /* ── and when the typo is close to a real place, it says which one.
+     The stranger's text only picks from the page's own list — it never
+     becomes markup and it never becomes the link itself. */
+  said = await asked('/rulez');
+  check('a near-miss gets a guess', said.guessed === 'were you after the rules?' && said.to === '/#rules',
+    `${said.guessed} → ${said.to}`);
+
+  said = await asked('/Making.html');
+  check('an extension does not hide the place it was near',
+    said.to === '/#making', `${said.guessed} → ${said.to}`);
+
+  said = await asked('/spotify');
+  check('a word the page never uses can still name a region',
+    said.to === '/#music', `${said.guessed} → ${said.to}`);
+
+  said = await asked('/some/old/page');
+  check('a path near nothing gets no guess', said.guessed === null, String(said.guessed));
+
+  said = await asked('/rulez?<img src=x onerror=alert(1)>');
+  check('and the guess never carries the stranger\'s text',
+    said.to === '/#rules' && !said.guessHtml.includes('&lt;img') && !said.guessHtml.includes('<img'),
+    said.guessHtml.slice(0, 60));
 
   /* A half-written escape is a url anybody can type, and decoding one
      throws outright. */

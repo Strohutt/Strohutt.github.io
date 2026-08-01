@@ -257,6 +257,11 @@ it is cut at sixty-four characters, and the decoding that turns `%C3%BC`
 back into ü is wrapped — `/%E0%A4` is a url anybody can type and decoding
 one throws outright.
 
+And when the typo sits an edit or two from a real region of the front —
+`/rulez`, `/Making.html`, `/spotify` — it asks whether that was the
+place, with a link. The stranger's text only ever picks from the page's
+own list of places; it never becomes the link itself.
+
 ## Everywhere else
 
 The page is the same page in five conditions it did not start out

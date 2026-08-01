@@ -3304,6 +3304,26 @@ svg.flag {
   color: var(--paper-3);
 }
 
+/* The guess under it is a sentence again, not a reading — it is the
+   page's own words, with one link in them. Underlined in the stroke's
+   red like the link at the foot, because it is the one thing here
+   somebody is being invited to press. */
+.lost-guess {
+  margin: -1rem 0 1.4rem;
+  max-width: 40ch;
+  color: var(--paper-2);
+}
+
+.lost-guess a {
+  text-decoration-color: var(--blood);
+  text-decoration-thickness: var(--rule);
+  text-underline-offset: .3em;
+}
+
+.lost-guess a:hover {
+  color: var(--paper);
+}
+
 .lost .hero {
   min-height: min(56vh, 26rem);
 }

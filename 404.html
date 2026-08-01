@@ -8,8 +8,8 @@
   <meta name="description" content="That page does not exist.">
   <meta name="robots" content="noindex">
 
-  <link rel="icon" href="favicon.svg?v=53" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=53">
+  <link rel="icon" href="favicon.svg?v=54" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=54">
   <meta name="theme-color" content="#08080b">
 
   <!-- the same three faces the front asks for, and for the same reason:
@@ -19,8 +19,8 @@
   <link rel="preload" href="fonts/zen-kaku-gothic-new-400-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/zen-kaku-gothic-new-700-latin.woff2" as="font" type="font/woff2" crossorigin>
 
-  <link rel="stylesheet" href="fonts.css?v=53">
-  <link rel="stylesheet" href="styles.css?v=53">
+  <link rel="stylesheet" href="fonts.css?v=54">
+  <link rel="stylesheet" href="styles.css?v=54">
 
   <!-- Set before first paint, the same as the front page. Everything the
        stylesheet holds back until javascript is there — the hero
@@ -204,6 +204,11 @@
                information this page has that the front page does not.
                Filled in by script, and hidden until it is. -->
           <p class="lost-path" id="lost-path" hidden></p>
+
+          <!-- When the address sits an edit or two from a real region of
+               the front, the page says which one. The guess is drawn from
+               its own list — the stranger's text picks, it never writes. -->
+          <p class="lost-guess" id="lost-guess" hidden></p>
           <nav class="links">
             <a href="/">back to the front</a>
             <a href="https://github.com/Strohutt/Strohutt.github.io">read the source</a>
@@ -243,7 +248,7 @@
     </div>
   </main>
 
-  <script src="flash.js?v=53" defer></script>
+  <script src="flash.js?v=54" defer></script>
 </body>
 
 </html>

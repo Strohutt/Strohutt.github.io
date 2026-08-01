@@ -1137,8 +1137,17 @@ if (wheelHit && wheel) {
    Long ones are cut: an address can be a thousand characters, and this
    is one line under a heading. */
 const lostPath = document.getElementById('lost-path');
+const lostGuess = document.getElementById('lost-guess');
 
-if (lostPath) {
+/* A function rather than a block so the suite can run it again against
+   an address it has just put in the bar — the served page and the tested
+   page stay the same code. */
+function lostSaid() {
+  if (!lostPath) return;
+  lostPath.hidden = true;
+  lostPath.textContent = '';
+  if (lostGuess) { lostGuess.hidden = true; lostGuess.textContent = ''; }
+
   /* Decoding is what turns %C3%BC back into ü, and it throws outright on
      a half-written escape — /%E0%A4 is a url anybody can type, and an
      exception here would take the whole file down with it. */
@@ -1148,12 +1157,71 @@ if (lostPath) {
   path = path.replace(/\s+/g, ' ').trim();
 
   // opened directly rather than landed on: there is nothing to say
-  if (path && path !== '/' && !/^\/404(\.html)?$/.test(path)) {
-    const shown = path.length > 64 ? `${path.slice(0, 63)}…` : path;
-    lostPath.textContent = `nothing at ${shown}`;
-    lostPath.hidden = false;
+  if (!path || path === '/' || /^\/404(\.html)?$/.test(path)) return;
+  const shown = path.length > 64 ? `${path.slice(0, 63)}…` : path;
+  lostPath.textContent = `nothing at ${shown}`;
+  lostPath.hidden = false;
+
+  /* ── and, when the typo sits an edit or two from a real place, where
+     it might have meant. The address belongs to a stranger, so it never
+     reaches the page as markup and it never becomes a link — it only
+     gets to pick from this list, which is the page's own. A wrong guess
+     costs a question mark; a right one saves retyping the whole thing. */
+  if (!lostGuess) return;
+  const PLACES = [
+    [['likes', 'like', 'favourites', 'favorites', 'favourite', 'favorite'], 'favourites', '/#likes'],
+    [['score', 'flash', 'blackflash', 'black'], 'the black flash', '/#score'],
+    [['traced', 'tracing', 'wheel', 'staff', 'yeoui'], 'traced from', '/#traced'],
+    [['rules', 'rule'], 'the rules', '/#rules'],
+    [['making', 'drawn', 'sakuga', 'colophon'], 'how it’s drawn', '/#making'],
+    [['music', 'spotify', 'ears', 'track', 'song'], 'in my ears', '/#music'],
+    [['now', 'status', 'presence', 'discord'], 'right now', '/#now']
+  ];
+
+  /* One row of the usual table is enough here: none of the words being
+     compared clears ten letters, and the guess is only allowed to be two
+     edits out anyway — anything further is declared unreachable before
+     any counting is done. */
+  const edits = (a, b) => {
+    if (Math.abs(a.length - b.length) > 2) return 3;
+    const row = Array.from({ length: b.length + 1 }, (_, i) => i);
+    for (let i = 1; i <= a.length; i++) {
+      let corner = row[0];
+      row[0] = i;
+      for (let j = 1; j <= b.length; j++) {
+        const up = row[j];
+        row[j] = Math.min(up + 1, row[j - 1] + 1, corner + (a[i - 1] === b[j - 1] ? 0 : 1));
+        corner = up;
+      }
+    }
+    return row[b.length];
+  };
+
+  // the words of the path, extension dropped, nothing under three letters
+  const tokens = path.toLowerCase().replace(/\.[a-z0-9]+$/, '')
+    .split(/[^a-z0-9]+/).filter(t => t.length >= 3 && t.length <= 24);
+
+  let best = null;
+  for (const t of tokens) {
+    for (const [keys, label, href] of PLACES) {
+      for (const k of keys) {
+        const d = t === k ? 0 : edits(t, k);
+        // a short word gets one edit of grace, a longer one two
+        if (d <= (k.length >= 6 ? 2 : 1) && (!best || d < best[0])) best = [d, label, href];
+      }
+    }
   }
+  if (!best) return;
+
+  lostGuess.append('were you after ');
+  const a = document.createElement('a');
+  a.href = best[2];
+  a.textContent = best[1];
+  lostGuess.append(a, '?');
+  lostGuess.hidden = false;
 }
+
+lostSaid();
 
 
 /* ─────────────────────────── 여의봉 ────────────────────────────── */
