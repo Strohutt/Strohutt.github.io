@@ -73,8 +73,13 @@ const shadowClasses = ['mg-body', 'mg-lit', 'cb-body', 'cb-curl', 'jr-bone', 'jr
 const reached = shadowClasses.filter(c => new RegExp(`[.\\w\\]]\\s+\\.${c}\\b`).test(bare));
 check('nothing styles a cloned symbol through a descendant selector', !reached.length, reached.join(','));
 
-// ── every id javascript reaches for has to exist in the markup
-const ids = new Set([...html.matchAll(/id="([^"]+)"/g)].map(m => m[1]));
+/* ── every id javascript reaches for has to exist in the markup
+   On one of the two pages, not on both: flash.js is shared, and some of
+   what it reaches for is only on the front page and some of it only on
+   the 404. Everything in there guards on its element being present,
+   which is what makes that safe — and an id on neither page is a guard
+   that is always false, which is dead code pretending to be a feature. */
+const ids = new Set([...(html + lost).matchAll(/id="([^"]+)"/g)].map(m => m[1]));
 const wanted = [...(js + flash).matchAll(/getElementById\('([^']+)'\)/g)].map(m => m[1]);
 const absent = [...new Set(wanted)].filter(i => !ids.has(i));
 check('every getElementById has an element', !absent.length, absent.join(','));
@@ -137,6 +142,19 @@ check('the braces balance', opens === closes, `${opens} open, ${closes} close`);
     // how a whole card comes back empty
     check('the cover is asked for inside coverImage', /coverImage \{[^}]*large/.test(fields[1]));
   }
+}
+
+/* ── both pages have to say that javascript is there
+   The stylesheet holds a set of things back until it is — the hero
+   arriving a piece at a time, and the controls that are only offered
+   when they can actually work. A page that never sets the flag is
+   permanently in the state of a page with no javascript, while running
+   javascript, and the only sign of it is a red rule quietly missing from
+   the middle of a sentence. */
+for (const [name, src] of [['index', html], ['404', lost]]) {
+  check(`${name}: says javascript is there, before first paint`,
+    /setAttribute\('data-js'/.test(src) &&
+    src.indexOf("setAttribute('data-js'") < src.indexOf('</head>'));
 }
 
 /* ── the structured data has to be true and has to parse

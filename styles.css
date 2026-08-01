@@ -3194,6 +3194,19 @@ svg.flag {
   color: var(--paper-2);
 }
 
+/* The address that was asked for, in the face the rest of the page uses
+   for a reading rather than a sentence. It is somebody else's text, so
+   it is given no room to push anything about: it breaks anywhere and it
+   never widens the line it is on. */
+.lost-path {
+  margin: -1rem 0 1.4rem;
+  max-width: 40ch;
+  overflow-wrap: anywhere;
+  font-size: .78rem;
+  letter-spacing: .1em;
+  color: var(--paper-3);
+}
+
 .lost .hero {
   min-height: min(56vh, 26rem);
 }

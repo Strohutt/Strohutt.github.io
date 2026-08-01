@@ -251,6 +251,81 @@ const up = p => p.evaluate(() => {
   await p.close();
   await c.close();
 
+  /* ── the 404 says which address it is talking about
+     GitHub Pages serves that page for anything it cannot find and leaves
+     the address in the bar, so the page knows the one thing the front
+     page does not: what somebody actually typed or followed. Saying it
+     back is the difference between "that page does not exist" and being
+     able to see your own typo.
+
+     It is a stranger's text, so it is written as text and never as
+     markup, it is cut before it can run away with the line, and the
+     decoding of it — which is what turns %C3%BC back into ü — cannot be
+     allowed to throw on a half-written escape and take the file with it. */
+  c = await b.newContext({ viewport: view });
+  p = await c.newPage();
+  const broke = [];
+  p.on('pageerror', e => broke.push(e.message));
+
+  const asked = async where => {
+    // the server here has no 404 handler, so the address is put in the
+    // bar the way pages does it: the same document, a different url
+    await p.goto(BASE + '/404.html');
+    await p.waitForTimeout(400);
+    return p.evaluate(url => {
+      history.replaceState(null, '', url);
+      const el = document.getElementById('lost-path');
+      el.hidden = true;
+      el.textContent = '';
+      // exactly what flash.js does on load, run again against this url
+      const raw = location.pathname + location.search;
+      let path = raw;
+      try { path = decodeURI(raw); } catch { /* show it as it came */ }
+      path = path.replace(/\s+/g, ' ').trim();
+      if (path && path !== '/' && !/^\/404(\.html)?$/.test(path)) {
+        el.textContent = `nothing at ${path.length > 64 ? `${path.slice(0, 63)}…` : path}`;
+        el.hidden = false;
+      }
+      return { text: el.textContent, hidden: el.hidden, html: el.innerHTML };
+    }, where);
+  };
+
+  let said = await asked('/some/old/page');
+  check('the 404 says what was asked for', said.text === 'nothing at /some/old/page', said.text);
+
+  said = await asked('/404.html');
+  check('and says nothing when it was opened on purpose', said.hidden, said.text);
+
+  said = await asked(`/${'x'.repeat(200)}`);
+  check('a very long address is cut', said.text.length < 80, String(said.text.length));
+  check('and it does not widen the page', await p.evaluate(() =>
+    document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1));
+
+  said = await asked('/a?<img src=x onerror=alert(1)>');
+  check('markup in the address is printed, not run',
+    said.html.includes('&lt;img') && !said.html.includes('<img'), said.html.slice(0, 40));
+
+  /* A half-written escape is a url anybody can type, and decoding one
+     throws outright. */
+  await p.goto(BASE + '/404.html');
+  await p.waitForTimeout(400);
+  const half = await p.evaluate(() => {
+    const raw = '/%E0%A4';
+    let path = raw;
+    try { path = decodeURI(raw); } catch { /* show it as it came */ }
+    return path;
+  });
+  check('a half-written escape is shown as it came', half === '/%E0%A4', half);
+  check('and nothing on that page threw', !broke.length, broke.join(' | '));
+
+  const first = await p.evaluate(() => {
+    const el = document.querySelector('.lost .who > i');
+    return el ? getComputedStyle(el).display : 'gone';
+  });
+  check('the rule holding that sentence apart is still drawn', first !== 'none', first);
+  await p.close();
+  await c.close();
+
   await b.close();
   console.log(fails.length ? `\n${fails.length} FAILING: ${fails.join(' | ')}` : '\nthe barrier always lifts');
   process.exit(fails.length ? 1 : 0);

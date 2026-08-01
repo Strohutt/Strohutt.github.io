@@ -8,8 +8,8 @@
   <meta name="description" content="That page does not exist.">
   <meta name="robots" content="noindex">
 
-  <link rel="icon" href="favicon.svg?v=33" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=33">
+  <link rel="icon" href="favicon.svg?v=34" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=34">
   <meta name="theme-color" content="#08080b">
 
   <!-- the same three faces the front asks for, and for the same reason:
@@ -19,8 +19,16 @@
   <link rel="preload" href="fonts/zen-kaku-gothic-new-400-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/zen-kaku-gothic-new-700-latin.woff2" as="font" type="font/woff2" crossorigin>
 
-  <link rel="stylesheet" href="fonts.css?v=33">
-  <link rel="stylesheet" href="styles.css?v=33">
+  <link rel="stylesheet" href="fonts.css?v=34">
+  <link rel="stylesheet" href="styles.css?v=34">
+
+  <!-- Set before first paint, the same as the front page. Everything the
+       stylesheet holds back until javascript is there — the hero
+       arriving a piece at a time, and the things that are offered only
+       when they can actually work — keys off this. Without it this page
+       was permanently in the state of a page with no javascript, while
+       running javascript. -->
+  <script>document.documentElement.setAttribute('data-js', '');</script>
 </head>
 
 <body class="lost">
@@ -179,6 +187,13 @@
           <h1 class="name">nothing here</h1>
           <p class="who">that page<i></i>does not exist</p>
           <p class="lost-line">Either the link is wrong, or I moved it.</p>
+
+          <!-- What was actually asked for. A 404 that will not say which
+               address it is talking about leaves somebody guessing at
+               their own typo — and the address is the one piece of
+               information this page has that the front page does not.
+               Filled in by script, and hidden until it is. -->
+          <p class="lost-path" id="lost-path" hidden></p>
           <nav class="links">
             <a href="/">back to the front</a>
             <a href="https://github.com/Strohutt/Strohutt.github.io">read the source</a>
@@ -214,7 +229,7 @@
     </div>
   </main>
 
-  <script src="flash.js?v=33" defer></script>
+  <script src="flash.js?v=34" defer></script>
 </body>
 
 </html>

@@ -976,6 +976,38 @@ if (wheelHit && wheel) {
 }
 
 
+/* ───────────────────── what was asked for ──────────────────────
+
+   Only the 404 has this. GitHub Pages serves that page for any address
+   it cannot find and leaves the address in the bar, so the page knows
+   the one thing the front page does not: which url somebody actually
+   typed or followed. Saying it back is the difference between "that page
+   does not exist" and being able to see your own typo.
+
+   Written as text, never as markup — the address is whatever a stranger
+   put in the bar, and the only safe thing to do with that is print it.
+   Long ones are cut: an address can be a thousand characters, and this
+   is one line under a heading. */
+const lostPath = document.getElementById('lost-path');
+
+if (lostPath) {
+  /* Decoding is what turns %C3%BC back into ü, and it throws outright on
+     a half-written escape — /%E0%A4 is a url anybody can type, and an
+     exception here would take the whole file down with it. */
+  const raw = location.pathname + location.search;
+  let path = raw;
+  try { path = decodeURI(raw); } catch { /* show it as it came */ }
+  path = path.replace(/\s+/g, ' ').trim();
+
+  // opened directly rather than landed on: there is nothing to say
+  if (path && path !== '/' && !/^\/404(\.html)?$/.test(path)) {
+    const shown = path.length > 64 ? `${path.slice(0, 63)}…` : path;
+    lostPath.textContent = `nothing at ${shown}`;
+    lostPath.hidden = false;
+  }
+}
+
+
 /* ─────────────────────────── 여의봉 ────────────────────────────── */
 
 /* Yeoui: a stone staff with a gold band at each end that grows to
