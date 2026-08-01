@@ -78,6 +78,46 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   check('twenty activities all render', await p.evaluate(() => document.querySelectorAll('#dc-doing li').length) === 20);
   await p.close();
 
+  /* Discord's app assets go missing all the time — an asset the developer
+     deleted, an id that never resolved, a filter that blocks the cdn. The
+     row has to look like a row without one, not like a broken picture in
+     a white box. */
+  const playing = art => ({
+    discord_user: { id: '1', username: 'u', display_name: 'Strohut', avatar: null },
+    discord_status: 'online', listening_to_spotify: false, spotify: null,
+    activities: [{ type: 0, name: 'Counter-Strike 2', application_id: '730', assets: { large_image: art } }]
+  });
+  const plateOf = () => p.evaluate(() => {
+    const li = document.querySelector('#dc-doing li');
+    const img = li.querySelector('img');
+    const plate = li.querySelector('.no-art');
+    return {
+      plate: !!plate, box: Math.round(plate.getBoundingClientRect().width),
+      img: img ? getComputedStyle(img).opacity : null
+    };
+  });
+
+  p = await open({ '**/cdn.discordapp.com/**': r => r.abort() });
+  await p.waitForTimeout(1200);
+  await p.evaluate(body => render(body), playing('gone'));
+  await p.waitForTimeout(700);
+  let art = await plateOf();
+  check('an icon that never arrives leaves the plate', art.plate, JSON.stringify(art));
+  check('and no broken picture with it', art.img === null, JSON.stringify(art));
+  check('and the row keeps the size it had', art.box > 20, JSON.stringify(art));
+  await p.close();
+
+  // and one that does arrive is shown, over the plate it was waiting on
+  const ICON = r => r.fulfill({ status: 200, contentType: 'image/svg+xml',
+    body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8"><rect width="8" height="8" fill="#c9c4b8"/></svg>' });
+  p = await open({ '**/media.discordapp.net/**': ICON });
+  await p.waitForTimeout(1200);
+  await p.evaluate(body => render(body), playing('mp:external/x/https/example.invalid/cover.png'));
+  await p.waitForTimeout(900);
+  art = await plateOf();
+  check('an icon that arrives is shown', art.img === '1', JSON.stringify(art));
+  await p.close();
+
   // ── a song with a novel for a title
   p = await open();
   await p.waitForTimeout(1200);

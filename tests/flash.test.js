@@ -692,7 +692,36 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
   await p.keyboard.up('Space');
   await p.waitForTimeout(900);
 
+  /* ── and said out loud ─────────────────────────────────────────
+     The ring shutting is the whole of the feedback, and it is a drawing.
+     Every attempt says what it came to in one line that a screen reader
+     reads — which has to be a line that is always in the page: display
+     none, visibility hidden or the hidden attribute each take it out of
+     the accessibility tree, and a live region that is not in the tree
+     announces nothing at all. */
+  const said = () => p.evaluate(() => document.getElementById('flash-said').textContent);
+  const region = await p.evaluate(() => {
+    const s = document.getElementById('flash-said');
+    const st = getComputedStyle(s);
+    return { live: s.getAttribute('aria-live'), display: st.display,
+      vis: st.visibility, hidden: s.hidden, box: Math.round(s.getBoundingClientRect().width) };
+  });
+  check('what happens is announced politely', region.live === 'polite', JSON.stringify(region));
+  check('and the region is in the page rather than switched off',
+    region.display !== 'none' && region.vis !== 'hidden' && !region.hidden, JSON.stringify(region));
+  check('and it takes up no room', region.box <= 2, JSON.stringify(region));
+
+  await p.mouse.move(...field);
+  await p.mouse.down(); await p.waitForTimeout(120); await p.mouse.up();
+  await p.waitForTimeout(260);
+  const missSaid = await said();
+  check('a miss says so, and by how much', /^Missed, \d+ ms (early|late)\./.test(missSaid), missSaid);
+
   await landKey(p);
+  const landSaid = await said();
+  check('a landed one says so, and how many in a row',
+    /^Landed, .+\. 1 in a row\.$/.test(landSaid), landSaid);
+
   const bykey = await p.evaluate(() => ({
     last: document.getElementById('score-last').textContent,
     total: document.getElementById('score-total').textContent,

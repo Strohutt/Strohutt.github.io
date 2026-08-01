@@ -1037,21 +1037,30 @@ function activityRow(activity, i) {
      clock — the elapsed counter ticks on its own element. So they can
      arrive one after another without that replaying every second. */
   li.style.setProperty('--i', i);
-  const url = artworkUrl(activity);
+  /* The plate is always there and the artwork lies over it, appearing
+     only once it has actually arrived — the same as the covers on the
+     books. Discord's app assets go missing all the time: an asset the
+     developer deleted, a filter that blocks the cdn, an id that never
+     resolved. Dropping the image straight into the row left a broken
+     picture in a white box on every one of those. */
+  const plate = document.createElement('span');
+  plate.className = 'no-art';
+  plate.setAttribute('aria-hidden', 'true');
 
+  const url = artworkUrl(activity);
   if (url) {
     const img = document.createElement('img');
     img.src = url;
     img.alt = '';
     img.loading = 'lazy';
-    li.append(img);
-  } else {
-    const box = document.createElement('span');
-    box.className = 'no-art';
-    box.textContent = activity.name.slice(0, 1).toUpperCase();
-    box.setAttribute('aria-hidden', 'true');
-    li.append(box);
+    // squares, both of them — anything else and the row jumps when it lands
+    img.width = 96;
+    img.height = 96;
+    img.addEventListener('load', () => img.classList.add('is-there'));
+    img.addEventListener('error', () => img.remove());
+    plate.append(img);
   }
+  li.append(plate);
 
   const body = document.createElement('div');
 

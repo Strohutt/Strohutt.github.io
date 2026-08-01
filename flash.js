@@ -254,6 +254,7 @@ function learn() {
 function woken(loud) {
   awake = true;
   document.body.classList.add('is-awake');
+  if (loud) aloud('All eight sparks. The window is as wide as it gets.');
   if (score.adaptSays) score.adaptSays.textContent = 'the sparks are all in you';
   if (!loud || !woke || stillPlease.matches) return;
   woke.hidden = false;
@@ -568,6 +569,7 @@ function missed(how, off, dev) {
   const said = `${Math.max(1, Math.round(off))} ms ${how}`;
   tellLast(said);
   say(said);
+  aloud(`Missed, ${said}.`);
 }
 
 /* The best anybody has done at this, kept whether the attempt landed or
@@ -597,6 +599,16 @@ function say(word) {
   if (word) sayTimer = setTimeout(() => { hint.hidden = true; }, 1600);
 }
 
+/* The same thing out loud, which is a different sentence: "9 ms late" is
+   a reading beside a word that says whether it landed, and read on its
+   own it is only a number. Said once per release — the three readings in
+   the panel all change at once and none of them is worth interrupting
+   anybody for on its own. */
+function aloud(what) {
+  const said = document.getElementById('flash-said');
+  if (said) said.textContent = what;
+}
+
 function landed(dev, sure) {
   streak += 1;
   total += 1;
@@ -615,6 +627,7 @@ function landed(dev, sure) {
   const word = sure ? 'sure hit' : off <= 1 ? 'dead on' : `${off} ms ${dev < 0 ? 'early' : 'late'}`;
 
   say(word);
+  aloud(`Landed, ${word}. ${streak} in a row.`);
   tellLast(word);
   mark(true);
 
@@ -665,6 +678,7 @@ function cast() {
   // length is written down once
   document.body.style.setProperty('--domain-for', `${DOMAIN_FOR}ms`);
   say('domain — sure hit');
+  aloud(`Domain open for ${Math.round(DOMAIN_FOR / 1000)} seconds. Nothing misses in it.`);
   document.body.classList.remove('is-domain');
   void document.body.offsetWidth;
   document.body.classList.add('is-domain');

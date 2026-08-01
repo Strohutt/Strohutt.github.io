@@ -8,9 +8,9 @@
   <meta name="description" content="Mico. Discord presence, what is playing, and what he reads.">
   <link rel="canonical" href="https://strohutt.github.io/">
 
-  <link rel="icon" href="favicon.svg?v=28" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=28">
-  <link rel="manifest" href="site.webmanifest?v=28">
+  <link rel="icon" href="favicon.svg?v=29" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=29">
+  <link rel="manifest" href="site.webmanifest?v=29">
   <meta name="theme-color" content="#08080b">
 
   <!-- Posting the link used to give a blank card. The image is built from
@@ -19,7 +19,7 @@
   <meta property="og:description" content="Mico. Discord presence, what is playing, and what he reads.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://strohutt.github.io/">
-  <meta property="og:image" content="https://strohutt.github.io/og.png?v=28">
+  <meta property="og:image" content="https://strohutt.github.io/og.png?v=29">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="STROHUT, in white serif on black, over a red brush stroke, with Mahoraga's wheel cropped by the right edge.">
@@ -33,8 +33,8 @@
   <link rel="preload" href="fonts/zen-kaku-gothic-new-400-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/zen-kaku-gothic-new-700-latin.woff2" as="font" type="font/woff2" crossorigin>
 
-  <link rel="stylesheet" href="fonts.css?v=28">
-  <link rel="stylesheet" href="styles.css?v=28">
+  <link rel="stylesheet" href="fonts.css?v=29">
+  <link rel="stylesheet" href="styles.css?v=29">
 
   <!-- set before first paint, so nothing that js reveals starts hidden -->
   <script>document.documentElement.setAttribute('data-js', '');</script>
@@ -145,6 +145,14 @@
     <p class="tally-best">best <b id="tally-best">0</b></p>
     <p class="tally-hint" id="tally-hint" hidden></p>
   </div>
+
+  <!-- What every attempt came to, for somebody who cannot see the ring
+       shut. The readings in the panel change three at a time and the hint
+       above is hidden between attempts — a live region has to be one line
+       that is always in the page, so this is that line and nothing else
+       announces. It is one sentence per release, which is the rate the
+       game actually happens at. -->
+  <p class="said" id="flash-said" role="status" aria-live="polite"></p>
 
   <svg class="sprite" aria-hidden="true" focusable="false">
     <!-- 여의 — Yeoui, the staff Jin Mori takes off the Dragon King.
@@ -738,7 +746,8 @@
            A button, so it is a control rather than a rectangle that
            happens to listen: it takes the focus, it says what it is, and
            holding a key on it is the same press as holding a pointer. -->
-      <button class="arena" id="flash-arena" type="button">
+      <button class="arena" id="flash-arena" type="button"
+              aria-label="Hold the field — wind up a black flash, and let go as the ring shuts">
         <!-- The same drawing the hit itself is made of, sitting in the
              floor of the field at almost nothing and burning up with the
              run. It bleeds off the right edge rather than sitting neatly
@@ -795,8 +804,8 @@
     </div>
   </main>
 
-  <script src="flash.js?v=28" defer></script>
-  <script src="script.js?v=28" defer></script>
+  <script src="flash.js?v=29" defer></script>
+  <script src="script.js?v=29" defer></script>
 </body>
 
 </html>
