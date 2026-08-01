@@ -264,13 +264,14 @@ own list of places; it never becomes the link itself.
 
 ## Everywhere else
 
-The page is the same page in five conditions it did not start out
+The page is the same page in six conditions it did not start out
 handling, and each of them is checked:
 
 | | |
 | --- | --- |
 | **No javascript** | The panels fed by a socket go, and so does anything that cannot work: a field that cannot take a hold, a run of noughts that can never move, a compass with nothing to point at, a clock with no time to show. A control that does nothing when it is pressed is worse than no control. The heading and the sentence stay. |
 | **Reduced motion** | Nothing moves. The field of motes is not drawn at all, and every impact is a state change rather than an animation. |
+| **More contrast** | `prefers-contrast: more` is a request, not a mode: the two quiet greys each move up a step — the readings take the old body grey, the body takes a shade under the headline paper — and everything else stays itself. |
 | **High contrast** | Windows substitutes its own two colours, which flattens line art built from a light stroke and a dark fill into solid lumps. In that mode the drawings are drawn as lines instead — no fill, the system's text colour for the stroke — and the field gets a real border, because a box-shadow is not drawn at all there and its edge was one. |
 | **Printed** | Every word came out white on white: browsers drop backgrounds, and the ink here is the light half of the pair. The two swap in print, which turns rules, panels, drawings and type back into ink on paper in one go. Links print the address they point at. |
 | **Inside the domain** | Five in a row turns the whole palette over for seven seconds while somebody is reading the numbers. It is a second palette and it clears the same contrast bar as the first. |

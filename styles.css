@@ -53,6 +53,19 @@
   scrollbar-color: var(--ink-3) var(--ink);
 }
 
+/* Asked for more contrast, given more ink: the two quiet greys each move
+   up one step — the readings take the old body grey, the body takes a
+   shade under the headline paper. The drawings keep their line weights;
+   contrast here is about reading, and the only grey type on this black
+   is the quiet kind. Forced colors is a different thing entirely and has
+   its own block at the foot of this file. */
+@media (prefers-contrast: more) {
+  :root {
+    --paper-2: #d9d5cc;
+    --paper-3: #b8b4ab;
+  }
+}
+
 *,
 *::before,
 *::after {

@@ -296,6 +296,41 @@ const AUDIT = () => {
     await c.close();
   }
 
+  /* ── and when more contrast is asked for
+     prefers-contrast: more is a request, not a mode: the two quiet greys
+     each move up a step and everything else stays itself. Measured as a
+     difference rather than a pair of hex values, so retuning the palette
+     does not break this — asked, the quiet type must come out lighter on
+     the same black. */
+  {
+    const c = await b.newContext({ viewport: { width: 1200, height: 800 } });
+    const p = await c.newPage();
+    p.on('pageerror', e => fails.push(`contrast: pageerror ${e.message}`));
+    await p.addInitScript(() => {
+      try { sessionStorage.setItem('strohut-seen', '1'); } catch { /* it will just show */ }
+    });
+    await p.goto(`${BASE}/index.html`);
+    await p.waitForTimeout(1200);
+
+    const lum = rgb => {
+      const m = rgb.match(/\d+/g);
+      return m ? m.slice(0, 3).reduce((s, v, i) => s + Number(v) * [.2126, .7152, .0722][i], 0) : -1;
+    };
+    const quiet = () => p.evaluate(() => {
+      const el = document.querySelector('.chapter .says');
+      return el ? getComputedStyle(el).color : 'gone';
+    });
+
+    const plain = await quiet();
+    await p.emulateMedia({ contrast: 'more' });
+    await p.waitForTimeout(200);
+    const asked = await quiet();
+    check('asked for more contrast, the quiet type gives more',
+      plain !== 'gone' && asked !== 'gone' && lum(asked) > lum(plain) + 20,
+      `${plain} → ${asked}`);
+    await c.close();
+  }
+
   /* ── and on paper
      Printed, every word of this came out white on white: browsers drop
      background colours, and the ink here is the light half of the pair,
