@@ -2,7 +2,7 @@
 const { spawn } = require('node:child_process');
 const path = require('node:path');
 
-const SUITES = ['source', 'page', 'motion', 'curtain', 'flash', 'upstream', 'limits'];
+const SUITES = ['source', 'page', 'motion', 'curtain', 'flash', 'upstream', 'limits', 'reach'];
 const PORT = Number(process.env.PORT) || 8899;
 const BASE = `http://localhost:${PORT}`;
 

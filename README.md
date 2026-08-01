@@ -3,18 +3,18 @@
 My page. It is a light on a porch: it says whether I'm in, and what I'm
 doing while I'm there.
 
-Runs on GitHub Pages. No build step, no framework — three files and a
-favicon, open them and type.
+Runs on GitHub Pages. No build step, no framework, no dependencies — open
+the files and type.
 
 | File          | Contents                                              |
 | ------------- | ----------------------------------------------------- |
 | `index.html`  | The page, plus every drawn thing as inline SVG         |
 | `styles.css`  | The panel system, the palette, the black flash         |
 | `404.html`    | The same page, for a url that is not there             |
-| `flash.js`    | 黒閃, shared by both pages                              |
-| `script.js`   | Reveals, the hit targets, the clock, pushes, presence  |
+| `flash.js`    | 黒閃, the wheel and the staff — shared by both pages    |
+| `script.js`   | Reveals, the hit targets, the clock, the compass, the books, presence |
 | `og.png`      | The share card, built from the front page's own parts  |
-| `fonts.css`, `fonts/` | The two faces, self-hosted, latin + two kanji |
+| `fonts.css`, `fonts/` | The two faces, self-hosted, latin + the kanji it draws |
 | `favicon.svg` | The wheel, drawn the same way as the one on the page   |
 | `site.webmanifest`, `apple-touch-icon.png` | For a home screen |
 
@@ -46,15 +46,24 @@ glow on black is what shades a dark template.
 
 ## The drawn things
 
-Traced off panels rather than invented.
+Traced off panels rather than invented, and checked against the source
+rather than against memory of it. Yeoui is the example: it had a gold
+band round each end, which is the version from the First Heavenly War and
+not the one Mori carries. What the wiki calls a stone-looking bo staff,
+namu.wiki puts more plainly — 평범한 콘크리트색의 기둥, an ordinary
+concrete-coloured pillar, which is what it was, one of the pillars of the
+Dragon Palace. So it is grey stone end to end, cut flat, chipped, matte,
+and nothing else.
 
 | | |
 | --- | --- |
 | **Mahoraga's wheel** | Background, drawn thin, cropped by the right edge of the header. Hub sphere, eight spokes running through the rim, eight spheres outside it. It clicks round a step at a time rather than gliding — adaptation lands, it does not ease — and lurches a whole spoke every time a black flash hits. |
 | **The loop of binding** | Round the name. A metal ring that floats about the forehead, red once Mori reaches nirvana. It is a hoop, not a headband, so the name sits inside it: near edge over the top, far edge sunk behind the letters. |
 | **The cloud scarf** | Crossing the gutter under the header. The band that hangs round Luffy in gear 5 — white where every other zoan awakening billows black. |
-| **黒閃** | Click anywhere. Cursed energy landing inside a millionth of a second of the hit; it is named for the black, so the bolts are black and the red is only the edge. The odds climb while you are on a streak and reset the moment you miss. |
-| **Jolly Roger** | At the foot, for the name. |
+| **黒閃** | Cursed energy landing inside a millionth of a second of the hit; it is named for the black, so the bolts are black and the red is only the edge. It has a field of its own in its own panel — see below. |
+| **여의봉** | Yeoui, in the header, and on the 404. Take hold of the grip and pull and it goes wherever the pointer goes; let go and it comes back, leaving what it swung through behind it. Three drawings, not one: two ends and a middle, and only the middle stretches. |
+| **The log pose** | Bottom left, once the page has been scrolled. The needle points at whichever region is coming next, swinging as you pass each one, and the four marks on the bezel light as you go by them. |
+| **Jolly Roger** | At the foot, over the sea, for the name. |
 
 Every outline is generated with a fixed seed and shaken off its ideal
 curve, so no two bumps match and nothing sits on a perfect circle.
@@ -91,25 +100,46 @@ as at noon. This one says which it is, so a visitor can work out for
 themselves whether a message is going to be answered tonight. `Intl` does
 the timezone, so summer time is not something anyone has to maintain.
 
-## Lately
+## Favourites
 
-The five most recent repositories pushed to, with the last commit message
-on each, from GitHub's public events feed — no key, no auth.
+Three titles, and what AniList says about each: format, whether it is
+still going, how many chapters, the year it started, and — where there is
+one — the adaptation and how many episodes of it there are. One request,
+one alias per title, no key and no auth.
 
-If it is rate limited or unreachable the panel stays hidden. A section
-that only ever explains its own failure is not worth a heading.
+A search hands back what it thinks you meant, not what you asked for, so
+the entry taken is the one whose title answers to the one asked for
+wherever it sits in the results — otherwise a card states a spin-off's
+chapter count under a heading that says favourites. A title with no book
+behind it is not a card, and if AniList cannot be reached the panel stays
+hidden. A section that only ever explains its own failure is not worth a
+heading.
+
+They are kept for the visit, so a reload draws them straight away and
+asks again behind them.
 
 ## Things you can hit
 
 Every drawn thing answers to a click, and answers the way that thing
 would: the wheel adapts a spoke, the cloud gets shoved along, the flag
-swings on its pole, the stroke under the name is pulled again. They are
-real `<button>` elements so a keyboard reaches them, with every scrap of
-button styling taken off — the drawing is the control.
+swings on its pole, the stroke under the name is pulled again, the staff
+grows to wherever it is dragged. They are real `<button>` elements so a
+keyboard reaches them, with every scrap of button styling taken off — the
+drawing is the control.
 
-Clicking anywhere else may land a black flash — 黒閃 on the counter. The
-odds climb while you are on a streak and reset the moment you miss, and
-five in a row stops being a counter and takes the whole field.
+The black flash has a field of its own in the 黒閃 panel, and that is the
+only thing that takes a hold — it used to be the whole window, which put
+a game underneath every paragraph on the site. The field is a button, so
+holding a key on it is the same press as holding a pointer, and every
+attempt says what it came to in a live region for anybody who cannot see
+the ring shut.
+
+Hold, and let go as the ring shuts. Land one and the next window opens a
+little wider and stays open; eight of them and it is half again the size
+it started at, and the page says so out loud once. Five in a row opens
+the domain for seven seconds, in which nothing misses — once per run,
+and the wheel learns from every hit it gives you, which is what those
+seven seconds cost. None of it is kept past the visit.
 
 Both live panels are hidden when JavaScript is off. They are fed by a
 socket, and without it they would sit on "reaching discord" forever, which
@@ -136,10 +166,15 @@ which was the one thing on the page in somebody else's visual language.
 Sleeve, title, artist, and a bar showing how far through it is, all from
 what Lanyard already reports.
 
-When nothing is playing it says so and names the pinned track instead. The
-markup only holds a bare track id, so the title comes from Spotify's
-oembed endpoint — no key, no auth. If that is blocked the panel keeps the
-wording it already had.
+When nothing is playing it names the last track it caught during this
+visit, and says how long ago that was. Nothing is kept past the visit — a
+new tab is somebody arriving and knows of no last track, which is the
+whole reason it is on that shelf rather than the other one.
+
+Lanyard is somebody else's free service and this page can sit open all
+day, so a socket that will not open backs off to two minutes rather than
+being retried every twelve seconds forever. The tab coming forward, or
+the network coming back, tries again at once.
 
 ## The 404
 
@@ -153,9 +188,16 @@ copied. Everything in there guards on its element existing, because the
 ## Fonts
 
 Self-hosted. Both families are Japanese and run to thousands of glyphs;
-this page reaches basic latin plus exactly two kanji, 黒 and 閃, so only
-those subsets are here — 160K on disk, and `unicode-range` means a first
-paint pulls about 50K of it. The kanji only arrive if the counter does.
+this page reaches basic latin plus the handful of kanji it actually
+draws — 黒閃, 第一二三四話, 覚醒 — so only those subsets are here. 160K on
+disk, and `unicode-range` means a first paint pulls the 50K of latin and
+nothing else; a kanji block is fetched only if something on the page
+reaches into it.
+
+The three latin faces are preloaded in the head rather than waited for
+until the stylesheet has been fetched and parsed. A preload has to name
+the file exactly as the stylesheet does and carry `crossorigin`, or it is
+the same file fetched twice; `source` checks both.
 
 That drops two render-blocking requests to a third party, and the type no
 longer depends on Google being reachable.
@@ -175,15 +217,18 @@ npm install
 npm test
 ```
 
-Five suites:
+Eight suites, three hundred-odd checks:
 
 | | |
 | --- | --- |
-| `source` | No browser. Asset versions agree across both pages, every `use` has a symbol and no symbol is unused, nothing styles a cloned symbol through a descendant selector, every `getElementById` has an element, `:has()` and `overflow: clip` are not load-bearing |
-| `page` | Nothing hidden without javascript, no sideways scroll from 1600 to 320, every hit target reacts, keyboard reaches all of them, no tap target under 44px |
-| `flash` | The timing window lands and misses where it should, rings never pile up, holding forever resolves, touch does not strand one, reduced motion stays still, the best score survives a reload |
-| `upstream` | Every upstream dead, github rate limited, github answering junk, twenty activities, a 200-character track title, a malformed presence payload, localStorage refusing to open |
+| `source` | No browser. Asset versions agree across both pages, every `use` has a symbol and no symbol is unused, nothing styles a cloned symbol through a descendant selector, every `getElementById` has an element, every preload is a file that exists and is asked for the same way the stylesheet asks for it, `:has()` and `overflow: clip` are not load-bearing |
+| `page` | Nothing hidden without javascript, no sideways scroll from 1600 to 320, every hit target reacts, keyboard reaches all of them, the compass points at what is coming and remembers where it has been |
+| `motion` | Everything that moves, and everything that stops moving when a machine has been asked to hold still |
+| `curtain` | The barrier always lifts — on a timer, on a key, with no animation events at all, with javascript off entirely — and the staff on the 404 stretches and snaps back |
+| `flash` | The timing window lands and misses where it should, rings never pile up, holding forever resolves, touch does not strand one, only the field takes a hold, space still scrolls the page, the eighth spark wakes it, every attempt is said out loud, and nothing survives the tab |
+| `upstream` | Every upstream dead, twenty activities, a 200-character track title, a malformed presence payload, an icon that never arrives, storage refusing to open, a socket that will not connect, and the books kept for the visit |
 | `limits` | Offline, 280px wide, browser text at 200%, a response that arrives four seconds late, the 404 at 320px |
+| `reach` | Every piece of text against what is really behind it, at the AA thresholds, and every control against 24px — on four screens |
 
 The site itself has no build step and no dependencies. `package.json`
 exists for these and nothing else.

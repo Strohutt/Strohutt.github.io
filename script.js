@@ -643,6 +643,41 @@ if (likeBox && likeList) {
     `${l.key}_screen: Page(perPage: 5) { media(search: ${JSON.stringify(l.title)}, type: ANIME) {${LIKE_FIELDS}} }`
   ]).join('\n')}}`;
 
+  /* Three books and their adaptations, which change about as often as
+     anybody's favourites do — and the panel was asked for again on every
+     reload, arriving a second after the rest of the page each time.
+
+     It is kept for the visit. A reload draws the cards straight away and
+     asks anilist again behind them; anything that came back different is
+     redrawn, which for a chapter count going up is the only thing that
+     ever will. The stamp is on the shape of the record rather than the
+     records themselves, so a change to how a card is built is a miss
+     rather than an old card drawn by new code. */
+  const LIKE_SHELF = 'strohut-liked-2';
+  let drawn = '';
+
+  const draw = got => {
+    const same = JSON.stringify(got);
+    if (same === drawn) return;
+    drawn = same;
+    whenOpen(() => {
+      likeList.replaceChildren(...got.map((e, i) => likeRow(e, i)));
+      likeBox.hidden = false;
+      likeBox.classList.add('is-in');
+    });
+  };
+
+  /* After this file has finished being read, not during it. A card is
+     built out of things declared further down — and a const is not
+     available above the line that declares it, so drawing from the shelf
+     here and now throws before anything else on the page has run. A
+     microtask is still the same tick and still well before the first
+     paint; it is only after the rest of the file exists. */
+  queueMicrotask(() => {
+    const kept = unstash(LIKE_SHELF);
+    if (Array.isArray(kept) && kept.length && kept.every(e => e && e.book)) draw(kept);
+  });
+
   fetch('https://graphql.anilist.co', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -676,11 +711,8 @@ if (likeBox && likeList) {
       /* Not watched by the observer — the region has no box until there
          is something to put in it, so it says for itself when it arrives.
          Behind the barrier that would be another arrival nobody sees. */
-      whenOpen(() => {
-        likeList.replaceChildren(...got.map((e, i) => likeRow(e, i)));
-        likeBox.hidden = false;
-        likeBox.classList.add('is-in');
-      });
+      draw(got);
+      stash(LIKE_SHELF, got);
     })
     .catch(() => {
       /* stays hidden */

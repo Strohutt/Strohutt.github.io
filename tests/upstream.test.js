@@ -522,6 +522,52 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   check('and they wrap inside the card rather than past it', !(await overflows(p)));
   await p.close();
 
+  /* ── the books are kept for the visit
+     Three favourites and their adaptations change about as often as
+     anybody's favourites do, and the panel was asked for again on every
+     reload — arriving a second after the rest of the page, every time. A
+     reload draws them from the visit's own shelf straight away and asks
+     anilist again behind them. */
+  const BOOKS = anilist({ data: {
+    jjk_book: page(media({ title: { romaji: 'Jujutsu Kaisen' } })),
+    gohs_book: page(media({ title: { romaji: 'The God of High School' }, format: 'MANHWA' })),
+    op_book: page(media({ title: { romaji: 'One Piece' } }))
+  } });
+
+  p = await open({ '**/graphql.anilist.co/**': BOOKS });
+  await p.waitForTimeout(1800);
+  check('the books arrive', await p.evaluate(() => document.querySelectorAll('#like-list li').length) === 3,
+    String(await p.evaluate(() => document.querySelectorAll('#like-list li').length)));
+
+  // and now anilist takes its time about answering
+  await p.unroute('**/graphql.anilist.co/**');
+  await p.route('**/graphql.anilist.co/**', async r => {
+    await new Promise(done => setTimeout(done, 3000));
+    return BOOKS(r);
+  });
+  await p.reload();
+  await p.waitForTimeout(800);
+  check('a reload has them before anilist has answered',
+    await p.evaluate(() => document.querySelectorAll('#like-list li').length) === 3 &&
+    !(await p.evaluate(() => document.getElementById('likes').hidden)),
+    String(await p.evaluate(() => document.querySelectorAll('#like-list li').length)));
+
+  /* Junk on the shelf is a card built out of something that is not a
+     record. It has to be ignored, not thrown over. */
+  await p.evaluate(() => sessionStorage.setItem('strohut-liked-2', '{"not":"an array"}'));
+  await p.reload();
+  await p.waitForTimeout(3600);
+  check('junk on the shelf is ignored rather than drawn',
+    await p.evaluate(() => document.querySelectorAll('#like-list li').length) === 3);
+  await p.close();
+
+  // and it goes with the tab, like everything else here
+  p = await open({ '**/graphql.anilist.co/**': r => r.abort() });
+  await p.waitForTimeout(1800);
+  check('a new tab with anilist dead knows of no books',
+    await p.evaluate(() => document.getElementById('likes').hidden));
+  await p.close();
+
   // a title long enough to be a paragraph
   p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk_book: page(media({ title: { romaji: 'Jujutsu Kaisen', native: LONG } })) } }) });
   await p.waitForTimeout(1800);
