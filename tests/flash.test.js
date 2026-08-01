@@ -16,21 +16,29 @@ let AT = [710, 610];
    which surfaces as the execution context being destroyed halfway
    through a check about timing. Nothing that loops forever is waited on,
    and the whole wait gives up rather than hanging. */
+const settledIn = p => p.evaluate(() => Promise.race([
+  Promise.all(document.getAnimations()
+    .filter(a => a.effect && a.effect.getTiming().iterations !== Infinity)
+    .map(a => a.finished.catch(() => { /* cancelled is finished enough */ }))),
+  new Promise(done => setTimeout(done, 3000))
+]));
+
 const openGround = async p => {
-  await p.evaluate(() => Promise.race([
-    Promise.all(document.getAnimations()
-      .filter(a => a.effect && a.effect.getTiming().iterations !== Infinity)
-      .map(a => a.finished.catch(() => { /* cancelled is finished enough */ }))),
-    new Promise(done => setTimeout(done, 3000))
-  ]));
+  await settledIn(p);
+  /* The field is the only thing that takes a hold now, so it has to be
+     on screen before anything can be aimed at it — and the panel it is
+     in arrives on the way past, which moves it. Settled, scrolled to,
+     settled again, then measured. */
+  await p.evaluate(() => document.getElementById('flash-arena').scrollIntoView({ block: 'center' }));
+  await p.waitForTimeout(500);
+  await settledIn(p);
 
   return p.evaluate(() => {
-    for (let y = 200; y < innerHeight - 40; y += 20)
-      for (let x = 40; x < innerWidth - 40; x += 30) {
-        const el = document.elementFromPoint(x, y);
-        if (el && !el.closest('a, button, input, iframe, .tally')) return [x, y];
-      }
-    throw new Error('the whole viewport is controls');
+    const a = document.getElementById('flash-arena');
+    if (!a) throw new Error('there is no field on this page');
+    const r = a.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > innerHeight) throw new Error('the field is off screen');
+    return [Math.round(r.left + r.width / 2), Math.round(r.top + r.height / 2)];
   });
 };
 const streak = p => p.evaluate(() => document.getElementById('tally-streak').textContent);
@@ -116,8 +124,8 @@ const land = (p, at, pointerType = 'mouse') => p.evaluate(([x, y, kind]) => new 
    from inside the page for the reason above — a window tens of
    milliseconds wide cannot be hit over the debugging protocol. */
 const landKey = p => p.evaluate(() => new Promise((done, fail) => {
-  const key = kind => document.body.dispatchEvent(
-    new KeyboardEvent(kind, { key: 'Enter', bubbles: true }));
+  const key = kind => document.getElementById('flash-arena').dispatchEvent(
+    new KeyboardEvent(kind, { key: ' ', bubbles: true, cancelable: true }));
 
   key('keydown');
   const ring = document.querySelector('.charge:not(.is-landed):not(.is-spent)');
@@ -380,6 +388,9 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
   // control is on screen — below 60rem it is pushed most of the way off
   // the right edge on purpose, and there is nothing there to grab.
   p = await fresh({ viewport: { width: 1340, height: 900 } });
+  // opening the page leaves it down at the field; the wheel is in the header
+  await p.evaluate(() => scrollTo(0, 0));
+  await p.waitForTimeout(400);
   const at = await p.evaluate(() => {
     const r = document.getElementById('wheel-hit').getBoundingClientRect();
     return [r.left + r.width / 2, r.top + r.height / 2];
@@ -484,7 +495,7 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
   q.on('pageerror', e => fails.push('game pageerror: ' + e.message));
   await q.goto(BASE + '/index.html');
   await q.waitForTimeout(900);
-  const ground = await openGround(q);
+  let ground = await openGround(q);
 
   const reading = () => q.evaluate(() => ({
     streak: document.getElementById('tally-streak').textContent,
@@ -498,7 +509,9 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
   }));
   // a hold nowhere near the window
   const wild = () => q.evaluate(([x, y]) => new Promise(done => {
-    const ev = k => dispatchEvent(new PointerEvent(k, { clientX: x, clientY: y, button: 0, bubbles: true }));
+    // at the field, which is the only thing that takes one
+    const at = document.getElementById('flash-arena');
+    const ev = k => at.dispatchEvent(new PointerEvent(k, { clientX: x, clientY: y, button: 0, bubbles: true }));
     ev('pointerdown');
     setTimeout(() => { ev('pointerup'); done(); }, 90);
   }), ground);
@@ -601,6 +614,8 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
   await q.waitForTimeout(900);
   check('being awake survives a reload',
     await q.evaluate(() => document.body.classList.contains('is-awake')));
+  // a reload puts the page back at the top, and the field with it
+  ground = await openGround(q);
 
   /* One per run, and the run is still going here — six in a row and
      climbing. Without this a streak that has been past five once re-opens
@@ -622,46 +637,60 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
   check('breaking the run and rebuilding it earns another', (await reading()).on);
   await own.close();
 
-  /* ── played without a pointer ──────────────────────────────────
-     The one thing on this page anybody can get better at was reachable
-     only by holding a mouse down. Enter, with nothing focused, is the
-     same press: a control that has the focus keeps its own Enter, and
-     space is left alone because space is how a keyboard scrolls. */
+  /* ── the field, and only the field ─────────────────────────────
+     Held down anywhere at all, the game was underneath every paragraph
+     and every drawing on the page. It has its own ground now — and
+     because that ground is a button, holding a key on it while it has
+     the focus is the same press as holding a pointer on it. */
   p = await fresh();
   const ringCount = () => p.evaluate(() => document.querySelectorAll('.charge').length);
 
-  await p.evaluate(() => document.body.dispatchEvent(
-    new KeyboardEvent('keydown', { key: ' ', bubbles: true })));
+  // the header: as far from the field as this page gets
+  await p.evaluate(() => scrollTo(0, 0));
+  await p.waitForTimeout(400);
+  await p.mouse.move(40, 400);
+  await p.mouse.down();
+  await p.waitForTimeout(260);
+  check('a press on the page itself is not an attempt', await ringCount() === 0);
+  await p.mouse.up();
   await p.waitForTimeout(200);
-  check('space is not taken away from the page', await ringCount() === 0);
-  await p.evaluate(() => document.body.dispatchEvent(
-    new KeyboardEvent('keyup', { key: ' ', bubbles: true })));
+  check('and it leaves the run alone', await streak(p) === '0');
 
-  await p.focus('#wheel-hit');
-  await p.evaluate(() => document.activeElement.dispatchEvent(
-    new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })));
+  const field = await openGround(p);
+  await p.mouse.move(...field);
+  await p.mouse.down();
   await p.waitForTimeout(200);
-  check('a control keeps its own enter', await ringCount() === 0);
-  await p.evaluate(() => {
-    document.activeElement.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', bubbles: true }));
-    document.activeElement.blur();
-  });
+  check('a press on the field is', await ringCount() > 0);
+  await p.mouse.up();
+  await p.waitForTimeout(700);
 
-  await p.evaluate(() => document.body.dispatchEvent(
-    new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })));
-  await p.waitForTimeout(200);
-  check('holding enter winds one up', await ringCount() > 0);
+  /* space is how a keyboard scrolls a page, so it is only the field's
+     while the field has the focus — and there it must not scroll */
+  await p.evaluate(() => document.getElementById('flash-arena').blur());
+  const restY = await p.evaluate(() => Math.round(scrollY));
+  await p.keyboard.press('Space');
+  await p.waitForTimeout(400);
+  check('space still scrolls the page everywhere else',
+    await p.evaluate(() => Math.round(scrollY)) !== restY);
+
+  await p.focus('#flash-arena');
+  const wasY = await p.evaluate(() => Math.round(scrollY));
+  await p.keyboard.down('Space');
+  await p.waitForTimeout(220);
+  check('holding it on the field winds one up', await ringCount() > 0);
+  check('and does not scroll the page out from under it',
+    await p.evaluate(() => Math.round(scrollY)) === wasY);
+
   /* A held key repeats. Every repeat after the first is the same press
      still going on, and a second wind-up opening underneath the first is
      a ring nothing can ever release. */
-  await p.evaluate(() => document.body.dispatchEvent(
-    new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, repeat: true })));
+  await p.evaluate(() => document.getElementById('flash-arena').dispatchEvent(
+    new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true, repeat: true })));
   await p.waitForTimeout(200);
   check('and holding it longer does not open a second', await ringCount() === 1,
     String(await ringCount()));
-  await p.evaluate(() => document.body.dispatchEvent(
-    new KeyboardEvent('keyup', { key: 'Enter', bubbles: true })));
-  await p.waitForTimeout(300);
+  await p.keyboard.up('Space');
+  await p.waitForTimeout(900);
 
   await landKey(p);
   const bykey = await p.evaluate(() => ({

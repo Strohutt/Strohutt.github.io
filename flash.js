@@ -360,10 +360,6 @@ function mark(hit) {
   marks.append(slotFor(hit, false));
 }
 
-// anything you can actually operate is off limits, or this fires on top
-// of every link and button press
-const OFF_LIMITS = 'a, button, input, iframe, .tally';
-
 /* How much of the wind-up the window stays open for. It follows what has
    landed rather than the run in front of you: a streak that reset the
    difficulty meant the game was only ever different at the end of a good
@@ -698,6 +694,8 @@ function count() {
 let domainTimer = 0;
 let countTimer = 0;
 const domainLeft = document.getElementById('domain-left');
+// the 404 has no field, so there is nothing to play there
+const arena = document.getElementById('flash-arena');
 
 if (!stillPlease.matches) {
   /* Winding one up, wherever the press came from. It was written into the
@@ -729,14 +727,17 @@ if (!stillPlease.matches) {
     };
   };
 
-  addEventListener('pointerdown', event => {
+  /* Only the field takes a hold. This used to be on the window, which
+     put the game underneath every paragraph, link and drawing on the
+     page — and made a stray press on a phone into a broken run. */
+  if (arena) arena.addEventListener('pointerdown', event => {
     if (event.button !== 0 || charge) return;
-    // not every pointerdown lands on an element — one dispatched at the
-    // window has the window as its target, and asking that what it sits
-    // inside of throws before anything else on the page gets to run
-    if (event.target?.closest?.(OFF_LIMITS)) return;
     hold(event.clientX, event.clientY);
-  }, { passive: true });
+    /* the release is what is being timed, and a hand that has drifted
+       off the field by then has still let go — so the field keeps the
+       pointer until it does */
+    try { arena.setPointerCapture(event.pointerId); } catch { /* fine without it */ }
+  });
 
   const release = event => {
     if (!charge) return;
@@ -774,31 +775,43 @@ if (!stillPlease.matches) {
 
   addEventListener('pointerup', release, { passive: true });
 
-  /* The same attempt without a pointer. Enter with nothing focused is the
-     keyboard's version of pressing on empty page: every control on the
-     page keeps its own Enter, because a keypress inside one is aimed at
-     it and not at this, and a browser does nothing with it otherwise.
+  /* The same attempt without a pointer. The field is a button, so
+     holding a key on it while it has the focus is the same press —
+     space and enter both, which is what every button on the web does.
+     Space is left alone everywhere else on the page, because space is
+     how a keyboard scrolls.
 
-     Not space — space is how a keyboard scrolls a page, and taking that
-     away from somebody for the length of a visit is not worth a game. A
-     held key repeats, and every repeat after the first is the same press
-     still going on rather than a new one. */
+     A held key repeats, and every repeat after the first is the same
+     press still going on rather than a new one. */
   let onKey = false;
-  addEventListener('keydown', event => {
-    if (event.key !== 'Enter' || event.repeat || onKey || charge) return;
-    if (event.target !== document.body) return;
-    onKey = true;
-    hold(innerWidth / 2, innerHeight / 2);
-  });
+  if (arena) {
+    const isHold = key => key === ' ' || key === 'Spacebar' || key === 'Enter';
 
-  addEventListener('keyup', event => {
-    if (event.key !== 'Enter' || !onKey) return;
-    onKey = false;
-    release(null);
-  });
+    arena.addEventListener('keydown', event => {
+      if (!isHold(event.key)) return;
+      // a button scrolls the page on space and fires on enter; neither is
+      // this, and both would happen underneath it
+      event.preventDefault();
+      if (event.repeat || onKey || charge) return;
+      onKey = true;
+      const box = arena.getBoundingClientRect();
+      hold(box.left + box.width / 2, box.top + box.height / 2);
+    });
 
-  // letting go somewhere the page cannot hear it leaves the ring hanging
-  addEventListener('blur', () => { onKey = false; });
+    arena.addEventListener('keyup', event => {
+      if (!isHold(event.key) || !onKey) return;
+      onKey = false;
+      release(null);
+    });
+
+    // a key let go somewhere the page cannot hear it leaves the ring hanging
+    arena.addEventListener('blur', () => { onKey = false; });
+
+    /* Enter fires a button's click on the way down and space on the way
+       up, and this is neither — without swallowing it, a click runs on
+       top of every held key. */
+    arena.addEventListener('click', event => event.preventDefault());
+  }
   addEventListener('pointercancel', () => {
     if (!charge) return;
     shutCharge(false);

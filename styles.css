@@ -1148,9 +1148,21 @@ body.is-awake .tally-label .says::after {
   min-width: 0;
   height: 100%;
   display: block;
+  /* The three parts are three boxes in a row, and a row laid out in
+     fractions of a pixel leaves a hairline of the page showing between
+     them — which on this background is a black line drawn across the
+     pole. They overlap by a pixel instead; the fill either side of a
+     join is the same fill, so there is nothing to see. */
+  margin-inline: -1px;
 }
 
-.ye-fill { fill: #2b2b34; stroke: none; }
+/* Concrete. The staff in God of High School is one of the pillars of the
+   Dragon Palace and is drawn as exactly that — a grey column, matte, the
+   same colour end to end. It was near-black with gold bands, which is
+   the First Heavenly War version of it and not the one anybody carries. */
+.ye-fill { fill: #79776f; stroke: none; }
+
+
 
 /* No part of it is outlined as a box — the ink is the top edge and the
    bottom edge, drawn open, running straight across the joins. Outline
@@ -1164,29 +1176,33 @@ body.is-awake .tally-label .says::after {
   vector-effect: non-scaling-stroke;
 }
 
-/* four bands make it round: the dark side, the shadow above it, a wide
-   soft light on the upper third, and a thin specular inside that */
+/* Three bands make it round: the underside going dark, the shade above
+   it, and a broad soft light along the upper third. No specular — a thin
+   bright line down a matte grey pole reads as polished metal, which is
+   the one thing this must not look like. */
 .ye-dark,
 .ye-shade,
 .ye-lit,
-.ye-spec,
-.ye-grain {
+.ye-grain,
+.ye-crack,
+.ye-cut {
   fill: none;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
 }
 
-.ye-dark { stroke: #000; stroke-width: 15; stroke-opacity: .5; }
-.ye-shade { stroke: #000; stroke-width: 6; stroke-opacity: .55; }
-.ye-lit { stroke: var(--paper); stroke-width: 8; stroke-opacity: .15; }
-.ye-spec { stroke: var(--paper); stroke-width: 2.6; stroke-opacity: .5; }
-.ye-grain { stroke: var(--paper); stroke-width: 1.4; stroke-opacity: .2; }
+.ye-dark { stroke: #000; stroke-width: 12; stroke-opacity: .38; }
+.ye-shade { stroke: #000; stroke-width: 6; stroke-opacity: .18; }
+.ye-lit { stroke: var(--paper); stroke-width: 9; stroke-opacity: .24; }
+.ye-grain { stroke: var(--paper); stroke-width: 1.4; stroke-opacity: .16; }
+.ye-crack { stroke: #2b2a26; stroke-width: 1.6; stroke-opacity: .5; }
 
-/* the one thing on it that is not stone */
-.ye-gold { fill: #c9a227; stroke: var(--paper); stroke-width: 2.6; stroke-linejoin: round; }
-.ye-gold-line { fill: none; stroke: #3a2c06; stroke-width: 2; stroke-opacity: .55; }
-.ye-gold-lit { fill: none; stroke: #f7ecb8; stroke-width: 3.4; stroke-linecap: round; }
-.ye-gold-dark { fill: none; stroke: #6b4f0d; stroke-width: 3; stroke-linecap: round; stroke-opacity: .7; }
+/* the thickness of the stone, in the shadow of its own cut end */
+.ye-cut { stroke: #000; stroke-width: 5; stroke-opacity: .3; }
+
+/* chipped, and the aggregate showing where it is */
+.ye-pit { fill: #5f5d56; stroke: none; }
+.ye-chip { fill: #97958b; stroke: none; }
 
 /* The grip. The pole itself takes no pointer — a staff lying across the
    page would otherwise be a wall between the reader and everything
@@ -1237,7 +1253,9 @@ body.is-awake .tally-label .says::after {
   font-family: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", Georgia, serif;
   font-size: .84rem;
   line-height: 1;
-  color: #c9a227;
+  /* it was gold to go with the bands round the ends, and there are no
+     bands round the ends */
+  color: var(--paper-2);
 }
 
 .staff-says .says {
@@ -2668,6 +2686,11 @@ svg.band {
     grid-column: 2;
     grid-row: 4;
   }
+
+  .score > .arena {
+    grid-column: 1 / -1;
+    grid-row: 5;
+  }
 }
 
 /* The right of this panel was a reading and a lot of black. The mark that
@@ -2683,10 +2706,9 @@ svg.band {
 
 .score-sigil {
   position: absolute;
-  right: -2%;
-  bottom: -4%;
-  z-index: -1;
-  width: min(15rem, 26%);
+  right: -3%;
+  bottom: -34%;
+  width: min(17rem, 34%);
   aspect-ratio: 1;
   pointer-events: none;
   /* nought is a mark you have to look for; eight in a row and it is
@@ -2738,6 +2760,56 @@ svg.band {
    half-empty line. */
 .score-read {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* ── the ground it is done on ────────────────────────────────────
+   Held down anywhere on the page, the game was under everything else on
+   it. This is the only thing that takes the hold now, and it is drawn as
+   what it is: an empty piece of floor with the word for what to do on
+   it, going quiet the moment somebody is doing it. */
+.arena {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  border: 0;
+  min-height: clamp(6.5rem, 17vh, 9.5rem);
+  margin: 1.6rem 0 0;
+  padding: 1rem;
+  background: var(--ruled) 0 0 / 44rem 3.5px repeat-x, var(--ink-2);
+  color: var(--paper-3);
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .34em;
+  text-indent: .34em;
+  text-transform: uppercase;
+  cursor: pointer;
+  /* a swipe that starts here still scrolls the page; a hold that does
+     not move is a hold */
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+  /* an edge, the way every other tag on the page draws one, and the run
+     showing in the floor inside it — nothing at nought, and lit from all
+     four sides by the time it is worth losing */
+  box-shadow:
+    inset 0 0 0 1px rgb(138 135 127 / .22),
+    inset 0 0 4rem rgb(224 27 46 / calc(min(var(--streak, 0), 6) * .035));
+  transition: box-shadow .5s ease-out, color .25s ease;
+}
+
+.arena:hover { color: var(--paper-2); }
+
+/* while it is being held the ring is the thing to look at */
+body.is-charging .arena-says {
+  opacity: 0;
+}
+
+.arena-says {
+  position: relative;   /* over the mark in the floor, not under it */
+  transition: opacity .18s ease;
 }
 
 .score-list li {
