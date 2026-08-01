@@ -181,9 +181,30 @@ the network coming back, tries again at once.
 GitHub Pages serves `404.html` for anything it cannot find, and without
 one a typo lands on GitHub's own page, which has nothing to do with this
 site. It is the same page with less on it — same wheel, same cloud, same
-flag — and it is still worth hitting, so `flash.js` is shared rather than
-copied. Everything in there guards on its element existing, because the
-404 does not carry all of the front page's markup.
+flag, same staff — so `flash.js` is shared rather than copied. Everything
+in there guards on its element existing, because the 404 does not carry
+all of the front page's markup. The field is one of the things it does
+not carry: the game lives in its own panel on the front page.
+
+Pages leaves the address in the bar, so this is the one page that knows
+which url somebody actually typed or followed, and it says it back. That
+text belongs to a stranger, so it is written as text and never as markup,
+it is cut at sixty-four characters, and the decoding that turns `%C3%BC`
+back into ü is wrapped — `/%E0%A4` is a url anybody can type and decoding
+one throws outright.
+
+## Everywhere else
+
+The page is the same page in five conditions it did not start out
+handling, and each of them is checked:
+
+| | |
+| --- | --- |
+| **No javascript** | The panels fed by a socket go, and so does anything that cannot work: a field that cannot take a hold, a run of noughts that can never move, a compass with nothing to point at, a clock with no time to show. A control that does nothing when it is pressed is worse than no control. The heading and the sentence stay. |
+| **Reduced motion** | Nothing moves. The field of motes is not drawn at all, and every impact is a state change rather than an animation. |
+| **High contrast** | Windows substitutes its own two colours, which flattens line art built from a light stroke and a dark fill into solid lumps. In that mode the drawings are drawn as lines instead — no fill, the system's text colour for the stroke — and the field gets a real border, because a box-shadow is not drawn at all there and its edge was one. |
+| **Printed** | Every word came out white on white: browsers drop backgrounds, and the ink here is the light half of the pair. The two swap in print, which turns rules, panels, drawings and type back into ink on paper in one go. Links print the address they point at. |
+| **Inside the domain** | Five in a row turns the whole palette over for seven seconds while somebody is reading the numbers. It is a second palette and it clears the same contrast bar as the first. |
 
 ## Fonts
 
@@ -228,7 +249,7 @@ Eight suites, three hundred-odd checks:
 | `flash` | The timing window lands and misses where it should, rings never pile up, holding forever resolves, touch does not strand one, only the field takes a hold, space still scrolls the page, the eighth spark wakes it, every attempt is said out loud, and nothing survives the tab |
 | `upstream` | Every upstream dead, twenty activities, a 200-character track title, a malformed presence payload, an icon that never arrives, storage refusing to open, a socket that will not connect, and the books kept for the visit |
 | `limits` | Offline, 280px wide, browser text at 200%, a response that arrives four seconds late, the 404 at 320px |
-| `reach` | Every piece of text against what is really behind it, at the AA thresholds, and every control against 24px — on four screens |
+| `reach` | Every piece of text against what is really behind it, at the AA thresholds, and every control against 24px — on four screens, inside the domain, in high contrast, and on paper |
 
 The site itself has no build step and no dependencies. `package.json`
 exists for these and nothing else.
