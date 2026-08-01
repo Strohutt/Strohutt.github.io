@@ -338,6 +338,32 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   await p.evaluate(() => scrollTo(0, document.body.scrollHeight));
   await p.waitForTimeout(800);
   const warmSeen = await poseSeen();
+  /* ── the two halves of the page, joined
+     The favourites and the drawings were two lists that never met: three
+     works named in one chapter and six things traced off them drawn in
+     another, with nothing anywhere saying which came from which. */
+  {
+    const drew = await p.evaluate(() => [...document.querySelectorAll('.like-list li')].map(li => {
+      const line = li.querySelector('.like-drew');
+      return {
+        work: (li.querySelector('.like-name') || {}).textContent,
+        says: line ? line.textContent.trim() : '',
+        marks: line ? [...line.querySelectorAll('use')].map(u => u.getAttribute('href')) : [],
+        to: line && line.querySelector('a') ? new URL(line.querySelector('a').href).hash : ''
+      };
+    }));
+    check('every favourite says what it left on the page',
+      drew.length === 3 && drew.every(d => d.says && d.marks.length), JSON.stringify(drew.map(d => d.says)));
+    check('and takes you to the chapter that says what those are',
+      drew.every(d => d.to === '#traced'), drew.map(d => d.to).join(' '));
+
+    // and the marks it names are the same drawings that chapter carries
+    const inChapter = await p.evaluate(() =>
+      [...document.querySelectorAll('#traced .traced-art use')].map(u => u.getAttribute('href')));
+    const stray = drew.flatMap(d => d.marks).filter(m => !inChapter.includes(m));
+    check('and every mark it names is one of them', !stray.length, stray.join(','));
+  }
+
   /* ── 出典 ────────────────────────────────────────────────────
      Six things are drawn on this page and this is the chapter that says
      what they are. The drawings in it have to be the page's own symbols

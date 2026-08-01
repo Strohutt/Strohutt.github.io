@@ -708,7 +708,7 @@ if (likeBox && likeList) {
       };
 
       const got = LIKED
-        .map(l => ({ book: hit(`${l.key}_book`, l.title), screen: hit(`${l.key}_screen`, l.title) }))
+        .map(l => ({ key: l.key, book: hit(`${l.key}_book`, l.title), screen: hit(`${l.key}_screen`, l.title) }))
         // the book is the record the card is built on; the adaptation only
         // ever adds a line, so one without the other is not a card
         .filter(e => e.book);
@@ -767,6 +767,47 @@ const STATE = {
   NOT_YET_RELEASED: 'not out yet',
   CANCELLED: 'cancelled'
 };
+
+/* What each of these three left on this page.
+
+   The favourites and the drawings were two lists that never met: three
+   works named in one chapter and six things traced off them drawn in
+   another, with nothing anywhere saying which came from which. It is the
+   one link between the live half of this page and the drawn half, and it
+   costs a line.
+
+   The marks are the page's own symbols again — the same ones the chapter
+   下 uses, at the size of a word — and the line takes you there. */
+const DREW = {
+  jjk: [['dharma', 'the wheel'], ['flash-2', 'the black flash']],
+  gohs: [['ye-cap', 'the staff']],
+  op: [['cloudbar', 'the cloud'], ['lp-case', 'the log pose'], ['roger', 'the flag']]
+};
+
+function drewLine(key) {
+  const drawn = DREW[key];
+  if (!drawn) return null;
+
+  const p = document.createElement('p');
+  p.className = 'like-drew';
+
+  const link = document.createElement('a');
+  link.href = '#traced';
+
+  const marks = document.createElement('span');
+  marks.className = 'like-drew-marks';
+  marks.setAttribute('aria-hidden', 'true');
+  marks.innerHTML = drawn
+    .map(([id]) => `<svg viewBox="0 0 100 100"><use href="#${id}" /></svg>`).join('');
+  link.append(marks);
+
+  const says = document.createElement('span');
+  says.textContent = drawn.map(([, name]) => name).join(', ');
+  link.append(says);
+
+  p.append(link);
+  return p;
+}
 
 /* One line of facts about a book, in a column narrow enough that it wraps.
    Set as one string it breaks wherever the space happens to fall, which
@@ -858,6 +899,9 @@ function likeRow(entry, i) {
 
     body.append(facts(shown));
   }
+
+  const drew = drewLine(entry.key);
+  if (drew) body.append(drew);
 
   const tags = (media.genres || []).concat(screen ? screen.genres || [] : []);
   if (tags.length) {

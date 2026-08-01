@@ -4559,3 +4559,52 @@ html:not([data-js]) .who > i:last-of-type {
 @media (prefers-reduced-motion: reduce) {
   .grade.is-up .grade-mark { animation: none; }
 }
+
+/* ── what each of these left on the page ─────────────────────────
+   The favourites and the drawings were two lists that never met. This
+   is the one line between them, and it goes to the chapter that says
+   what each mark is. */
+.like-drew {
+  /* pulled up by what the link's own height adds below it, so a target
+     big enough for a thumb does not open a hole in the card */
+  margin: .2rem 0 -.5rem;
+  font-size: .72rem;
+}
+
+.like-drew a {
+  display: inline-flex;
+  align-items: center;
+  /* every target on this page clears 44px, and a link is a target */
+  min-height: 44px;
+  gap: .45rem;
+  color: var(--paper-3);
+  text-decoration: none;
+  transition: color .2s ease;
+}
+
+.like-drew a:hover,
+.like-drew a:focus-visible {
+  color: var(--paper-2);
+}
+
+.like-drew-marks {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+}
+
+.like-drew-marks svg {
+  display: block;
+  width: 1.5em;
+  height: 1.5em;
+  /* The line, not the fill. Each of these symbols carries its own fill —
+     the flag is a silhouette, the wheel is an ink disc with a light line
+     round it — and painting them all one colour turns half of them into
+     blobs. Only the weight of the line is set, because at the size of a
+     word a stroke measured in user units is a hairline. */
+  stroke: currentColor;
+  stroke-width: 10;
+  --cloud-line: 22;
+  --cloud-curl: 14;
+  opacity: .85;
+}
