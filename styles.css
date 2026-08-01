@@ -3265,6 +3265,21 @@ svg.flag {
   color: var(--blood-lit);
 }
 
+/* The one page of the book that is not a numbered chapter carries the
+   mark a volume gives one: a side story. Same corner as every chapter
+   number on the front, and the same drawn characters — the number and
+   the mark share a row so neither pushes the name down. */
+.lost-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.lost-head .chapter {
+  margin-top: 0;
+}
+
 .lost .name {
   font-size: clamp(2.2rem, 7vw, 4.6rem);
   text-transform: lowercase;

@@ -245,6 +245,11 @@ in there guards on its element existing, because the 404 does not carry
 all of the front page's markup. The field is one of the things it does
 not carry: the game lives in its own panel on the front page.
 
+The front's regions are numbered chapters; this is the one page of the
+book that is not one, so it is marked the way a volume marks that —
+番外編, a side story, in the corner where every chapter carries its
+number.
+
 Pages leaves the address in the bar, so this is the one page that knows
 which url somebody actually typed or followed, and it says it back. That
 text belongs to a stranger, so it is written as text and never as markup,

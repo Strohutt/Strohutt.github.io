@@ -256,6 +256,37 @@ const up = p => p.evaluate(() => {
     const back = await rigLen();
     check('and it snaps back after letting go', Math.abs(back - rest) < 60);
   }
+
+  /* ── and it is marked as the side story
+     The front's regions are numbered chapters; the 404 is the one page
+     of the book that is not one, and a volume has a mark for that. Three
+     drawn characters, each resolving to a symbol in this page's own
+     sprite — a use pointing at nothing is an empty box exactly the size
+     of the missing character. */
+  {
+    const mark = await p.evaluate(() => {
+      const chapter = document.querySelector('.lost-head .chapter');
+      if (!chapter) return null;
+      const uses = [...chapter.querySelectorAll('.glyphs use')]
+        .map(u => (u.getAttribute('href') || '').replace('#', ''));
+      return {
+        says: (chapter.querySelector('.says') || {}).textContent || '',
+        uses,
+        drawn: uses.filter(id => {
+          const sym = document.getElementById(id);
+          return sym && sym.tagName.toLowerCase() === 'symbol';
+        }).length,
+        beside: !!chapter.closest('.lost-head').querySelector('.code')
+      };
+    });
+    check('the 404 is marked as the side story', !!mark && mark.says === 'side story',
+      mark && mark.says);
+    check('and every character of the mark is really drawn',
+      !!mark && mark.uses.length === 3 && mark.drawn === 3,
+      mark && `${mark.drawn} of ${mark.uses.length}`);
+    check('and it shares its row with the code, not the name',
+      !!mark && mark.beside);
+  }
   await p.close();
   await c.close();
 
