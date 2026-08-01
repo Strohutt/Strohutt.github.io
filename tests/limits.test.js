@@ -75,6 +75,30 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   check('late response does not shove the page', !(await over(p)));
   await p.close();
 
+  /* ── a monitor wider than the column
+     The spread stops at 78rem and centres, so past about thirteen
+     hundred pixels there is a gutter either side. The wheel is meant to
+     run off the edge of the screen rather than sit inside a frame, and a
+     wheel pushed fifteen percent past the column lands in that gutter
+     and sits there whole, with the speed lines stopping in mid-air
+     behind it. Both are measured against the viewport, not the column. */
+  for (const wide of [1280, 1920, 2560]) {
+    p = await b.newPage({ viewport: { width: wide, height: 900 } });
+    await p.addInitScript(seen);
+    p.on('pageerror', e => fails.push(`${wide} pageerror: ` + e.message));
+    await p.goto(BASE + '/index.html');
+    await p.waitForTimeout(1400);
+    const edge = await p.evaluate(() => ({
+      wheel: Math.round(document.querySelector('.wheel').getBoundingClientRect().right),
+      speed: Math.round(document.querySelector('.speed').getBoundingClientRect().right),
+      vw: innerWidth
+    }));
+    check(`at ${wide}px the wheel still runs off the edge`, edge.wheel > edge.vw, JSON.stringify(edge));
+    check(`at ${wide}px the speed lines reach it`, edge.speed >= edge.vw - 1, JSON.stringify(edge));
+    check(`at ${wide}px nothing widens the page`, !(await over(p)));
+    await p.close();
+  }
+
   // ── the 404 under the same pressure
   p = await b.newPage({ viewport: { width: 320, height: 650 } });
   await p.addInitScript(seen);

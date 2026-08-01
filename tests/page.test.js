@@ -297,6 +297,31 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   await p.waitForTimeout(1600);
   check('and still knows them after a reload', await poseSeen() === 4, String(await poseSeen()));
 
+  /* A phone turned on its side is four hundred pixels tall, and a compass
+     fixed to the bottom left of that lands on the staff's name in the
+     header and on the jolly roger at the foot. A fixed thing that covers
+     what is under it is worse than no fixed thing. */
+  {
+    const flat = await b.newContext({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true });
+    const f = await flat.newPage();
+    await f.addInitScript(seen);
+    await f.goto(BASE + '/index.html');
+    await f.waitForTimeout(1600);
+    const drawn = sel => f.evaluate(s => {
+      const el = document.querySelector(s);
+      const st = getComputedStyle(el);
+      return st.display !== 'none' && st.visibility !== 'hidden';
+    }, sel);
+    check('lying down, the compass is not in the way', !(await drawn('.pose')));
+
+    /* and nothing else went with it — the check is the height, so a rule
+       aimed at it must not be catching a tall phone as well */
+    await f.setViewportSize({ width: 390, height: 844 });
+    await f.waitForTimeout(500);
+    check('and standing up it is back', await drawn('.pose'));
+    await flat.close();
+  }
+
   // scrolling has to reach the drawings, not just the text
   await p.evaluate(() => scrollTo(0, 900));
   await p.waitForTimeout(400);

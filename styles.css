@@ -746,7 +746,13 @@ a {
 .speed {
   position: absolute;
   inset: 0;
-  width: 100%;
+  /* They converge off the right edge of the screen, the same as the wheel
+     they converge behind — so on a monitor wider than the column they
+     have to reach past it too, or the lines stop in mid-air and the wheel
+     carries on without them. The width is stated rather than left to the
+     offsets: this is an svg, and an svg told to work its own width out
+     takes it from the viewBox and ignores where its edges were put. */
+  width: calc(100% + (100vw - 100%) / 2);
   height: 100%;
   overflow: hidden;
   pointer-events: none;
@@ -777,7 +783,16 @@ a {
 .wheel {
   position: absolute;
   top: 44%;
-  right: -15%;
+  /* Off the right edge of the screen, not of the column.
+
+     The spread stops at 78rem and is then centred, so on a wide monitor
+     there is a gutter either side of it — and a wheel pushed fifteen
+     percent past the column landed in that gutter and sat there, whole,
+     with room to spare. Which is a drawing placed inside a frame, which
+     is the one thing it is not meant to be. The gutter is the difference
+     between the viewport and this box, halved; adding it back puts the
+     crop on the edge of the screen at any width. */
+  right: calc(-15% - (100vw - 100%) / 2);
   width: min(36rem, 50%);
   aspect-ratio: 1;
   /* translate and rotate are their own properties, so the offset that
@@ -3855,6 +3870,16 @@ body.is-domain .wheel {
   clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
+}
+
+/* ── a phone turned on its side ──────────────────────────────────
+   Four hundred pixels of height, and the compass is fixed to the bottom
+   left of it: it lands on the staff's name in the header and on the
+   jolly roger at the foot, and it takes a sixth of the screen to do it.
+   A fixed thing that covers what is under it is worse than no fixed
+   thing, and everything it points at is a scroll away regardless. */
+@media (max-height: 30rem) {
+  .pose { display: none; }
 }
 
 /* ── with no javascript at all ───────────────────────────────────

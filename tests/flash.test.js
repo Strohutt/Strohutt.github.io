@@ -689,8 +689,15 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
   await p.waitForTimeout(200);
   check('and holding it longer does not open a second', await ringCount() === 1,
     String(await ringCount()));
+
+  /* Held past the window before letting go, so this one is a miss on any
+     machine. Released at four hundred milliseconds it lands whenever the
+     wind-up happens to be drawn short — and then the landing checked
+     below is the second, and "1 in a row" is 2. */
+  await p.waitForTimeout(1100);
   await p.keyboard.up('Space');
   await p.waitForTimeout(900);
+  check('and letting go past the window is a miss', await streak(p) === '0', await streak(p));
 
   /* ── and said out loud ─────────────────────────────────────────
      The ring shutting is the whole of the feedback, and it is a drawing.
