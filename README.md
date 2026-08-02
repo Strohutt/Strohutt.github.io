@@ -285,11 +285,12 @@ handling, and each of them is checked:
 ## Fonts
 
 Self-hosted. Both families are Japanese and run to thousands of glyphs;
-this page reaches basic latin plus the handful of kanji it actually
-draws — 黒閃, 第一二三四話, 覚醒 — so only those subsets are here. 160K on
-disk, and `unicode-range` means a first paint pulls the 50K of latin and
-nothing else; a kanji block is fetched only if something on the page
-reaches into it.
+the type on this page reaches basic latin, so only those subsets are
+here. The kanji — every chapter title, the grades, the chapter numbers —
+are not type at all: each character was cut from its font once and
+traced into the sprite as an outline, which is why adding one costs path
+data rather than a font file. 160K on disk, and `unicode-range` means a
+first paint pulls the 50K of latin and nothing else.
 
 The three latin faces are preloaded in the head rather than waited for
 until the stylesheet has been fetched and parsed. A preload has to name

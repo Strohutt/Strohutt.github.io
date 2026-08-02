@@ -3004,7 +3004,11 @@ body.is-charging .arena {
   100% { color: inherit; transform: none; }
 }
 
-/* the two characters stacked, the way the tally carries them */
+/* the two characters stacked, the way the tally carries them —
+   every chapter title on the page is drawn this way now */
+.now .head h2,
+.music .head h2,
+.likes .head h2,
 .score .head h2,
 .traced .head h2,
 .rules .head h2,
@@ -3023,6 +3027,9 @@ body.is-charging .arena {
 
    The words underneath are real text and carry the name, so the drawing
    is hidden from the tree rather than labelled twice. */
+.now .head h2 .glyphs,
+.music .head h2 .glyphs,
+.likes .head h2 .glyphs,
 .score .head h2 .glyphs,
 .traced .head h2 .glyphs,
 .rules .head h2 .glyphs,
@@ -3040,6 +3047,9 @@ body.is-charging .arena {
   fill: currentColor;
 }
 
+.now .head h2 .says,
+.music .head h2 .says,
+.likes .head h2 .says,
 .score .head h2 .says,
 .traced .head h2 .says,
 .rules .head h2 .says,
