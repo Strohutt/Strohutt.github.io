@@ -3353,6 +3353,7 @@ svg.flag {
 .flag,
 .staff-grip,
 .pose-hit,
+.grade-take,
 .name button {
   -webkit-appearance: none;
   appearance: none;
@@ -4669,6 +4670,9 @@ html:not([data-js]) .who > i:last-of-type {
    the words beside them for everybody else. */
 .grade {
   display: flex;
+  /* the row may break in front of the control on a narrow screen —
+     the control itself never breaks inside its own words */
+  flex-wrap: wrap;
   align-items: baseline;
   gap: .7rem;
   margin: 0 0 1.1rem;
@@ -4706,6 +4710,32 @@ html:not([data-js]) .who > i:last-of-type {
 .grade-says > span {
   font-size: .78rem;
   color: var(--paper-3);
+}
+
+/* The one control in the panel that is words rather than a drawing, so
+   it is dressed like the page's other worded control — the link at the
+   foot: quiet type, the stroke's red underneath. Padded to a real
+   target; a pressable thing under twenty-four pixels is a dare. */
+.grade-take {
+  margin-left: auto;
+  align-self: center;
+  padding: .45rem .15rem;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--paper-2);
+  text-decoration: underline;
+  text-decoration-color: var(--blood);
+  text-decoration-thickness: var(--rule);
+  text-underline-offset: .35em;
+  cursor: pointer;
+}
+
+.grade-take:hover,
+.grade-take:focus-visible {
+  color: var(--paper);
 }
 
 /* Special grade is the only one that asks for accuracy as well as nerve,

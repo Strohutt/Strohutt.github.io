@@ -838,6 +838,40 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
     getComputedStyle(document.querySelector('.score-line')).color));
   await p.close();
 
+  /* ── and a rank can be taken along
+     One line to the clipboard, composed from the live figures at the
+     moment of pressing. The page keeps nothing and sends nothing, so the
+     only way a rank leaves this tab is in the visitor's own hand — and
+     what leaves has to be exactly what the panel says, not a copy that
+     drifts from it. */
+  {
+    const cb = await b.newContext({
+      viewport: { width: 1200, height: 800 },
+      permissions: ['clipboard-read', 'clipboard-write']
+    });
+    const q = await cb.newPage();
+    q.on('pageerror', e => fails.push('take: pageerror ' + e.message));
+    await q.addInitScript(seen);
+    await q.goto(BASE + '/index.html');
+    await q.waitForTimeout(900);
+
+    const takeable = () => q.evaluate(() => !document.getElementById('grade-take').hidden);
+    check('nothing earned, nothing to take', !(await takeable()));
+
+    await q.evaluate(() => { total = 4; best = 3; closest = 21; awake = false; tell(true); });
+    check('a rank earned is a rank offered', await takeable());
+
+    await q.evaluate(() => document.getElementById('grade-take').click());
+    await q.waitForTimeout(300);
+    const line = await q.evaluate(() => navigator.clipboard.readText());
+    check('and it goes out with the numbers that earned it',
+      line === 'black flash · 二級 — grade two · 4 landed · best 3 in a row · 21 ms from the ring · strohutt.github.io',
+      line);
+    check('and the button says it went',
+      await q.evaluate(() => document.getElementById('grade-take').textContent) === 'copied');
+    await cb.close();
+  }
+
   /* ── nothing accumulates ───────────────────────────────────────
      Every attempt builds a ring, and every landing builds waves, a bolt,
      fourteen shards and a rift, all of which take themselves away again

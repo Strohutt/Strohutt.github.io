@@ -194,6 +194,12 @@ asks for eight in a row *and* a reading inside five milliseconds, because
 a long run is nerve and a close reading is timing and the top should not
 be either one alone.
 
+A rank above the bottom one can be taken along: one line to the
+clipboard — kanji, rank, the numbers that earned it, the address —
+composed from the live figures at the moment of pressing. The page still
+keeps nothing and sends nothing; what happens to the line after that is
+the visitor's business.
+
 The staff goes through things. It grew to the width of the page and
 changed nothing, which is a spring with a drawing on it; now whatever the
 pole passes through answers the way it answers to any other hit, one

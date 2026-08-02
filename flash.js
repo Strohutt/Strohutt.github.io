@@ -344,7 +344,36 @@ const gradeBox = document.getElementById('grade');
 const gradeMark = document.getElementById('grade-mark');
 const gradeName = document.getElementById('grade-name');
 const gradeWhy = document.getElementById('grade-why');
+const gradeTake = document.getElementById('grade-take');
 let held = '';
+
+/* A rank that only exists in one tab is a rank nobody hears about. One
+   line, composed from the live figures at the moment of pressing, handed
+   to the clipboard and to nobody else — the page keeps nothing and sends
+   nothing, and what happens to the line after that is the visitor's
+   business. */
+if (gradeTake) {
+  let took = 0;
+  gradeTake.addEventListener('click', async () => {
+    const now = GRADES.find(g => g.at());
+    const bits = [`${now.kanji} — ${now.name}`];
+    if (total) bits.push(`${total} landed`);
+    if (best > 1) bits.push(`best ${best} in a row`);
+    if (closest) bits.push(`${closest} ms from the ring`);
+    const line = `black flash · ${bits.join(' · ')} · strohutt.github.io`;
+    try {
+      await navigator.clipboard.writeText(line);
+      gradeTake.textContent = 'copied';
+      aloud('Copied, with the numbers that earned it.');
+    } catch {
+      // no clipboard here — the one honest thing to say is that
+      gradeTake.textContent = 'the browser said no';
+      aloud('The browser would not hand it over.');
+    }
+    clearTimeout(took);
+    took = setTimeout(() => { gradeTake.textContent = 'take it with you'; }, 1800);
+  });
+}
 
 function graded(loud) {
   if (!gradeBox) return;
@@ -370,6 +399,8 @@ function graded(loud) {
   gradeName.textContent = now.name;
   gradeWhy.textContent = now.why;
   gradeBox.dataset.grade = now.name.replace(/\s+/g, '-');
+  // the bottom rank is the state of having none — nothing to take yet
+  if (gradeTake) gradeTake.hidden = now.name === 'grade four';
 
   // going up is worth a moment; arriving already there is not
   if (first || !loud || stillPlease.matches) return;
