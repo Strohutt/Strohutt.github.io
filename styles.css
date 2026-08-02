@@ -1015,13 +1015,18 @@ a {
   translate: 0 -50%;
 }
 
+/* closest-side on a box far wider than it is tall puts the opaque core
+   at 58% of the *height*, so the ends of the label had almost nothing
+   behind them and whatever paragraph the dial happened to be over read
+   straight through the words. Elliptical, sized to the box, and opaque
+   across the whole of it. */
 .pose-text::before {
   content: "";
   position: absolute;
-  inset: -.8rem -1.8rem -.8rem -1.2rem;
+  inset: -.8rem -2.4rem -.8rem -1.2rem;
   z-index: -1;
-  background: radial-gradient(closest-side,
-    var(--ink) 58%, color-mix(in srgb, var(--ink), transparent 30%) 82%, transparent 100%);
+  background: radial-gradient(72% 130% at 42% 50%,
+    var(--ink) 62%, color-mix(in srgb, var(--ink), transparent 25%) 84%, transparent 100%);
 }
 
 .pose-to {
@@ -3069,7 +3074,12 @@ body.is-charging .arena {
   flex-wrap: wrap;
   align-items: center;
   gap: clamp(1rem, 3vw, 2.4rem);
-  padding-block: clamp(1.2rem, 3vw, 2.4rem);
+  /* The compass is fixed to the bottom left of the window, so at the very
+     foot of the page it lands on whatever is in that corner. On anything
+     narrower than a laptop that was the flag, and the dial was taking a
+     share of the taps meant for it. The bottom of the footer is kept
+     clear for it instead. */
+  padding-block: clamp(1.2rem, 3vw, 2.4rem) clamp(5rem, 12vh, 6.5rem);
   isolation: isolate;
 }
 

@@ -620,9 +620,15 @@ if (pose && poseHit && poseName) {
       saying = setTimeout(() => pose.classList.remove('is-saying'), 2400);
     }
 
-    // and it says which of the two it is: somewhere to go, or where you are
+    /* and it says which of the three it is: somewhere to go, where you
+       are, or a full log. The last one used to be written once at the
+       moment it locked and then overwritten by the next scroll, so an
+       instrument that had finished its job spent the rest of the visit
+       claiming the foot of the page was still ahead. */
     const on = !landed && found[0].getBoundingClientRect().top <= mid;
-    if (poseTo) poseTo.textContent = on ? 'here' : 'next';
+    if (poseTo) {
+      poseTo.textContent = pose.classList.contains('is-full') ? 'logged' : on ? 'here' : 'next';
+    }
 
     /* what it has recorded: every island whose middle you have been past.
        Counted off the list rather than off the target, so arriving by the
