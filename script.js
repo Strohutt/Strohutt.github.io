@@ -82,7 +82,6 @@ if (stillPlease.matches || !('IntersectionObserver' in window)) {
    is only a number can be used by three rules at once without any of them
    knowing about the others. */
 
-const hero = document.querySelector('.hero');
 const letters = [...document.querySelectorAll('.name i')];
 const cards = document.querySelector('.like-list');
 const still = stillPlease.matches;
@@ -127,12 +126,17 @@ if (!still && matchMedia('(pointer: fine)').matches) {
     [name, cards].forEach(target => target && onScreen.add(target));
   }
 
+  const leaners = [...document.querySelectorAll('.speed')];
+
   const write = () => {
     queued = false;
 
-    if (hero) {
-      hero.style.setProperty('--lean-x', ((px / innerWidth - .5) * 2).toFixed(3));
-      hero.style.setProperty('--lean-y', ((py / innerHeight - .5) * 2).toFixed(3));
+    /* On the speed lines, which are the only thing that reads it. On the
+       header it was inherited by the name, the staff, the wheel and
+       every link, and all of that was restyled on each pointer frame. */
+    for (const el of leaners) {
+      el.style.setProperty('--lean-x', ((px / innerWidth - .5) * 2).toFixed(3));
+      el.style.setProperty('--lean-y', ((py / innerHeight - .5) * 2).toFixed(3));
     }
 
     /* The word answers to the pointer going past it, letter by letter, so
