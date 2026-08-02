@@ -4409,6 +4409,15 @@ html:not([data-js]) .who > i:last-of-type {
     border: 1px solid CanvasText;
   }
 
+  /* The worded control by the rank is a button undressed down to an
+     underline, and the underline's red is gone here — without an edge it
+     reads as a stray caption. It gets the border back, in the colour the
+     system gives buttons. */
+  .grade-take {
+    border: 1px solid ButtonText;
+    padding-inline: .5rem;
+  }
+
   /* Texture that carries nothing and cannot survive being reduced to one
      colour: the field of motes, the speed lines, the screentone behind
      the panels, the mark burning in the floor of the arena. */
