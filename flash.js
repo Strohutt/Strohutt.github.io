@@ -973,6 +973,24 @@ if (!stillPlease.matches) {
        up, and this is neither — without swallowing it, a click runs on
        top of every held key. */
     arena.addEventListener('click', event => event.preventDefault());
+
+    /* The field is nearly the full width of a phone, so it cannot just
+       take every touch — that made it a wall the page could not be
+       scrolled past. Instead the gesture decides: a thumb wobbles a few
+       pixels during a genuine hold and that much is protected here, and
+       anything past the slop is a swipe, which the browser gets back —
+       it cancels the pointer, the quiet path closes the ring without
+       costing the run, and the page scrolls. */
+    let touchFrom = null;
+    arena.addEventListener('touchstart', event => {
+      touchFrom = [event.touches[0].clientX, event.touches[0].clientY];
+    }, { passive: true });
+    arena.addEventListener('touchmove', event => {
+      if (!charge || !touchFrom) return;
+      const dx = event.touches[0].clientX - touchFrom[0];
+      const dy = event.touches[0].clientY - touchFrom[1];
+      if (Math.hypot(dx, dy) < 14) event.preventDefault();
+    }, { passive: false });
   }
   addEventListener('pointercancel', () => {
     if (!charge) return;

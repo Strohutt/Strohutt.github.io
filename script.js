@@ -254,7 +254,6 @@ if (!still) {
     lastY = y;
     lastT = t;
 
-    root.style.setProperty('--vel', vel.toFixed(3));
     /* Off the page's own scroll position this grew without a limit — by
        the foot of a phone page the second cloud was a hundred and thirty
        pixels above where it had been placed, sitting across the last line
@@ -264,17 +263,27 @@ if (!still) {
 
        The reading is taken through the drift already applied, so it feeds
        back into itself — at a gain of about fourteen pixels in a screen
-       height that is a quarter of a pixel, and it settles at once. */
+       height that is a quarter of a pixel, and it settles at once.
+
+       Every box is read before anything is written. Read one, write one,
+       read the next, and each read finds the layout dirtied by the write
+       before it — a full reflow per element, fifteen of them per scroll
+       frame, and on a phone the page seized up under the thumb. Read in
+       one pass and the whole frame costs one layout. */
+    const driftBoxes = [...drifters].map(el => el.getBoundingClientRect());
+    const regionBoxes = regions.map(panel => panel.getBoundingClientRect());
+
+    root.style.setProperty('--vel', vel.toFixed(3));
     drifters.forEach((el, i) => {
-      const r = el.getBoundingClientRect();
+      const r = driftBoxes[i];
       const off = Math.max(-1, Math.min(1, (r.top + r.height / 2 - innerHeight / 2) / innerHeight));
       el.style.setProperty('--drift', `${(off * AMP[i % AMP.length]).toFixed(1)}px`);
     });
     if (wheelArt) wheelArt.style.setProperty('--roll', `${(y * .06).toFixed(2)}deg`);
 
     const mid = innerHeight / 2;
-    regions.forEach(panel => {
-      const r = panel.getBoundingClientRect();
+    regions.forEach((panel, i) => {
+      const r = regionBoxes[i];
       if (r.bottom < -80 || r.top > innerHeight + 80) return;
       const off = Math.abs(r.top + r.height / 2 - mid) / (mid + r.height / 2);
       panel.style.setProperty('--near', Math.max(0, 1 - off).toFixed(3));

@@ -2902,11 +2902,12 @@ svg.band {
   text-indent: .34em;
   text-transform: uppercase;
   cursor: pointer;
-  /* the field owns every touch that starts on it. pan-y sounded polite —
-     scroll from anywhere — but a thumb drifts a few pixels during any
-     real hold, the browser reads that as a scroll and cancels the
-     pointer, and the game dies mid-charge on every phone. */
-  touch-action: none;
+  /* pan-y, with script deciding per gesture: the field is nearly the
+     full width of a phone, so taking every touch made it a wall the
+     page could not be scrolled past. A touchmove listener protects a
+     hold against the few pixels a thumb wobbles and hands anything
+     bigger back to the browser as the scroll it was meant to be. */
+  touch-action: pan-y;
   -webkit-user-select: none;
   user-select: none;
   /* an edge, the way every other tag on the page draws one, and the run

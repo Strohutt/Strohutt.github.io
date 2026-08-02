@@ -308,14 +308,17 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
     await still.close();
   }
 
-  /* The three drag surfaces own their touches outright. pan-y sounded
-     polite — let the page scroll from anywhere — but the browser reads a
-     few pixels of drift as a scroll and cancels the pointer, and on a
-     phone that is every hold and every pull: the game died mid-charge
-     and the staff could not be used at all. */
-  check('the drag surfaces own their touches', await p.evaluate(() =>
-    ['#flash-arena', '.staff-grip', '.sigil'].every(s =>
-      getComputedStyle(document.querySelector(s)).touchAction === 'none')),
+  /* The small drag surfaces own their touches outright — with pan-y the
+     browser reads a few pixels of drift as a scroll and cancels the
+     pointer, so the staff could not be pulled on a phone at all. The
+     arena is different: it is nearly the full width of a phone, so it
+     keeps pan-y and a touchmove listener protects a hold against thumb
+     wobble instead — taking every touch there made it a wall the page
+     could not be scrolled past. */
+  check('the pull surfaces own their touches, the field stays scrollable',
+    await p.evaluate(() =>
+      ['.staff-grip', '.sigil'].every(s => getComputedStyle(document.querySelector(s)).touchAction === 'none') &&
+      getComputedStyle(document.querySelector('#flash-arena')).touchAction === 'pan-y'),
     await p.evaluate(() => ['#flash-arena', '.staff-grip', '.sigil']
       .map(s => getComputedStyle(document.querySelector(s)).touchAction).join(' ')));
 
