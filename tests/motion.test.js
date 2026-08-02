@@ -109,8 +109,12 @@ const json = body => ({ status: 200, contentType: 'application/json', body: JSON
   /* The peak over the whole scroll, not the reading at one instant after
      it. Scroll events and frames do not line up, so any single sample
      lands wherever that happened to fall. */
+  /* Read off the speed lines, which is the thing that consumes it. It
+     used to be written on the root element, and a custom property on the
+     root makes the browser restyle the whole document — every scroll
+     frame, sprite included. */
   const vel = await p.evaluate(async () => {
-    const read = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--vel')) || 0;
+    const read = () => parseFloat(getComputedStyle(document.querySelector('.speed')).getPropertyValue('--vel')) || 0;
     const rest = read();
     let peak = 0;
     for (let i = 1; i <= 14; i++) {
@@ -129,14 +133,18 @@ const json = body => ({ status: 200, contentType: 'application/json', body: JSON
     await p.evaluate(() => getComputedStyle(document.querySelector('.speed')).scale) !== 'none');
 
   // and the regions know where they are on the screen
+  /* On the heading rather than the region, for the same reason: the mark
+     under the heading is the only thing that reads it, and a property set
+     on a panel is inherited by everything inside it. */
   const near = await p.evaluate(async () => {
     document.querySelector('.score').scrollIntoView({ block: 'center' });
     await new Promise(r => setTimeout(r, 400));
     const at = s => parseFloat(document.querySelector(s).style.getPropertyValue('--near')) || 0;
-    return { score: at('.score'), hero: at('.hero') };
+    return { score: at('.score .head'), far: at('.now .head'), onPanel: at('.score') };
   });
   check('the region in the middle of the screen knows it', near.score > .8, JSON.stringify(near));
-  check('and one scrolled off does not', near.hero < near.score, JSON.stringify(near));
+  check('and one scrolled off does not', near.far < near.score, JSON.stringify(near));
+  check('and it is not set on the whole region', !near.onPanel, JSON.stringify(near));
 
   /* ── the cards turn ─────────────────────────────────────────────── */
   const tilt = await p.evaluate(async () => {

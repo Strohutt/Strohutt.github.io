@@ -201,7 +201,6 @@ if (!still) {
      is what a wheel does when something rolls past it — on top of its own
      slow ratchet, so the two never line up into one obvious loop. */
   const wheelArt = document.querySelector('.wheel');
-  const root = document.documentElement;
 
   /* How hard the page is being thrown about, nought to one. The speed
      lines are drawn for exactly one reason and they were sitting still
@@ -226,14 +225,28 @@ if (!still) {
     easeT = now;
     vel *= Math.pow(.02, dt / 1000);
     if (vel < .01) { vel = 0; easeT = 0; } else requestAnimationFrame(ease);
-    root.style.setProperty('--vel', vel.toFixed(3));
+    thrown(vel.toFixed(3));
   };
 
   /* How centred each region is, nought at the edge of the screen and one
      in the middle of it. The mark under a heading grows as its region
      comes up and falls back as it goes, so the page answers to being
-     scrolled rather than only to being arrived at. */
-  const regions = [...document.querySelectorAll('.panel')];
+     scrolled rather than only to being arrived at.
+
+     Written on the heading rather than on the region. A custom property
+     is inherited, so setting one on a panel makes the browser recompute
+     style for everything inside it — and the only thing that reads this
+     is the mark under the heading. */
+  const regions = [...document.querySelectorAll('.panel')]
+    .map(panel => [panel, panel.querySelector('.head')])
+    .filter(([, head]) => head);
+
+  /* Same again for how hard the page is being thrown about. This went on
+     the root element, which meant every scroll frame invalidated the
+     style of the whole document — sprite included, and the sprite is
+     four hundred paths. Two things read it. */
+  const stretchers = [...document.querySelectorAll('.speed, .band')];
+  const thrown = v => { for (const el of stretchers) el.style.setProperty('--vel', v); };
 
   const shift = () => {
     const y = scrollY;
@@ -266,9 +279,9 @@ if (!still) {
        frame, and on a phone the page seized up under the thumb. Read in
        one pass and the whole frame costs one layout. */
     const driftBoxes = [...drifters].map(el => el.getBoundingClientRect());
-    const regionBoxes = regions.map(panel => panel.getBoundingClientRect());
+    const regionBoxes = regions.map(([panel]) => panel.getBoundingClientRect());
 
-    root.style.setProperty('--vel', vel.toFixed(3));
+    thrown(vel.toFixed(3));
     drifters.forEach((el, i) => {
       const r = driftBoxes[i];
       const off = Math.max(-1, Math.min(1, (r.top + r.height / 2 - innerHeight / 2) / innerHeight));
@@ -277,11 +290,11 @@ if (!still) {
     if (wheelArt) wheelArt.style.setProperty('--roll', `${(y * .06).toFixed(2)}deg`);
 
     const mid = innerHeight / 2;
-    regions.forEach((panel, i) => {
+    regions.forEach(([, head], i) => {
       const r = regionBoxes[i];
       if (r.bottom < -80 || r.top > innerHeight + 80) return;
       const off = Math.abs(r.top + r.height / 2 - mid) / (mid + r.height / 2);
-      panel.style.setProperty('--near', Math.max(0, 1 - off).toFixed(3));
+      head.style.setProperty('--near', Math.max(0, 1 - off).toFixed(3));
     });
 
     waiting = false;
