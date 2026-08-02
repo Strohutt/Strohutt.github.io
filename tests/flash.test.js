@@ -572,11 +572,18 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
   const inside = await paper();
   check('the page itself is inside it', inside.paper !== '#efece4', JSON.stringify(inside));
 
+  /* awakened is the state the re-cast bug lived in — every hit past five
+     re-opened the domain, and inside it every hit lands, so it never
+     closed again. Forced on here so the landing below would re-cast if
+     that path ever comes back. */
+  await q.evaluate(() => { awake = true; });
   await wild();
   await q.waitForTimeout(240);
   const sure = await reading();
   check('inside it, a release lands whatever the timing was',
     sure.last === 'sure hit' && sure.streak === '6', JSON.stringify(sure));
+  check('and a hit inside it does not pour it full again',
+    parseFloat(sure.left) < parseFloat(open.left), `${open.left} → ${sure.left}`);
   check('and the wheel learns from that too — it is what the domain costs',
     Number(sure.learned) > Number(open.learned), `${open.learned} → ${sure.learned}`);
   /* A hit that was given to you is not a piece of timing anybody did, so

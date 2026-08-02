@@ -308,6 +308,17 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
     await still.close();
   }
 
+  /* The three drag surfaces own their touches outright. pan-y sounded
+     polite — let the page scroll from anywhere — but the browser reads a
+     few pixels of drift as a scroll and cancels the pointer, and on a
+     phone that is every hold and every pull: the game died mid-charge
+     and the staff could not be used at all. */
+  check('the drag surfaces own their touches', await p.evaluate(() =>
+    ['#flash-arena', '.staff-grip', '.sigil'].every(s =>
+      getComputedStyle(document.querySelector(s)).touchAction === 'none')),
+    await p.evaluate(() => ['#flash-arena', '.staff-grip', '.sigil']
+      .map(s => getComputedStyle(document.querySelector(s)).touchAction).join(' ')));
+
   /* ── ログポース ─────────────────────────────────────────────────
      The one piece of navigation on the page. It has to name where it
      is taking you, change as the page goes by, actually take you
@@ -488,7 +499,7 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
           .filter(u => (u.getAttribute('href') || '') === `#${id}` && !u.closest('#traced')).length > 0)
       };
     });
-    check('the chapter names six drawn things', traced.count === 6, String(traced.count));
+    check('the chapter names seven drawn things', traced.count === 7, String(traced.count));
     check('and each of them says what it is, where it is from, and what it does',
       traced.whole === traced.count, `${traced.whole} of ${traced.count}`);
     check('and every drawing in it is one the page itself uses',

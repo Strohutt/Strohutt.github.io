@@ -118,7 +118,7 @@ you go past — eight islands ahead of the top, one per mark on the bezel.
 | 第二話 · **in my ears** | What Spotify is playing, drawn here rather than embedded |
 | 第三話 · **favourites** | Three titles and what AniList says about each, plus what each of them left drawn on this page |
 | 第四話 · **black flash** | The one thing here anybody can get better at: a rank, a field to hold, and eight sparks to earn |
-| 第五話 · **traced from** | What the six drawn things are, which panel each was traced off, and what it does here |
+| 第五話 · **traced from** | What the seven drawn things are, which panel each was traced off, and what it does here |
 | 第六話 · **the bounty** | A wanted poster for the reader. It starts at zero and fills in from what the visit did — regions, flashes, sparks, a domain — with a ledger beside it pricing each line so the sum can be checked. Burns with the tab |
 | 第七話 · **how it's drawn** | A cut sheet on how the page is made. Every figure in it is measured off the live document — paths, traced characters, photographs present, what session storage holds — so no stamp can go stale or be made up. The tests get the one entry with no stamp: the page has no way to count a suite that runs before it ships |
 

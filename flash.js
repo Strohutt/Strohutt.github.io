@@ -673,16 +673,15 @@ function shutCharge(hit) {
 /* A miss that tells you nothing is a miss you cannot learn from, so it
    says which side of the window you were on. */
 function missed(how, off, dev) {
-  spent = false;
-
   /* A cancelled hold is not an attempt. No mark, the last real reading
-     stays, and the run survives too — the browser taking the pointer
-     away is not the player letting go. */
+     stays, and the run survives — including its spent domain, so a
+     cancel cannot be used to re-arm it mid-run. */
   if (!how) {
     say('');
     return;
   }
 
+  spent = false;
   streak = 0;
   heat();
 
@@ -789,8 +788,12 @@ function landed(dev, sure) {
   void document.body.offsetWidth;
   document.body.classList.add('is-flashing');
 
-  // five in a row and the field is yours for a while
-  if (streak >= DOMAIN_AT && (!spent || awake)) cast();
+  /* Five in a row and the field is yours for a while — once per run.
+     This used to re-arm for awakened players on every hit past five,
+     and inside the domain every hit lands, so the domain re-opened
+     itself forever: seven seconds, again and again, palette flipping,
+     until a miss. A god mode that never ends is a broken page. */
+  if (streak >= DOMAIN_AT && !spent) cast();
 }
 
 /* 領域展開. A flash over the page was the whole of it before, which is a

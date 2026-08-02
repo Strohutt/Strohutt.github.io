@@ -1274,8 +1274,11 @@ body.is-awake .tally-label .says::after {
   width: clamp(4.6rem, 11vw, 6.4rem);
   height: max(46px, var(--rig-h));
   cursor: grab;
-  /* the page keeps vertical scrolling; the drag takes the rest */
-  touch-action: pan-y;
+  /* the grip owns its touches. With pan-y, any pull with a vertical
+     component got claimed by the browser as a scroll and cancelled —
+     which on a phone is every pull, so the staff could not be used
+     at all. The grip is small; scrolling starts anywhere else. */
+  touch-action: none;
 }
 
 .staff-grip:active { cursor: grabbing; }
@@ -1436,9 +1439,11 @@ body.is-awake .tally-label .says::after {
   translate: 0 -50%;
   border-radius: 50%;
   cursor: grab;
-  /* the browser keeps vertical scrolling, we take the rest — taking the
-     lot would make an eleven-rem circle a dead spot on a phone */
-  touch-action: pan-y;
+  /* same as the staff grip: with pan-y a spin with any vertical arc in
+     it — which is every real throw — got cancelled by the browser
+     mid-drag. The circle being a dead spot for scrolling costs less
+     than the wheel being unthrowable. */
+  touch-action: none;
 }
 
 .sigil:active {
