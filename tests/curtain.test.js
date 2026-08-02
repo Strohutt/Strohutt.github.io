@@ -345,8 +345,8 @@ const up = p => p.evaluate(() => {
   /* ── and when the typo is close to a real place, it says which one.
      The stranger's text only picks from the page's own list — it never
      becomes markup and it never becomes the link itself. */
-  said = await asked('/rulez');
-  check('a near-miss gets a guess', said.guessed === 'were you after the rules?' && said.to === '/#rules',
+  said = await asked('/bountry');
+  check('a near-miss gets a guess', said.guessed === 'were you after the bounty?' && said.to === '/#bounty',
     `${said.guessed} → ${said.to}`);
 
   said = await asked('/Making.html');
@@ -360,9 +360,9 @@ const up = p => p.evaluate(() => {
   said = await asked('/some/old/page');
   check('a path near nothing gets no guess', said.guessed === null, String(said.guessed));
 
-  said = await asked('/rulez?<img src=x onerror=alert(1)>');
+  said = await asked('/bountry?<img src=x onerror=alert(1)>');
   check('and the guess never carries the stranger\'s text',
-    said.to === '/#rules' && !said.guessHtml.includes('&lt;img') && !said.guessHtml.includes('<img'),
+    said.to === '/#bounty' && !said.guessHtml.includes('&lt;img') && !said.guessHtml.includes('<img'),
     said.guessHtml.slice(0, 60));
 
   /* A half-written escape is a url anybody can type, and decoding one

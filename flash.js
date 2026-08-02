@@ -673,21 +673,22 @@ function shutCharge(hit) {
 /* A miss that tells you nothing is a miss you cannot learn from, so it
    says which side of the window you were on. */
 function missed(how, off, dev) {
-  streak = 0;
   spent = false;
+
+  /* A cancelled hold is not an attempt. No mark, the last real reading
+     stays, and the run survives too — the browser taking the pointer
+     away is not the player letting go. */
+  if (!how) {
+    say('');
+    return;
+  }
+
+  streak = 0;
   heat();
 
   if (tally) {
     tally.classList.remove('is-hot');
     document.getElementById('tally-streak').textContent = '0';
-  }
-
-  /* A cancelled hold is not an attempt. It leaves no mark, and it leaves
-     the last real reading alone — scrolling away mid-charge should not
-     wipe the number you were trying to beat. */
-  if (!how) {
-    say('');
-    return;
   }
 
   mark(false);
@@ -1203,7 +1204,7 @@ function lostSaid() {
     [['likes', 'like', 'favourites', 'favorites', 'favourite', 'favorite'], 'favourites', '/#likes'],
     [['score', 'flash', 'blackflash', 'black'], 'the black flash', '/#score'],
     [['traced', 'tracing', 'wheel', 'staff', 'yeoui'], 'traced from', '/#traced'],
-    [['rules', 'rule'], 'the rules', '/#rules'],
+    [['bounty', 'wanted', 'berry', 'berries', 'poster'], 'the bounty', '/#bounty'],
     [['making', 'drawn', 'sakuga', 'colophon'], 'how it’s drawn', '/#making'],
     [['music', 'spotify', 'ears', 'track', 'song'], 'in my ears', '/#music'],
     [['now', 'status', 'presence', 'discord'], 'right now', '/#now']

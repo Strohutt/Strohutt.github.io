@@ -881,6 +881,15 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
      has to be the number it started with. */
   p = await fresh();
   const nodes = () => p.evaluate(() => document.querySelectorAll('*').length);
+  /* Counted from a warmed page, not a cold one. The first landings are
+     allowed to build lasting state — ledger rows on the poster, the take
+     control, attempt marks — and none of that is debris. The warm-up
+     reaches every row the ledger can ever have, so from here sixty more
+     attempts must add nothing. */
+  /* quietly — a loud tell stamps a rank-up poke that takes itself away
+     again, and a baseline holding a self-removing mark is off by four */
+  await p.evaluate(() => { total = 7; best = 9; closest = 3; awake = true; learned = 8; tell(false); });
+  await p.waitForTimeout(700);
   const atRest = await nodes();
 
   await p.evaluate(() => new Promise(done => {

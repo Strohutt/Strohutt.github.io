@@ -453,7 +453,7 @@ if (pose && poseHit && poseName) {
     ['.likes', 'favourites'],
     ['.score', 'black flash'],
     ['.traced', 'traced from'],
-    ['.rules', 'the rules'],
+    ['.bounty', 'the bounty'],
     ['.making', 'how it\'s drawn'],
     ['.foot', 'the sea'],
     ['.hero', 'the top']
@@ -477,6 +477,7 @@ if (pose && poseHit && poseName) {
     pose.style.setProperty('--seen', seen);
     try { sessionStorage.setItem(SEEN_KEY, String(seen)); } catch { /* fine */ }
     written();
+    bounty();
     // chapter seven counts what is held, and a mark was just written
     recount();
   };
@@ -515,8 +516,72 @@ if (pose && poseHit && poseName) {
     log.hidden = !bits.length;
   };
 
+  /* ── 懸賞金 — the price on the reader ──────────────────────────
+     Raised by what the visit did, with each line priced separately so
+     the sum can be checked against the ledger under it. The game's
+     figures are read off the panel the way the log reads them — the
+     counts live in the other file, and the DOM is the one place both
+     files already agree on. */
+  const bountySum = document.getElementById('bounty-sum');
+  const bountyLed = document.getElementById('bounty-led');
+  const poster = document.querySelector('.poster');
+
+  const berry = n => `<svg class="berry" viewBox="0 0 24 30" aria-hidden="true"><use href="#berry"></use></svg>${n.toLocaleString('en-US')}`;
+  let priced = -1;
+  let counting = 0;
+
+  const bounty = () => {
+    if (!bountySum || !bountyLed) return;
+
+    const figure = id => parseInt((document.getElementById(id) || { textContent: '' }).textContent, 10) || 0;
+    const landed = figure('score-total');
+    const run = figure('score-best');
+    const sparks = figure('score-adapt');
+    const grade = (document.getElementById('grade-name') || { textContent: '' }).textContent;
+
+    /* every line is a thing that was done, priced once */
+    const lines = [];
+    if (seen) lines.push([`${seen} ${seen === 1 ? 'region' : 'regions'} gone past`, seen * 3000000]);
+    if (landed) lines.push([`${landed} ${landed === 1 ? 'flash' : 'flashes'} landed`, landed * 10000000]);
+    if (run > 1) lines.push([`a run of ${run}`, run * 20000000]);
+    if (sparks) lines.push([`${sparks} ${sparks === 1 ? 'spark' : 'sparks'}`, sparks * 30000000]);
+    if (run >= 5) lines.push(['a domain of your own', 100000000]);
+    if (grade === 'special grade') lines.push(['special grade', 500000000]);
+
+    const sum = lines.reduce((s, [, b]) => s + b, 0);
+    if (sum === priced) return;
+    const was = Math.max(0, priced);
+    priced = sum;
+
+    bountyLed.innerHTML = lines
+      .map(([what, b]) => `<li><span>${what}</span><b>${berry(b)}</b></li>`).join('');
+
+    /* the sum climbs rather than jumps — a bounty going up is news, and
+       news is read out, not swapped in */
+    cancelAnimationFrame(counting);
+    if (stillPlease.matches || sum <= was) {
+      bountySum.textContent = sum.toLocaleString('en-US');
+    } else {
+      const t0 = performance.now();
+      const step = now => {
+        const t = Math.min(1, (now - t0) / 700);
+        const eased = 1 - (1 - t) ** 3;
+        bountySum.textContent = Math.round(was + (sum - was) * eased).toLocaleString('en-US');
+        if (t < 1) counting = requestAnimationFrame(step);
+      };
+      counting = requestAnimationFrame(step);
+      if (poster) {
+        poster.classList.remove('is-raised');
+        void poster.offsetWidth;
+        poster.classList.add('is-raised');
+      }
+    }
+  };
+
   addEventListener('strohut:score', written);
+  addEventListener('strohut:score', bounty);
   written();
+  bounty();
 
   const islands = () => ISLANDS
     .map(([sel, name]) => [document.querySelector(sel), name])
@@ -666,19 +731,15 @@ if (clock) {
      changes on its own, and when it does it turns over rather than being
      swapped out — a digit that changes with no motion at all is a digit
      nobody ever notices changing. */
-  /* And the page knows whether it is night where he is.
+  /* And the page knows whether it is night where he is. The hour is
+     already being read for the clock, so the sky answers to it: one
+     number, nought in the small hours and one at midday, written where
+     css can reach it. The field of stars is thicker after dark and
+     nearly gone at noon, the sea slows down, the sheet cools a shade.
+     Nothing appears or disappears on the hour, it only shifts.
 
-     The header says "a light on a porch", and a porch light is a thing
-     that is on at night. The hour is already being read for the clock,
-     so the sky answers to it: one number, nought in the small hours and
-     one at midday, written where css can reach it. Everything that hangs
-     off it is a matter of degree — the field of stars is thicker after
-     dark and nearly gone at noon, the sea slows down, the sheet cools a
-     shade. Nothing appears or disappears, because a page that rearranges
-     itself at six in the evening is a page nobody trusts.
-
-     It is his hour, not the reader's: the page is about where he is, and
-     a visitor in Seoul reading it at breakfast is looking at his night. */
+     It is his hour, not the reader's: a visitor in Seoul reading this at
+     breakfast is looking at his night. */
   const hourOf = new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Europe/Berlin', hour: 'numeric', hour12: false
   });

@@ -738,7 +738,7 @@ a {
 .likes { grid-column: 1 / -1; }
 .score { grid-column: 1 / -1; }
 .traced { grid-column: 1 / -1; }
-.rules { grid-column: 1 / -1; }
+.bounty { grid-column: 1 / -1; }
 .making { grid-column: 1 / -1; }
 
 .foot {
@@ -1571,6 +1571,20 @@ body.is-awake .tally-label .says::after {
   width: fit-content;
   max-width: 100%;
   min-width: 0;
+  /* the wheel's button lies underneath this block, and on a phone the
+     block covers most of it — so the text sheet lets touches fall
+     through, and only the things that can actually be pressed or copied
+     catch them. Without this the wheel is dead on any narrow screen. */
+  pointer-events: none;
+}
+
+.hero-text a,
+.hero-text button,
+.hero-text .sub,
+.hero-text .lost-line,
+.hero-text .lost-path,
+.hero-text .lost-guess {
+  pointer-events: auto;
 }
 
 /* A brush stroke under the name — the one red mark in the header, and
@@ -2883,9 +2897,11 @@ svg.band {
   text-indent: .34em;
   text-transform: uppercase;
   cursor: pointer;
-  /* a swipe that starts here still scrolls the page; a hold that does
-     not move is a hold */
-  touch-action: pan-y;
+  /* the field owns every touch that starts on it. pan-y sounded polite —
+     scroll from anywhere — but a thumb drifts a few pixels during any
+     real hold, the browser reads that as a scroll and cancels the
+     pointer, and the game dies mid-charge on every phone. */
+  touch-action: none;
   -webkit-user-select: none;
   user-select: none;
   /* an edge, the way every other tag on the page draws one, and the run
@@ -3011,7 +3027,7 @@ body.is-charging .arena {
 .likes .head h2,
 .score .head h2,
 .traced .head h2,
-.rules .head h2,
+.bounty .head h2,
 .making .head h2,
 .tally-label {
   display: grid;
@@ -3032,7 +3048,7 @@ body.is-charging .arena {
 .likes .head h2 .glyphs,
 .score .head h2 .glyphs,
 .traced .head h2 .glyphs,
-.rules .head h2 .glyphs,
+.bounty .head h2 .glyphs,
 .making .head h2 .glyphs,
 .tally-label .glyphs {
   display: flex;
@@ -3052,7 +3068,7 @@ body.is-charging .arena {
 .likes .head h2 .says,
 .score .head h2 .says,
 .traced .head h2 .says,
-.rules .head h2 .says,
+.bounty .head h2 .says,
 .making .head h2 .says {
   margin-top: 0;
   letter-spacing: .3em;
@@ -4406,7 +4422,8 @@ html:not([data-js]) .who > i:last-of-type {
   }
 
   .jr-hole,
-  .jr-band {
+  .jr-band,
+  .rd-band {
     forced-color-adjust: none;
     fill: Canvas;
     stroke: CanvasText;
@@ -4877,58 +4894,207 @@ html:not([data-js]) .who > i:last-of-type {
   }
 }
 
-/* ══ 心得 ═══════════════════════════════════════════════════════
-   What the chapter above shows, this one explains. Five rules, numbered
-   the way the chapters are — the same drawn numerals, so the list reads
-   as part of the same book rather than as a sidebar bolted to it. */
-.rules-line {
+/* ══ 懸賞金 ═══════════════════════════════════════════════════
+   The wanted poster. Drawn loose — a poster is paper somebody nailed
+   up, not a component — and hung a degree off straight for the same
+   reason. The type on it is the page's own serif doing its best
+   impression of a navy print shop. The ledger beside it is the
+   arithmetic, one earned line at a time. */
+.bounty-line {
   max-width: 52ch;
 }
 
-.rule-list {
-  list-style: none;
-  counter-reset: none;
-  margin: 1.4rem 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(22rem, 100%), 1fr));
-  gap: 1.6rem clamp(1.6rem, 4vw, 3rem);
-}
-
-.rule-list li {
-  padding-top: .9rem;
-  background: var(--ruled) 0 0 / 44rem 3.5px repeat-x;
-}
-
-.rule-mark {
+.wanted {
+  margin-top: 1.8rem;
   display: flex;
-  align-items: baseline;
-  gap: .6rem;
-  margin: 0;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 2.2rem clamp(2rem, 6vw, 5rem);
 }
 
-.rule-mark .glyphs {
+.poster {
+  position: relative;
+  width: clamp(230px, 28vw, 300px);
+  aspect-ratio: 340 / 470;
+  flex-shrink: 0;
   display: flex;
-  /* big enough that 一, 二 and 三 read as numbers rather than as three
-     stray rules lying next to a heading */
-  font-size: 1.7rem;
-  line-height: 1;
+  flex-direction: column;
+  align-items: center;
+  /* not a percentage: percentage padding resolves against the parent's
+     width, and the parent here is the whole row — the paper's margins
+     have to belong to the paper */
+  padding: 2.4rem 1.6rem 1.9rem;
+  rotate: -1.2deg;
   color: var(--paper-2);
 }
 
-.rule-mark b {
-  font-size: .82rem;
-  font-weight: 700;
+.poster-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.wf-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.wf-heavy { stroke-width: 3.5; }
+
+.poster-wanted {
+  margin: 0;
+  font-family: "Shippori Mincho B1", Georgia, serif;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: 800;
   letter-spacing: .22em;
+  text-indent: .22em;
   text-transform: uppercase;
+  line-height: 1;
   color: var(--paper);
 }
 
-.rule-says {
-  margin: .55rem 0 0;
-  max-width: 44ch;
-  font-size: .92rem;
+.poster-face {
+  width: 76%;
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+}
+
+.poster-face svg { display: block; width: 100%; }
+
+.rd-line,
+.rd-face {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.rd-face { stroke-width: 2.4; }
+
+.rd-straw {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+/* the band is the one thing on the poster that is not a line, and it is
+   the same band the flag at the foot wears */
+.rd-band { fill: var(--blood); }
+
+.poster-terms {
+  margin: .4rem 0 0;
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: .3em;
+  text-indent: .3em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--paper-3);
+}
+
+.poster-name {
+  margin: .15rem 0 0;
+  font-family: "Shippori Mincho B1", Georgia, serif;
+  font-size: clamp(.9rem, 1.5vw, 1.05rem);
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-indent: .14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--paper);
+}
+
+.poster-berry {
+  margin: .35rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+}
+
+.poster-berry .berry {
+  width: .85em;
+  height: auto;
+  fill: currentColor;
+}
+
+.by-mark { fill: inherit; }
+
+.poster-berry b {
+  font-family: "Shippori Mincho B1", Georgia, serif;
+  font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .06em;
+  color: var(--paper);
+}
+
+.poster-marine {
+  margin: .35rem 0 0;
+  align-self: flex-end;
+  font-size: .5rem;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--paper-3);
+}
+
+/* raised: the paper takes the news with a small start */
+@keyframes wanted-up {
+  0% { rotate: -2.6deg; }
+  55% { rotate: -.4deg; }
+  100% { rotate: -1.2deg; }
+}
+
+.poster.is-raised {
+  animation: wanted-up .6s ease-out;
+}
+
+/* ── the ledger ── */
+.bounty-led {
+  list-style: none;
+  margin: .4rem 0 0;
+  padding: 0;
+  min-width: min(21rem, 100%);
+  max-width: 24rem;
+  flex: 1;
+}
+
+.bounty-led:empty { display: none; }
+
+.bounty-led li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1.2rem;
+  padding: .55rem .1rem;
+  background: var(--ruled) 0 100% / 44rem 3.5px repeat-x;
+  font-size: .85rem;
   color: var(--paper-2);
+}
+
+.bounty-led b {
+  font-family: "Shippori Mincho B1", Georgia, serif;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--paper);
+}
+
+.bounty-led .berry {
+  width: .7em;
+  height: auto;
+  fill: currentColor;
+  margin-right: .3rem;
+  vertical-align: -.06em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .poster.is-raised { animation: none; }
 }
 
 /* ══ 作画 ═══════════════════════════════════════════════════════

@@ -546,11 +546,51 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
     });
   }
 
+  /* ── 懸賞金 ────────────────────────────────────────────────────
+     The page claims the sum on the poster can be checked against the
+     ledger, so it is checked here: the sum has to equal the lines, and
+     the lines have to name things this visit did. */
+  {
+    await p.evaluate(() => document.getElementById('bounty').scrollIntoView({ block: 'center' }));
+    await p.waitForTimeout(400);
+    const before = await p.evaluate(() => document.getElementById('bounty-sum').textContent);
+    await p.evaluate(() => { total = 7; best = 5; closest = 9; awake = false; tell(true); });
+    const settled = await p.waitForFunction(() => {
+      const rows = [...document.querySelectorAll('#bounty-led li b')]
+        .map(b => parseInt(b.textContent.replace(/,/g, ''), 10) || 0);
+      const sum = parseInt(document.getElementById('bounty-sum').textContent.replace(/,/g, ''), 10) || 0;
+      return rows.length && sum === rows.reduce((s, n) => s + n, 0) ? { sum, rows } : false;
+    }, null, { timeout: 4000 }).then(h => h.jsonValue()).catch(() => null);
+    check('the bounty is the sum of its own ledger', !!settled, JSON.stringify(settled));
+    check('and it moved when the visit did',
+      settled && String(settled.sum) !== before.replace(/,/g, ''), `${before} → ${settled && settled.sum}`);
+
+    const led = await p.evaluate(() =>
+      [...document.querySelectorAll('#bounty-led li span')].map(s => s.textContent));
+    check('and the ledger names what was done',
+      led.some(t => /7 flashes landed/.test(t)) && led.some(t => /a run of 5/.test(t)) &&
+      led.some(t => /a domain of your own/.test(t)), led.join(' | '));
+
+    // the poster itself: the drawings resolve and the paper says whose it is
+    const paper = await p.evaluate(() => ({
+      frame: !!document.querySelector('.poster-frame use') &&
+        !!document.getElementById('wanted-frame'),
+      reader: !!document.querySelector('.poster-face use') && !!document.getElementById('reader'),
+      berry: document.querySelectorAll('.bounty .berry use').length,
+      says: [...document.querySelectorAll('.poster p')].map(e => e.textContent.trim().toLowerCase())
+    }));
+    check('and the poster is drawn from the page\'s own sprite',
+      paper.frame && paper.reader && paper.berry >= 2, JSON.stringify(paper));
+    check('and the paper says whose it is',
+      paper.says.includes('wanted') && paper.says.includes('dead or alive') &&
+      paper.says.includes('the reader'), paper.says.join(' | '));
+  }
+
   /* However many regions the page has — the count is not written down
      anywhere, and a chapter added to the page is a mark added to the
      bezel without anybody touching this. */
   const regions = await p.evaluate(() =>
-    ['.now', '.music', '.likes', '.score', '.traced', '.rules', '.making', '.foot']
+    ['.now', '.music', '.likes', '.score', '.traced', '.bounty', '.making', '.foot']
       .filter(s => { const el = document.querySelector(s); return el && !el.hidden && el.offsetParent !== null; }).length);
   check('the pose records the islands it has been past', warmSeen > coldSeen && warmSeen === regions,
     `${coldSeen} → ${warmSeen}`);
