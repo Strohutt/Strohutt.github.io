@@ -1226,7 +1226,6 @@ function lostSaid() {
     [['score', 'flash', 'blackflash', 'black'], 'the black flash', '/#score'],
     [['traced', 'tracing', 'wheel', 'staff', 'yeoui'], 'traced from', '/#traced'],
     [['bounty', 'wanted', 'berry', 'berries', 'poster'], 'the bounty', '/#bounty'],
-    [['making', 'drawn', 'sakuga', 'colophon'], 'how it’s drawn', '/#making'],
     [['music', 'spotify', 'ears', 'track', 'song'], 'in my ears', '/#music'],
     [['now', 'status', 'presence', 'discord'], 'right now', '/#now']
   ];

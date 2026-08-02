@@ -842,7 +842,7 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
   // and it is the one rank drawn in red
   check('and it is the one drawn in red', await p.evaluate(() =>
     getComputedStyle(document.querySelector('.grade-mark')).color) !== await p.evaluate(() =>
-    getComputedStyle(document.querySelector('.score-line')).color));
+    getComputedStyle(document.querySelector('.grade-says > span')).color));
   await p.close();
 
   /* ── and a rank can be taken along

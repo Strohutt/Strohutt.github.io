@@ -349,9 +349,9 @@ const up = p => p.evaluate(() => {
   check('a near-miss gets a guess', said.guessed === 'were you after the bounty?' && said.to === '/#bounty',
     `${said.guessed} → ${said.to}`);
 
-  said = await asked('/Making.html');
-  check('an extension does not hide the place it was near',
-    said.to === '/#making', `${said.guessed} → ${said.to}`);
+  said = await asked('/wnated');
+  check('a typo two letters out still finds the place',
+    said.to === '/#bounty', `${said.guessed} → ${said.to}`);
 
   said = await asked('/spotify');
   check('a word the page never uses can still name a region',

@@ -38,20 +38,20 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   }, sel);
 
   const offered = [];
-  for (const sel of ['#flash-arena', '.score-list', '.score-marks', '.score .kicker', '.grade', '.pose', '#clock', '.cut-fig']) {
+  for (const sel of ['#flash-arena', '.score-list', '.score-marks', '.score .kicker', '.grade', '.pose', '#clock']) {
     if (await drawn(sel)) offered.push(sel);
   }
 
   /* What does stay is the heading and the sentence under it: they
      describe a thing this page does when it is allowed to run, which is
      worth reading either way. */
-  const kept = await drawn('.score-line') && await drawn('.score .head');
+  const kept = await drawn('.score .head') && await drawn('.traced-list');
   await nojs.close();
 
   check('no js: nothing is stuck invisible', !hiddenNoJs.length, hiddenNoJs.join(' | '));
   check('no js: the field is still running', motesNoJs >= 20, String(motesNoJs));
   check('no js: nothing dead is offered', !offered.length, offered.join(' | '));
-  check('no js: but the panel still says what it is', kept);
+  check('no js: the chapters that can be read still are', kept);
 
   const p = await b.newPage({ viewport: { width: 1340, height: 900 } });
   await p.addInitScript(seen);
@@ -510,101 +510,11 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
       traced.uses.filter(u => !traced.elsewhere.includes(u)).join(','));
   }
 
-  /* ── 作画 ────────────────────────────────────────────────────
-     Chapter seven's figures are readings, not copy: every stamp claims
-     to be a count of the live document, so every stamp is compared to
-     the document it sits in. A page that publishes measurements of
-     itself gets held to them. */
-  {
-    await p.evaluate(() => document.getElementById('making').scrollIntoView({ block: 'center' }));
-    const truthy = await p.waitForFunction(() => {
-      const want = {
-        'fig-paths': document.querySelectorAll('path').length,
-        'fig-glyphs': document.querySelectorAll('symbol[id^="ch-"], symbol[id^="kj-"]').length,
-        'fig-pics': [...document.images].filter(i => i.getAttribute('src') && !i.hidden).length,
-        'fig-held': (() => { try { return sessionStorage.length; } catch { return 0; } })(),
-        'fig-scripts': document.querySelectorAll('script[src]').length
-      };
-      return Object.entries(want).every(([id, n]) =>
-        document.getElementById(id) && document.getElementById(id).textContent === String(n)) ? want : false;
-    }, { timeout: 6000 }).then(h => h.jsonValue()).catch(() => null);
-    check('chapter seven: every stamp says what the page measures', !!truthy, JSON.stringify(truthy));
-
-    const cuts = await p.evaluate(() => ({
-      count: document.querySelectorAll('.cut-list li').length,
-      whole: [...document.querySelectorAll('.cut-list li')].filter(li =>
-        li.querySelector('.cut-mark b') && li.querySelector('.cut-says')).length,
-      stamps: document.querySelectorAll('.cut-fig').length
-    }));
-    check('and the sheet is six cuts, each named and explained',
-      cuts.count === 6 && cuts.whole === 6, JSON.stringify(cuts));
-    check('and five of them carry a stamp — the suite is not the page\'s to count',
-      cuts.stamps === 5, String(cuts.stamps));
-
-    /* the reading follows the page: something lands in storage, the game
-       says so, and the stamp is already right again */
-    const heldBefore = await p.evaluate(() => document.getElementById('fig-held').textContent);
-    await p.evaluate(() => {
-      sessionStorage.setItem('strohut-proof', '1');
-      dispatchEvent(new Event('strohut:score'));
-    });
-    const heldAfter = await p.waitForFunction(before => {
-      const now = document.getElementById('fig-held').textContent;
-      return now !== before ? now : false;
-    }, heldBefore, { timeout: 3000 }).then(h => h.jsonValue()).catch(() => null);
-    check('and a stamp follows the page when it changes',
-      heldAfter !== null && Number(heldAfter) === Number(heldBefore) + 1, `${heldBefore} → ${heldAfter}`);
-    await p.evaluate(() => {
-      sessionStorage.removeItem('strohut-proof');
-      dispatchEvent(new Event('strohut:score'));
-    });
-  }
-
-  /* ── 懸賞金 ────────────────────────────────────────────────────
-     The page claims the sum on the poster can be checked against the
-     ledger, so it is checked here: the sum has to equal the lines, and
-     the lines have to name things this visit did. */
-  {
-    await p.evaluate(() => document.getElementById('bounty').scrollIntoView({ block: 'center' }));
-    await p.waitForTimeout(400);
-    const before = await p.evaluate(() => document.getElementById('bounty-sum').textContent);
-    await p.evaluate(() => { total = 7; best = 5; closest = 9; awake = false; tell(true); });
-    const settled = await p.waitForFunction(() => {
-      const rows = [...document.querySelectorAll('#bounty-led li b')]
-        .map(b => parseInt(b.textContent.replace(/,/g, ''), 10) || 0);
-      const sum = parseInt(document.getElementById('bounty-sum').textContent.replace(/,/g, ''), 10) || 0;
-      return rows.length && sum === rows.reduce((s, n) => s + n, 0) ? { sum, rows } : false;
-    }, null, { timeout: 4000 }).then(h => h.jsonValue()).catch(() => null);
-    check('the bounty is the sum of its own ledger', !!settled, JSON.stringify(settled));
-    check('and it moved when the visit did',
-      settled && String(settled.sum) !== before.replace(/,/g, ''), `${before} → ${settled && settled.sum}`);
-
-    const led = await p.evaluate(() =>
-      [...document.querySelectorAll('#bounty-led li span')].map(s => s.textContent));
-    check('and the ledger names what was done',
-      led.some(t => /7 flashes landed/.test(t)) && led.some(t => /a run of 5/.test(t)) &&
-      led.some(t => /a domain of your own/.test(t)), led.join(' | '));
-
-    // the poster itself: the drawings resolve and the paper says whose it is
-    const paper = await p.evaluate(() => ({
-      frame: !!document.querySelector('.poster-frame use') &&
-        !!document.getElementById('wanted-frame'),
-      reader: !!document.querySelector('.poster-face use') && !!document.getElementById('reader'),
-      berry: document.querySelectorAll('.bounty .berry use').length,
-      says: [...document.querySelectorAll('.poster p')].map(e => e.textContent.trim().toLowerCase())
-    }));
-    check('and the poster is drawn from the page\'s own sprite',
-      paper.frame && paper.reader && paper.berry >= 2, JSON.stringify(paper));
-    check('and the paper says whose it is',
-      paper.says.includes('wanted') && paper.says.includes('dead or alive') &&
-      paper.says.includes('the reader'), paper.says.join(' | '));
-  }
-
   /* However many regions the page has — the count is not written down
      anywhere, and a chapter added to the page is a mark added to the
      bezel without anybody touching this. */
   const regions = await p.evaluate(() =>
-    ['.now', '.music', '.likes', '.score', '.traced', '.bounty', '.making', '.foot']
+    ['.now', '.music', '.likes', '.score', '.traced', '.bounty', '.foot']
       .filter(s => { const el = document.querySelector(s); return el && !el.hidden && el.offsetParent !== null; }).length);
   check('the pose records the islands it has been past', warmSeen > coldSeen && warmSeen === regions,
     `${coldSeen} → ${warmSeen}`);

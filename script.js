@@ -40,11 +40,6 @@ if (barred) {
 
 const sections = document.querySelectorAll('.reveal');
 
-/* Chapter seven's stamps re-measure when the page changes under them.
-   Assigned at the foot of this file, called from wherever something it
-   counts gets written — a no-op until the section exists. */
-let recount = () => {};
-
 if (stillPlease.matches || !('IntersectionObserver' in window)) {
   sections.forEach(s => s.classList.add('is-in'));
 } else {
@@ -463,7 +458,6 @@ if (pose && poseHit && poseName) {
     ['.score', 'black flash'],
     ['.traced', 'traced from'],
     ['.bounty', 'the bounty'],
-    ['.making', 'how it\'s drawn'],
     ['.foot', 'the sea'],
     ['.hero', 'the top']
   ];
@@ -487,8 +481,6 @@ if (pose && poseHit && poseName) {
     try { sessionStorage.setItem(SEEN_KEY, String(seen)); } catch { /* fine */ }
     written();
     bounty();
-    // chapter seven counts what is held, and a mark was just written
-    recount();
   };
   pose.style.setProperty('--seen', seen);
 
@@ -521,7 +513,7 @@ if (pose && poseHit && poseName) {
     const rank = document.getElementById('grade-name');
     if (rank && rank.textContent && rank.textContent !== 'grade four') bits.push(rank.textContent);
 
-    log.textContent = bits.length ? `this visit — ${bits.join(' · ')}` : '';
+    log.textContent = bits.length ? `this visit · ${bits.join(' · ')}` : '';
     log.hidden = !bits.length;
   };
 
@@ -1548,94 +1540,5 @@ function fail() {
     // and the readout takes the row it has been left alone in, rather
     // than holding half of it with the other half black
     el.slab.closest('.now')?.classList.add('is-alone');
-  }
-}
-
-/* ─────────────────────── 作画 — the stamps ─────────────────────── */
-
-/* Chapter seven's figures. None of them is written in the page: each one
-   is the result of a query against the document as it stands, taken when
-   the section is reached and again whenever something it counts changes.
-   A stamp that measured its own page cannot go stale, and it cannot be
-   made up — which is the whole reason the section gets to say so.
-
-   The pictures are counted by whether they are actually being shown:
-   an <img> with no source yet, or hidden because its upstream never
-   answered, is not a photograph on the page. */
-{
-  const stamps = {
-    'fig-paths': () => document.querySelectorAll('path').length,
-    'fig-glyphs': () => document.querySelectorAll('symbol[id^="ch-"], symbol[id^="kj-"]').length,
-    'fig-pics': () => [...document.images].filter(i => i.getAttribute('src') && !i.hidden).length,
-    'fig-held': () => { try { return sessionStorage.length; } catch { return 0; } },
-    'fig-scripts': () => document.querySelectorAll('script[src]').length
-  };
-
-  const making = document.getElementById('making');
-  const slots = Object.entries(stamps)
-    .map(([id, count]) => [document.getElementById(id), count])
-    .filter(([el]) => el);
-
-  if (making && slots.length) {
-    let ticking = new Map();
-
-    /* The first time a stamp is seen it counts up from nothing, which is
-       the page doing the counting where it can be watched. After that a
-       change just restamps — the figure is a reading, not a show. */
-    const settle = (el, n) => {
-      el.textContent = String(n);
-      el.classList.remove('is-restamped');
-      void el.offsetWidth;
-      el.classList.add('is-restamped');
-    };
-
-    const rise = (el, n) => {
-      const t0 = performance.now();
-      const span = 650;
-      cancelAnimationFrame(ticking.get(el));
-      const step = now => {
-        const t = Math.min(1, (now - t0) / span);
-        const eased = 1 - (1 - t) ** 3;
-        el.textContent = String(Math.round(n * eased));
-        if (t < 1) ticking.set(el, requestAnimationFrame(step));
-      };
-      ticking.set(el, requestAnimationFrame(step));
-    };
-
-    let shown = false;
-    const fill = first => {
-      for (const [el, count] of slots) {
-        const n = count();
-        if (String(n) === el.textContent) continue;
-        if (first && !stillPlease.matches) rise(el, n);
-        else settle(el, n);
-      }
-    };
-
-    recount = () => { if (shown) fill(false); };
-
-    const arrive = () => {
-      if (shown) return;
-      shown = true;
-      fill(true);
-      /* and from here on it stays honest: the game writes to storage and
-         says so, a picture can land late, a mark gets recorded */
-      addEventListener('strohut:score', recount);
-      document.addEventListener('load', event => {
-        if (event.target instanceof HTMLImageElement) recount();
-      }, true);
-    };
-
-    if (stillPlease.matches || !('IntersectionObserver' in window)) {
-      // no reveal to wait for — the numbers are simply there, correct
-      arrive();
-    } else {
-      const eye = new IntersectionObserver((entries, self) => {
-        if (!entries.some(e => e.isIntersecting)) return;
-        self.disconnect();
-        arrive();
-      }, { threshold: 0.15 });
-      eye.observe(making);
-    }
   }
 }
