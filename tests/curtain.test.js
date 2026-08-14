@@ -1,11 +1,8 @@
-/* 領域展開, the barrier that goes up when you arrive.
-
-   A loading screen is the one piece of a page that can lock somebody out
-   of it, so every way it could fail to lift is worth forcing: the animation
-   never firing, javascript never running, somebody who has asked their
-   machine to hold still, and somebody who simply does not want to watch it. */
+/* Arrival barrier. */
+const fs = require('node:fs');
+const path = require('node:path');
 const BASE = `http://localhost:${process.env.PORT || 8899}`;
-const { chromium } = require('playwright');
+const { launchBrowser } = require('./browser');
 
 const fails = [];
 const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? '  — ' + d : '')); if (!ok) fails.push(n); };
@@ -16,7 +13,7 @@ const up = p => p.evaluate(() => {
 });
 
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  const b = await launchBrowser();
   const view = { width: 1200, height: 800 };
 
   // ── arriving
@@ -32,7 +29,7 @@ const up = p => p.evaluate(() => {
      does not run scripts at all, still has to find the content. */
   check('the page is underneath it the whole time',
     await p.evaluate(() => document.querySelectorAll('.panel').length >= 4 &&
-      !!document.querySelector('h1') && document.body.innerText.includes('right now')));
+      !!document.querySelector('h1') && document.body.textContent.includes('right now')));
 
   /* Nothing underneath it is allowed to have arrived yet. The regions in
      view used to assemble themselves behind the barrier and be sitting
@@ -57,8 +54,8 @@ const up = p => p.evaluate(() => {
   await p.waitForTimeout(2400);
   check('it lifts on its own', !(await up(p)));
 
-  /* .now only. Nothing is mocked here, so the music region has hidden
-     itself and the favourites never appeared — both correctly. */
+  /* .now is the first region in view. Nothing is mocked here; authored
+     chapters still stand while their live data catches up. */
   /* Waited for rather than read off a stopwatch. The regions start
      watching for themselves the moment the barrier says it is done, and
      how long the observer then takes to answer is not a number this
@@ -306,6 +303,40 @@ const up = p => p.evaluate(() => {
   const broke = [];
   p.on('pageerror', e => broke.push(e.message));
 
+  const nestedResourceErrors = [];
+  const onNestedResponse = response => {
+    if (response.request().resourceType() !== 'document' && response.status() >= 400) {
+      nestedResourceErrors.push(`${response.status()} ${new URL(response.url()).pathname}`);
+    }
+  };
+  const onNestedFailure = request => {
+    if (request.resourceType() !== 'document') nestedResourceErrors.push(request.url());
+  };
+  const nestedPattern = '**/some/old/page';
+  await p.route(nestedPattern, route => route.fulfill({
+    status: 404,
+    contentType: 'text/html',
+    body: fs.readFileSync(path.join(__dirname, '..', '404.html'), 'utf8')
+  }));
+  p.on('response', onNestedResponse);
+  p.on('requestfailed', onNestedFailure);
+  await p.goto(BASE + '/some/old/page', { waitUntil: 'networkidle' });
+  const nestedState = await p.evaluate(() => ({
+    text: document.getElementById('lost-path')?.textContent,
+    script: typeof lostSaid === 'function',
+    styles: [...document.styleSheets].map(sheet => new URL(sheet.href).pathname)
+  }));
+  p.off('response', onNestedResponse);
+  p.off('requestfailed', onNestedFailure);
+  await p.unroute(nestedPattern);
+  check('a nested 404 keeps its root assets and behavior',
+    nestedState.text === 'nothing at /some/old/page' &&
+      nestedState.script &&
+      nestedState.styles.includes('/fonts.css') &&
+      nestedState.styles.includes('/styles.css') &&
+      nestedResourceErrors.length === 0,
+    JSON.stringify({ nestedState, nestedResourceErrors }));
+
   const asked = async where => {
     // the server here has no 404 handler, so the address is put in the
     // bar the way pages does it: the same document, a different url —
@@ -353,9 +384,9 @@ const up = p => p.evaluate(() => {
   check('a typo two letters out still finds the place',
     said.to === '/#bounty', `${said.guessed} → ${said.to}`);
 
-  said = await asked('/spotify');
-  check('a word the page never uses can still name a region',
-    said.to === '/#music', `${said.guessed} → ${said.to}`);
+  said = await asked('/portfolio');
+  check('the old portfolio address points at the work page',
+    said.to === '/work/', `${said.guessed} → ${said.to}`);
 
   said = await asked('/some/old/page');
   check('a path near nothing gets no guess', said.guessed === null, String(said.guessed));

@@ -1,15 +1,6 @@
-/* Everything on this page that moves without being asked to.
-
-   A screenshot cannot answer any of this. Motion either runs or it does
-   not, and the ways it silently stops running are all cheap to introduce
-   and invisible to review: a custom property nothing reads, an animation
-   on an element that never gets the class, a reading that climbs and then
-   sticks because nothing was left to bring it down.
-
-   So every check here is measured off a live animation or a computed
-   style, and every one of them names the thing that would be dead. */
+/* Autonomous motion. */
 const BASE = `http://localhost:${process.env.PORT || 8899}`;
-const { chromium } = require('playwright');
+const { launchBrowser, blockLanyardSocket } = require('./browser');
 
 const fails = [];
 const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? '  — ' + d : '')); if (!ok) fails.push(n); };
@@ -46,12 +37,13 @@ const ANILIST = { data: {
 const json = body => ({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
 
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  const b = await launchBrowser();
 
   const open = async opts => {
     const p = await b.newPage({ viewport: { width: 1340, height: 900 }, ...opts });
     // the barrier has its own suite; these checks are about what is under it
     await p.addInitScript(() => { try { sessionStorage.setItem('strohut-seen', '1'); } catch { /* fine */ } });
+    await blockLanyardSocket(p);
     p.on('pageerror', e => fails.push('pageerror: ' + e.message));
     await p.route('**/api.lanyard.rest/**', r => r.fulfill(json(PRESENCE())));
     await p.route('**/graphql.anilist.co/**', r => r.fulfill(json(ANILIST)));
@@ -202,28 +194,8 @@ const json = body => ({ status: 200, contentType: 'application/json', body: JSON
   check('and the far end of the word does not', word[word.length - 1] < .15, String(word[word.length - 1]));
 
   /* ── the record ─────────────────────────────────────────────────── */
-  const disc = await p.evaluate(() => {
-    const svg = document.querySelector('.disc svg');
-    return {
-      playing: document.getElementById('music-embed').classList.contains('is-playing'),
-      state: svg.getAnimations()[0] && svg.getAnimations()[0].playState,
-      out: getComputedStyle(document.querySelector('.disc')).translate
-    };
-  });
-  check('the record turns while something is playing', disc.playing && disc.state === 'running', JSON.stringify(disc));
-  check('and it has ridden out of the sleeve', /^[1-9]/.test(disc.out), disc.out);
-
-  // the drawing is a readout, so it has to be wrong when the state is
-  const stopped = await p.evaluate(async () => {
-    showTrack(null);
-    await new Promise(r => setTimeout(r, 80));
-    const svg = document.querySelector('.disc svg');
-    return {
-      playing: document.getElementById('music-embed').classList.contains('is-playing'),
-      state: svg.getAnimations()[0] && svg.getAnimations()[0].playState
-    };
-  });
-  check('and it stops when nothing is playing', !stopped.playing && stopped.state === 'paused', JSON.stringify(stopped));
+  const recordGone = await p.evaluate(() => !document.querySelector('.disc, #music-embed, [id^="track-"]'));
+  check('the removed music chapter leaves no motion behind', recordGone);
 
   /* ── the sea ────────────────────────────────────────────────────── */
   const sea = await p.evaluate(() => ({

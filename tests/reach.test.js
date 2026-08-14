@@ -1,17 +1,7 @@
-/* Whether the page can actually be read and hit.
-
-   Both of these are the kind of thing that is fine until somebody nudges
-   a grey half a step darker or takes a padding off, and then is quietly
-   wrong for everybody with tired eyes or a thumb. Neither is visible in a
-   screenshot, so neither is caught by looking. They are measured.
-
-   Text against what is really behind it — every layer composited, not
-   just the nearest one that happens to have a background — against the
-   AA thresholds: 4.5 for body text, 3 for large or bold. And every
-   control against 24 by 24, which is the smallest a target is allowed to
-   be, on the two narrowest screens this page ever sees. */
+/* Accessibility and reachability. */
 const BASE = `http://localhost:${process.env.PORT || 8899}`;
-const { chromium, devices } = require('playwright');
+const { devices } = require('playwright');
+const { launchBrowser, blockLanyardSocket } = require('./browser');
 
 const fails = [];
 const check = (name, ok, detail) => {
@@ -19,9 +9,9 @@ const check = (name, ok, detail) => {
   if (!ok) fails.push(name);
 };
 
-/* Enough of the upstreams to get every panel on the page. Without them
-   the favourites and the music never arrive, and those two carry most of
-   the small grey text on the site. */
+/* Enough of the upstreams to get every live panel on the front page.
+   The work chapter is authored in the document and is also audited on
+   its dedicated page below. */
 const now = Date.now();
 const PRESENCE = {
   success: true,
@@ -179,20 +169,22 @@ const AUDIT = () => {
 };
 
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  const b = await launchBrowser();
   const json = body => ({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
 
   for (const [tag, opts, which] of [
     ['the front, wide', { viewport: { width: 1340, height: 900 } }, 'index.html'],
     ['the front, on a phone', { ...devices['iPhone 13'] }, 'index.html'],
     ['the front, at 320px', { viewport: { width: 320, height: 700 }, hasTouch: true, isMobile: true }, 'index.html'],
+    ['the work page, wide', { viewport: { width: 1340, height: 900 } }, 'work/'],
+    ['the work page, on a phone', { ...devices['iPhone 13'] }, 'work/'],
     ['the 404, on a phone', { ...devices['iPhone 13'] }, '404.html']
   ]) {
     const c = await b.newContext(opts);
     const p = await c.newPage();
     p.on('pageerror', e => fails.push(`${tag}: pageerror ${e.message}`));
+    await blockLanyardSocket(p);
     await p.route('**/api.lanyard.rest/**', r => r.fulfill(json(PRESENCE)));
-    await p.route('**/oembed**', r => r.fulfill(json({ title: 'Eve — Kaikai Kitan' })));
     await p.route('**/graphql.anilist.co/**', r => r.fulfill(json(ANILIST)));
     await p.addInitScript(() => {
       try { sessionStorage.setItem('strohut-seen', '1'); } catch { /* it will just show */ }
@@ -227,8 +219,8 @@ const AUDIT = () => {
     const c = await b.newContext({ viewport: { width: 1340, height: 900 } });
     const p = await c.newPage();
     p.on('pageerror', e => fails.push(`domain: pageerror ${e.message}`));
+    await blockLanyardSocket(p);
     await p.route('**/api.lanyard.rest/**', r => r.fulfill(json(PRESENCE)));
-    await p.route('**/oembed**', r => r.fulfill(json({ title: 'Eve — Kaikai Kitan' })));
     await p.route('**/graphql.anilist.co/**', r => r.fulfill(json(ANILIST)));
     await p.addInitScript(() => {
       try { sessionStorage.setItem('strohut-seen', '1'); } catch { /* it will just show */ }

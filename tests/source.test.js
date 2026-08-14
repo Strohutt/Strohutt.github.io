@@ -1,5 +1,4 @@
-/* Static checks on the files themselves. No browser — these are the
-   things that only ever break by somebody editing carelessly. */
+/* Static source contracts. */
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -11,42 +10,34 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
 const html = read('index.html');
 const lost = read('404.html');
 const css = read('styles.css');
-/* The stylesheet with its comments taken out. Every check below is about
-   what the browser is handed, and this file explains itself at length —
-   so a rule that reads "no :has() anywhere" was failing on the sentence
-   saying why. Line-based stripping only caught lines that open a comment
-   or continue one with a star; the prose in here does neither. */
+/* Strip CSS comments before checking browser-facing rules. */
 const bare = css.replace(/\/\*[\s\S]*?\*\//g, '');
 const js = read('script.js');
 const flash = read('flash.js');
 
-// ── the asset version has to move whenever the assets do
+// Asset versioning
 const versions = [...html.matchAll(/(?:styles\.css|script\.js|flash\.js|fonts\.css)\?v=(\d+)/g)].map(m => m[1]);
 check('every asset carries a version', versions.length >= 4, versions.join(','));
 check('all versions agree', new Set(versions).size === 1, versions.join(','));
+const lostVersions = [...lost.matchAll(/\?v=(\d+)/g)].map(m => m[1]);
 check('the 404 uses the same version',
-  new Set([...lost.matchAll(/\?v=(\d+)/g)].map(m => m[1])).size === 1);
+  lostVersions.length > 0 && new Set(lostVersions).size === 1 && lostVersions.every(v => v === versions[0]),
+  lostVersions.join(','));
 
-// ── nothing may point at a symbol that is not there
+// SVG references
 for (const [name, src] of [['index', html], ['404', lost]]) {
   const have = new Set([...src.matchAll(/<(?:symbol|path) id="([^"]+)"/g)].map(m => m[1]));
   const want = new Set([...src.matchAll(/href="#([^"]+)"/g)].map(m => m[1]));
   const missing = [...want].filter(w => !have.has(w) && !src.includes(`id="${w}"`));
   check(`${name}: every use has a symbol`, !missing.length, missing.join(','));
-  // Symbols reached from javascript arrive as a template, so what is in
-  // the source is a prefix rather than a whole id — or, where the ids are
-  // written out in a map, as whole literals. Both count as used: a check
-  // that cannot see them reports the rank's own kanji as corpses.
+  // Count literal ids and JavaScript-generated symbol prefixes.
   const prefixes = [...(js + flash).matchAll(/#([a-z0-9-]+?)-?\$\{/g)].map(m => `${m[1]}-`);
   const literal = new Set([...(js + flash).matchAll(/['"`#]#([^'"`\s{}]+)/gu)].map(m => m[1]));
   const dead = [...have].filter(h => !want.has(h) && !literal.has(h) && !prefixes.some(p => h.startsWith(p)));
   check(`${name}: no symbol is unused`, !dead.length, dead.join(','));
 }
 
-/* A shape that exists only to be <use>d has to sit in <defs>. Left loose
-   in a symbol it renders itself as well, at its own coordinates — which
-   for a template are usually nowhere near the viewBox. It stays invisible
-   for exactly as long as the drawing is small. */
+/* Reusable SVG templates must live in defs. */
 for (const [name, src] of [['index', html], ['404', lost]]) {
   const used = new Set([...src.matchAll(/href="#([^"]+)"/g)].map(m => m[1]));
   const loose = [...used].filter(id => {
@@ -58,17 +49,17 @@ for (const [name, src] of [['index', html], ['404', lost]]) {
   check(`${name}: every <use> template sits in defs`, !loose.length, loose.join(','));
 }
 
-// ── features with a floor worth keeping
+// Feature baseline
 check('nothing leans on :has()', !bare.includes(':has('));
 check('overflow: clip always has a fallback',
   !/overflow-x: clip/.test(bare) || /overflow-x: hidden;[\s\S]{0,80}overflow-x: clip/.test(bare));
 check('appearance is prefixed', !/[^-]appearance: none/.test(bare) || bare.includes('-webkit-appearance: none'));
 
-// ── a descendant selector cannot reach inside a <use> shadow tree
+// SVG use styling
 const shadowClasses = ['mg-body', 'mg-lit', 'cb-body', 'cb-curl', 'jr-bone', 'jr-straw',
   'jr-band', 'jr-hole', 'jr-teeth', 'bf-bolt', 'bf-spark', 'bf-void', 'bf-core', 'bf-hole', 'bf-hot', 'bf-warp',
   'cw-body', 'cw-vein',
-  // the staff and the log pose are cloned symbols too
+
   'ye-fill', 'ye-edge', 'ye-lit', 'ye-spec', 'ye-dark', 'ye-shade', 'ye-grain',
   'ye-gold', 'ye-gold-line', 'ye-gold-lit', 'ye-gold-dark',
   'lp-strap', 'lp-stitch', 'lp-brass', 'lp-brass-lit', 'lp-brass-dark', 'lp-tick',
@@ -76,34 +67,26 @@ const shadowClasses = ['mg-body', 'mg-lit', 'cb-body', 'cb-curl', 'jr-bone', 'jr
 const reached = shadowClasses.filter(c => new RegExp(`[.\\w\\]]\\s+\\.${c}\\b`).test(bare));
 check('nothing styles a cloned symbol through a descendant selector', !reached.length, reached.join(','));
 
-/* ── every id javascript reaches for has to exist in the markup
-   On one of the two pages, not on both: flash.js is shared, and some of
-   what it reaches for is only on the front page and some of it only on
-   the 404. Everything in there guards on its element being present,
-   which is what makes that safe — and an id on neither page is a guard
-   that is always false, which is dead code pretending to be a feature. */
+/* DOM references */
 const ids = new Set([...(html + lost).matchAll(/id="([^"]+)"/g)].map(m => m[1]));
 const wanted = [...(js + flash).matchAll(/getElementById\('([^']+)'\)/g)].map(m => m[1]);
 const absent = [...new Set(wanted)].filter(i => !ids.has(i));
 check('every getElementById has an element', !absent.length, absent.join(','));
 
-// ── the 404 must not claim to be indexable
+// 404 indexing
 check('404 says noindex', /name="robots" content="noindex"/.test(lost));
 
-// ── no leftover pointers to the old font host
+// Font hosts
 check('nothing points at google fonts', !html.includes('googleapis') && !lost.includes('googleapis'));
 
-// ── the ambient field is baked into the markup, so it has to be complete
-// there. A mote missing one custom property inherits nothing and either
-// stacks on the left edge or animates to a length of zero.
+// Ambient field
 for (const [name, src] of [['index', html], ['404', lost]]) {
   const motes = [...src.matchAll(/<span class="mote[^"]*" style="([^"]+)"/g)].map(m => m[1]);
   check(`${name}: the field has motes`, motes.length >= 20, String(motes.length));
   const needed = ['--x:', '--w:', '--dur:', '--delay:', '--sway:', '--fade:'];
   const short = motes.filter(s => needed.some(k => !s.includes(k)));
   check(`${name}: every mote carries its own timing`, !short.length, short[0] || '');
-  // a positive delay is a mote that has not started yet, which is a gap in
-  // the field for as long as the delay lasts
+
   const late = motes.filter(s => !/--delay:-/.test(s));
   check(`${name}: every mote starts mid-flight`, !late.length, late[0] || '');
 }
@@ -112,15 +95,7 @@ const opens = (css.match(/{/g) || []).length;
 const closes = (css.match(/}/g) || []).length;
 check('the braces balance', opens === closes, `${opens} open, ${closes} close`);
 
-/* The query the page ships to anilist is built by joining template
-   strings, and nothing in the browser complains if that comes out
-   malformed — the endpoint answers with errors, the region stays hidden,
-   and it stays hidden for good. Nobody would find out.
-
-   This container cannot reach anilist, so the query cannot be run. It can
-   be parsed. The field names are not guesses either: every one of them
-   appears in the query a maintained client sends to the live api, which is
-   in the note above them in script.js. */
+/* Rebuild the AniList query exactly as shipped. */
 {
   const block = js.slice(js.indexOf('const LIKE_FIELDS'));
   const fields = block.match(/const LIKE_FIELDS = `([^`]+)`/);
@@ -128,7 +103,7 @@ check('the braces balance', opens === closes, `${opens} open, ${closes} close`);
   check('the anilist query is still built here', Boolean(fields && shapes.length));
 
   if (fields && shapes.length) {
-    // the same join the page does, with the templating filled in
+    // Mirror the page query assembly.
     const query = `{${['a', 'b', 'c'].flatMap(k => shapes.map((sh, n) => `${k}${n}: ` + sh
       .replace('${JSON.stringify(l.title)}', '"One Piece"')
       .replace('${LIKE_FIELDS}', fields[1]))).join('\n')}}`;
@@ -141,18 +116,12 @@ check('the braces balance', opens === closes, `${opens} open, ${closes} close`);
     }
     check('the anilist query parses as graphql', !why, why);
 
-    // Media has no "large" of its own — asking for a cover without one is
-    // how a whole card comes back empty
+
     check('the cover is asked for inside coverImage', /coverImage \{[^}]*large/.test(fields[1]));
   }
 }
 
-/* ── the runner cannot ask for a suite that is not there
-   It listed one for a while that had never been added to the repository.
-   Everything passed, because the file was sitting on the disk it was
-   written on — and a fresh clone got a runner spawning node against a
-   path that does not exist, which reads as a suite failing for a reason
-   nobody can see in the diff. */
+/* Runner manifest */
 {
   const runner = read('tests/run.js');
   const want = (runner.match(/SUITES = \[([^\]]+)\]/) || [, ''])[1]
@@ -161,7 +130,7 @@ check('the braces balance', opens === closes, `${opens} open, ${closes} close`);
   const gone = want.filter(s => !fs.existsSync(path.join(root, 'tests', `${s}.test.js`)));
   check('and every one of them is a file in the repository', !gone.length, gone.join(','));
 
-  // and nothing written is quietly never run
+
   const orphan = fs.readdirSync(path.join(root, 'tests'))
     .filter(f => f.endsWith('.test.js'))
     .map(f => f.replace('.test.js', ''))
@@ -169,25 +138,14 @@ check('the braces balance', opens === closes, `${opens} open, ${closes} close`);
   check('and nothing in there is never run', !orphan.length, orphan.join(','));
 }
 
-/* ── both pages have to say that javascript is there
-   The stylesheet holds a set of things back until it is — the hero
-   arriving a piece at a time, and the controls that are only offered
-   when they can actually work. A page that never sets the flag is
-   permanently in the state of a page with no javascript, while running
-   javascript, and the only sign of it is a red rule quietly missing from
-   the middle of a sentence. */
+/* JavaScript state */
 for (const [name, src] of [['index', html], ['404', lost]]) {
   check(`${name}: says javascript is there, before first paint`,
     /setAttribute\('data-js'/.test(src) &&
     src.indexOf("setAttribute('data-js'") < src.indexOf('</head>'));
 }
 
-/* ── the structured data has to be true and has to parse
-   It is the one thing on the page nobody ever looks at, which is exactly
-   why it drifts: a link changes in the header and the copy of it down
-   here goes on saying the old thing to every search engine that asks.
-   So every account it claims has to be one the page actually links to,
-   and the whole thing has to be json a parser will take. */
+/* Structured data */
 {
   const block = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
   check('the page carries structured data', !!block);
@@ -210,32 +168,29 @@ for (const [name, src] of [['index', html], ['404', lost]]) {
   }
 }
 
-/* ── a preload has to be for something that is actually asked for
-   A preload the page never uses is a file fetched at the front of the
-   queue for nothing, and a preload whose url is a character off from the
-   one in the stylesheet is that file fetched twice. Both are silent in
-   every browser but the console. */
+/* Preloads */
 {
   const faces = read('fonts.css');
   for (const [name, src] of [['index', html], ['404', lost]]) {
     const pre = [...src.matchAll(/<link rel="preload" href="([^"]+)"([^>]*)>/g)];
     check(`${name}: something is preloaded`, pre.length > 0, String(pre.length));
 
-    const gone = pre.map(m => m[1]).filter(f => !fs.existsSync(path.join(root, f.split('?')[0])));
+    const gone = pre.map(m => m[1]).filter(f =>
+      !fs.existsSync(path.join(root, f.split('?')[0].replace(/^\/+/, ''))));
     check(`${name}: every preload is a file that exists`, !gone.length, gone.join(','));
 
-    // exactly as the stylesheet asks for it, query string and all
-    const unused = pre.map(m => m[1]).filter(f => !faces.includes(`url('${f}')`));
+
+    const unused = pre.map(m => m[1]).filter(f =>
+      !faces.includes(`url('${f.replace(/^\/+/, '')}')`));
     check(`${name}: and the url the stylesheet uses`, !unused.length, unused.join(','));
 
-    /* A font is fetched in cors mode however it is served, so a preload
-       without this is a second, separate fetch of the same file. */
+    /* Font preloads require matching CORS mode. */
     const bare_ = pre.filter(m => !/crossorigin/.test(m[2])).map(m => m[1]);
     check(`${name}: every font preload is crossorigin`, !bare_.length, bare_.join(','));
   }
 }
 
-// ── motion nobody asked for has to be switchable off
+// Reduced motion
 const still = css.slice(css.indexOf('prefers-reduced-motion'));
 check('reduced motion drops the field', /\.field\s*{\s*display:\s*none/.test(still));
 

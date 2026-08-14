@@ -1,7 +1,7 @@
 {
   "name": "Strohut",
   "short_name": "Strohut",
-  "description": "Mico. What I'm doing right now, and where to find me.",
+  "description": "A personal site and selected work by Strohut.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#08080b",

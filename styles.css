@@ -1,25 +1,4 @@
-/* ════════════════════════════════════════════════════════════════
-   strohut
 
-   A manga spread, not a column of sections. Panels sit on black with
-   real gutters between them, every one of them cut on the skew, and the
-   drawings are cropped by the panel edges the way a panel crops a
-   drawing. One thing is allowed to break a gutter, and it does it once.
-
-   One drawing rule, applied to everything: line art, paper-white stroke,
-   ink fill so that shapes occlude one another. No gloss, no specular
-   highlight, no gradient, no solid colour fields. Red is not decoration —
-   it marks exactly two things, the loop of binding and the black flash.
-   The flag is the one solid, because a flag is a silhouette.
-
-   Objects drawn in four different languages is what made an earlier
-   version read as clutter, not the number of them.
-
-   Depth is line weight, the way it is on a drawn page: the flag and the
-   brush stroke are foreground, the cloud sits in the middle, the wheel and
-   the speed lines are background and are drawn thin. Every line at the
-   same weight is what makes a page read flat.
-   ════════════════════════════════════════════════════════════════ */
 
 :root {
   color-scheme: dark;
@@ -33,32 +12,19 @@
   --paper-3: #8a877f;
 
   --blood: #e01b2e;
-  /* the drawing red misses 4.5:1 at small sizes, so text gets its own */
+  /* Use a separate accessible text red. */
   --blood-lit: #ff3d4e;
 
   --rule: 2px;
 
-  /* Every line on this page is drawn except the ones that held it
-     together: the rule under each heading and the one over every row were
-     one-pixel css borders, dead straight, in a page where nothing else
-     is. Drawn once here and repeated by everything that needs one — a
-     ribbon rather than a stroke, because an inked line is not one width
-     along its length, and it lifts twice per tile.
 
-     Built to tile: whatever the line does at the start of the tile it
-     does again at the end, so a rule of any width joins itself. */
   --ruled: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 3' preserveAspectRatio='none' fill='%23242430'%3E%3Cpath d='M0 1.1C3.1 1.1 12.5 1.1 18.8 1.1C25 1.2 31.3 1.2 37.5 1.2C43.8 1.2 50 1.2 56.3 1.1C62.5 1.1 68.8 1.1 75 1.1C81.3 1.1 87.5 1.1 93.8 1.1C100 1.1 106.3 1.1 112.5 1.1C118.8 1 125 1 131.3 0.9C137.5 0.9 143.8 0.8 150 0.8C156.3 0.8 162.5 0.9 168.8 0.9C175 0.9 181.3 0.9 187.5 1C193.8 1 200 1.1 206.3 1C212.5 1 218.8 0.9 225 0.9C231.3 0.8 237.5 0.7 243.8 0.7C250 0.7 256.3 0.7 262.5 0.8C268.8 0.8 275 0.9 281.3 0.9C287.5 1 293.8 1 300 1.1C306.3 1.1 312.5 1.1 318.8 1.1C325 1.1 331.3 1.1 337.5 1.1C343.8 1.1 350 1.1 356.3 1.2C362.5 1.2 368.8 1.2 375 1.2C381.3 1.2 387.5 1.1 393.8 1.1C400 1.1 406.3 1.1 412.5 1.1C418.8 1.1 425 1.1 431.3 1.2C437.5 1.2 443.8 1.3 450 1.3C456.3 1.3 462.5 1.4 468.8 1.4C475 1.4 481.3 1.3 487.5 1.2C493.8 1.2 500 1.2 506.3 1.2C512.5 1.2 518.8 1.3 525 1.3C531.3 1.3 537.5 1.4 543.8 1.4C550 1.4 556.3 1.3 562.5 1.3C568.8 1.3 575 1.2 581.3 1.2C587.5 1.1 596.9 1.1 600 1.1L600 2.2C596.9 2.2 587.5 2.2 581.3 2.2C575 2.2 568.8 2.1 562.5 2.1C556.3 2.1 550 2 543.8 2C537.5 1.9 531.3 1.9 525 1.9C518.8 1.9 512.5 1.9 506.3 1.8C500 1.8 493.8 1.8 487.5 1.7C481.3 1.7 475 1.6 468.8 1.6C462.5 1.6 456.3 1.7 450 1.8C443.8 1.9 437.5 1.9 431.3 2C425 2 418.8 2 412.5 2C406.3 2 400 1.9 393.8 1.9C387.5 1.8 381.3 1.8 375 1.7C368.8 1.7 362.5 1.7 356.3 1.7C350 1.7 343.8 1.8 337.5 1.8C331.3 1.8 325 1.8 318.8 1.8C312.5 1.8 306.3 1.7 300 1.7C293.8 1.7 287.5 1.7 281.3 1.7C275 1.7 268.8 1.7 262.5 1.7C256.3 1.7 250 1.7 243.8 1.6C237.5 1.6 231.3 1.6 225 1.6C218.8 1.5 212.5 1.5 206.3 1.5C200 1.5 193.8 1.6 187.5 1.7C181.3 1.7 175 1.8 168.8 1.8C162.5 1.9 156.3 1.9 150 1.9C143.8 1.9 137.5 1.9 131.3 1.9C125 1.9 118.8 1.9 112.5 2C106.3 2 100 2.1 93.8 2.2C87.5 2.2 81.3 2.3 75 2.3C68.8 2.4 62.5 2.4 56.3 2.4C50 2.4 43.8 2.3 37.5 2.3C31.3 2.3 25 2.3 18.8 2.3C12.5 2.2 3.1 2.2 0 2.2Z'/%3E%3C/svg%3E");
   --ruled-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16' preserveAspectRatio='none' fill='%23e01b2e'%3E%3Cpath d='M0 4.8C2.1 4.8 8.3 4.6 12.5 4.6C16.7 4.7 20.8 5 25 5.1C29.2 5.2 33.3 4.9 37.5 5C41.7 5 45.8 5.4 50 5.4C54.2 5.4 58.3 5.3 62.5 5.3C66.7 5.3 70.8 5.5 75 5.6C79.2 5.7 83.3 5.7 87.5 5.8C91.7 5.9 95.8 6.1 100 6.1C104.2 6.2 108.3 6.2 112.5 6.2C116.7 6.3 120.8 6.4 125 6.4C129.2 6.5 133.3 6.4 137.5 6.5C141.7 6.6 145.8 7 150 7.1C154.2 7.2 158.3 7.2 162.5 7.3C166.7 7.3 170.8 7.3 175 7.4C179.2 7.4 183.3 7.6 187.5 7.6C191.7 7.6 197.9 7.5 200 7.4L200 8.4C197.9 8.6 191.7 9 187.5 9.2C183.3 9.4 179.2 9.4 175 9.6C170.8 9.7 166.7 9.9 162.5 10.1C158.3 10.3 154.2 10.5 150 10.5C145.8 10.6 141.7 10.5 137.5 10.5C133.3 10.6 129.2 10.8 125 11C120.8 11.1 116.7 11.2 112.5 11.3C108.3 11.4 104.2 11.6 100 11.7C95.8 11.7 91.7 11.7 87.5 11.8C83.3 11.8 79.2 11.9 75 11.9C70.8 11.9 66.7 11.8 62.5 11.9C58.3 11.9 54.2 12.2 50 12.2C45.8 12.2 41.7 11.9 37.5 11.8C33.3 11.8 29.2 12 25 11.9C20.8 11.8 16.7 11.4 12.5 11.3C8.3 11.1 2.1 11.2 0 11.2Z'/%3E%3C/svg%3E");
 
   scrollbar-color: var(--ink-3) var(--ink);
 }
 
-/* Asked for more contrast, given more ink: the two quiet greys each move
-   up one step — the readings take the old body grey, the body takes a
-   shade under the headline paper. The drawings keep their line weights;
-   contrast here is about reading, and the only grey type on this black
-   is the quiet kind. Forced colors is a different thing entirely and has
-   its own block at the foot of this file. */
+
 @media (prefers-contrast: more) {
   :root {
     --paper-2: #d9d5cc;
@@ -72,8 +38,7 @@
   box-sizing: border-box;
 }
 
-/* Off screen until it is tabbed to. The sprite and the whole header sit
-   before the content, which is a long way to tab past. */
+
 .skip {
   position: absolute;
   top: .6rem;
@@ -93,10 +58,7 @@
   translate: 0 0;
 }
 
-/* Only while a charge is being held. Holding for half a second is exactly
-   what raises the selection callout on iOS, and that lands on top of the
-   thing being aimed at. Selection works normally the rest of the time,
-   because copying a song title is a reasonable thing to want. */
+
 body.is-charging,
 body.is-charging * {
   user-select: none;
@@ -133,8 +95,7 @@ html {
 
 body {
   margin: 0;
-  /* kills the double-tap zoom and the tap delay without taking scrolling
-     away, which a finger still needs */
+  /* Remove tap delay without disabling scrolling. */
   touch-action: manipulation;
   background: var(--ink);
   color: var(--paper);
@@ -144,8 +105,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Screentone over the whole page. A dot grid is what shades a manga
-   panel; a blurred gradient is what shades a template. */
+
 .tone {
   position: fixed;
   inset: 0;
@@ -157,33 +117,14 @@ body {
   mix-blend-mode: overlay;
 }
 
-/* ── 無量空処 ───────────────────────────────────────────────── */
+/* 無量空処 */
 
-/* Unlimited Void, checked rather than remembered. Twice I drew it from
-   memory and twice it was wrong: first a ragged barrier that could have
-   been anybody's domain, then a sphere with rings running round it, which
-   is an orrery and is not in it at all.
 
-   What it actually is, per the wiki: an endless void "resembling outer
-   space in appearance, with a large black hole, distant galaxies and
-   numerous white patches". So that is what is here — a hole at a distance
-   with the light bent round it, galaxies, patches, a sky, and information
-   pouring through all of it.
-
-   In the anime it is blue. In the manga it is black and white, which is
-   what this page is, so for once accuracy and the palette agree.
-
-   It is display:none by default and only exists once javascript has said
-   so. A curtain a browser cannot lift is a curtain that never lifts. */
 .curtain {
   display: none;
 }
 
-/* No animation on the curtain itself. An ancestor whose opacity is
-   changing cannot have its children composited separately — the whole
-   subtree is drawn again every frame. It does not fade out either: the
-   white rises, the curtain is taken away underneath it, and the page comes
-   out of the white, which is a better cut than a cross-fade. */
+/* Keep the curtain opaque so child layers remain composited. */
 [data-js] .curtain {
   display: block;
   position: fixed;
@@ -197,9 +138,7 @@ body {
   display: none;
 }
 
-/* Everything underneath is covered, so painting it is work nobody sees —
-   and the field is twenty-three moving parts with blurs on five of them.
-   Both are decoration and both are already hidden from the tree. */
+/* Pause hidden ambient animation until the curtain clears. */
 .is-cast .field,
 .is-cast .tone {
   display: none;
@@ -219,12 +158,11 @@ body {
   will-change: transform, opacity;
 }
 
-/* the sky it is all standing in */
+
 .curtain-void {
   position: absolute;
   inset: 0;
-  /* three layers on sizes with no common factor, or the lattice shows and
-     it reads as a screen rather than a sky */
+
   background-image:
     radial-gradient(var(--paper) 1px, transparent 1.1px),
     radial-gradient(var(--paper) .7px, transparent .8px),
@@ -240,7 +178,7 @@ body {
   100% { transform: scale(1); opacity: .26; }
 }
 
-/* the galaxies and the patches, turning the other way to the hole */
+
 .curtain-sky {
   animation: drift-back 2.1s cubic-bezier(.2, .6, .3, 1) both;
 }
@@ -262,12 +200,8 @@ body {
   fill: var(--paper);
 }
 
-/* pale, which is what "white patches" means — at a tenth they are grey
-   landmasses rather than something faint and far away */
-/* Four hundred of them, in three paths. The sphere is filled with the
-   page's own ink — the same colour as the page — so on an empty field it
-   is not a hole, it is a circle in outline. These are what it is dark
-   against. */
+
+
 .uv-star {
   fill: var(--paper);
   stroke: none;
@@ -282,8 +216,7 @@ body {
   opacity: .32;
 }
 
-/* The hole. It keeps turning once it has arrived — the disc is what is
-   moving, and a black hole that has stopped is a picture of one. */
+
 .curtain-hole {
   animation: open .95s cubic-bezier(.16, .9, .28, 1) both,
              spin-slow 11s linear .95s infinite;
@@ -300,7 +233,7 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* the shadow is the page's own black, so it is a hole and not a disc */
+
 .uv-shadow {
   fill: var(--ink);
   stroke: var(--paper);
@@ -314,28 +247,23 @@ body {
   stroke-linecap: round;
 }
 
-/* The edge of the sphere. Everything the shape does is done by what it
-   covers; this is the one line that says where it ends. */
+
 .uv-ring {
   stroke-width: 2.6;
   opacity: .9;
 }
 
-/* and the light gathered along it */
+
 .uv-halo {
   stroke-linejoin: round;
 }
 
-/* more than a mind can take, pouring through it */
+
 .curtain-streams {
   animation: pour 1.55s cubic-bezier(.15, .75, .25, 1) both;
 }
 
-/* It used to rush past and be gone by a second and a half, which left the
-   sphere with nothing behind it for the rest of the time it was up — and
-   the only thing giving a black shape on a black page an edge is what it
-   covers. It still comes in hard and it still keeps moving, but it never
-   goes to nothing. */
+
 @keyframes pour {
   0% { transform: scale(.3) rotate(-8deg); opacity: 0; }
   14% { opacity: 1; }
@@ -343,7 +271,7 @@ body {
   100% { transform: scale(2.1) rotate(7deg); opacity: .55; }
 }
 
-/* bucketed by weight rather than carrying a style attribute each */
+
 .uv-ray,
 .uv-tick {
   fill: none;
@@ -360,11 +288,9 @@ body {
 .uv-d2 { opacity: .24; }
 .uv-d3 { opacity: .13; }
 
-/* ── what is being said ─────────────────────────────────────── */
+/* Copy */
 
-/* The casting above and the name below, with the hole between them.
-   Stacked in the middle they land on top of it, and the one thing that has
-   to be legible on a title card is the title. */
+
 .curtain-say {
   position: absolute;
   inset: 0;
@@ -383,12 +309,7 @@ body {
   justify-content: center;
 }
 
-/* Something dark behind each line. The sky is sliced to fill, so on a
-   narrow screen only its middle two hundred and seventy units show and
-   whatever galaxy happens to be there lands inside the characters. A
-   gradient rather than a shadow on the glyphs: they are svg, so a shadow
-   would be a filter re-run on every frame of them landing, and this is
-   one paint that never changes. */
+
 .curtain-say p::before {
   content: "";
   position: absolute;
@@ -397,9 +318,7 @@ body {
   background: radial-gradient(ellipse at 50% 50%, var(--ink) 0 38%, rgb(8 8 11 / 0) 72%);
 }
 
-/* What it says, under it. The kanji are the drawing and the drawing is
-   the point, but a technique nobody can read the name of is a decoration
-   — so the accurate English sits under each one, quietly. */
+
 .says {
   flex-basis: 100%;
   margin-top: .55rem;
@@ -417,17 +336,7 @@ body {
   color: var(--paper-2);
 }
 
-/* After its own line has finished landing, not before it starts. The
-   characters are struck one at a time; the words underneath were sitting
-   there fully formed while the first one was still on its way, which
-   reads as a caption on a slide rather than a name being spoken.
 
-   And the whole run has to finish before the drawing is taken away. It
-   did not: the second line began fading in at 1.62s and the barrier
-   removed the drawing at 1.66s, so nobody ever saw the words under
-   無量空処 at all. Everything is a little tighter now and the white starts
-   later, which costs the intro four hundred milliseconds and is the
-   difference between the sequence existing and not. */
 .curtain-cast .says {
   animation: said .4s ease-out .82s backwards;
 }
@@ -469,24 +378,18 @@ body {
   animation: strike-in .44s cubic-bezier(.2, .9, .2, 1) calc(.7s + var(--n) * .065s) both;
 }
 
-/* one mark in red, the way exactly one mark on this page is */
+
 .curtain-name span:nth-child(2) svg {
   fill: var(--blood);
 }
 
-/* No blur here. Animating filter re-rasterises the element every frame,
-   and eight at once took the sequence to half its frame rate — a strange
-   price on the one part of the page whose whole job is to look good.
-   Opacity and scale composite, and it looks the same. */
+/* Use opacity and scale to keep this animation compositor-only. */
 @keyframes strike-in {
   0% { opacity: 0; transform: translateY(.18em) scale(1.28); }
   100% { opacity: 1; transform: none; }
 }
 
-/* And then nothing. It sits above the curtain rather than inside it, so it
-   is still there once the curtain has gone and the page arrives out of the
-   white. One rise and one fall rather than a switch — a hard cut to white
-   and back is a strobe, and this is somebody's homepage. */
+
 .curtain-white {
   display: none;
 }
@@ -516,17 +419,9 @@ body {
   100% { opacity: 0; }
 }
 
-/* ── the layer that never stops ─────────────────────────────── */
+/* Ambient layer */
 
-/* Everything else on the page moves because it was clicked, or on a cycle
-   slow enough that you have to be told it is moving. This is the one thing
-   that is always going: cursed energy coming off the page as ragged smoke,
-   with pieces tearing off it on the way up.
 
-   Fixed rather than in the flow, so it keeps going while you scroll and is
-   not a strip that has to be scrolled past. Every mote carries its own
-   lane, size and timing in the markup, and every delay is negative, so the
-   field is already mid-flight on the first frame. */
 .field {
   position: fixed;
   inset: 0;
@@ -544,9 +439,7 @@ body {
   animation: rise var(--dur) linear var(--delay) infinite;
 }
 
-/* the rise is on the box and the sway is on the drawing, so the two can
-   run at unrelated periods — one transform could only carry both if they
-   shared a duration, and then every mote wanders in step */
+
 .mote svg {
   display: block;
   width: 100%;
@@ -567,17 +460,13 @@ body {
   to { transform: translateX(calc(var(--sway) * .5)) rotate(var(--spin, 0deg)); }
 }
 
-/* Blown up to a third of the screen, a drawn edge stops reading as smoke
-   and starts reading as a stain on the page. Blurred, and with both ends
-   taken off by the mask, what is left is a shape with no border — which
-   is the only way a silhouette this large can sit behind text. */
+
 .mote-wisp svg {
   filter: blur(9px);
   mask-image: linear-gradient(to top, transparent, #000 22%, #000 62%, transparent);
 }
 
-/* the smoke is paper at a few percent; the flecks are what you actually
-   catch out of the corner of your eye, and some of them are lit */
+
 .cw-body {
   fill: var(--paper);
   stroke: none;
@@ -590,21 +479,13 @@ body {
   stroke-linecap: round;
 }
 
-/* fill is inherited, and inheritance is the only thing that crosses a
-   <use> shadow boundary — the flecks carry no class of their own */
+/* SVG use instances inherit fill across the shadow boundary. */
 .mote-fleck svg { fill: var(--paper); }
 .mote-fleck.is-hot svg { fill: var(--blood); }
 
-/* ── what the pointer stirs up ──────────────────────────────── */
+/* Pointer wake */
 
-/* The field goes whether anybody is there or not. This is the half that
-   only exists because somebody is: energy comes off whatever you drag the
-   pointer through, and while a strike is being held it comes off red.
 
-   Fixed, over the sheet rather than under it — a wake that goes behind the
-   text is a wake nobody sees. It takes no clicks, and every piece of it is
-   a drawn fleck rather than a dot, so it belongs to the same hand as the
-   rest of the page. */
 .wake {
   position: fixed;
   inset: 0;
@@ -629,7 +510,7 @@ body {
   fill: var(--paper);
 }
 
-/* held: the charge is building, and what comes off it says so */
+
 .wake.is-hot .spark svg {
   fill: var(--blood-lit);
 }
@@ -641,7 +522,7 @@ body {
   overflow: hidden;
 }
 
-/* ── type ───────────────────────────────────────────────────── */
+/* Typography */
 h1,
 h2,
 .dc-name,
@@ -657,17 +538,14 @@ a {
   color: inherit;
 }
 
-/* ── the spread ─────────────────────────────────────────────── */
+/* Layout grid */
 
-/* The wheel runs past the right margin on purpose. Clipping on the grid
-   itself cuts at the column edge, straight through the wheel, so the crop
-   has to happen on a full-width wrapper. overflow-x:hidden on body does
-   not do it either — the document still reports the wider scroll width. */
+
 .sheet {
   position: relative;
   z-index: 1;
-  overflow-x: hidden;    /* the floor */
-  overflow-x: clip;      /* better where it exists: makes no scroll container */
+  overflow-x: hidden;    /* Fallback overflow. */
+  overflow-x: clip;      /* Prefer clip where supported. */
 }
 
 .spread {
@@ -679,60 +557,18 @@ a {
   gap: clamp(1.6rem, 4vw, 3rem) clamp(1.6rem, 4vw, 3.4rem);
 }
 
-/* No frames. Thin light outlines with clipped corners on black read as a
-   sci-fi interface kit, not as a drawn page — a real panel border is a
-   black line on paper, and inverting that lands somewhere else entirely.
-   So the regions are held apart by space, by the cloud, and by the rule
-   under each heading. Nothing is boxed. */
+
 .panel {
   position: relative;
   min-width: 0;
 }
 
-/* where each region sits on the twelve columns */
+
 .hero { grid-column: 1 / -1; }
-/* The presence runs to three or four activities; the track is a sleeve and
-   four lines and is never going to be more. Splitting the row down the
-   middle gave the shorter one the same width as the taller. */
-.now { grid-column: 1 / 8; align-content: start; }
-
-/* The presence runs to four panels and the track is one record and four
-   lines, so the right column used to stop halfway up and leave the rest
-   of its height as black. It keeps the height and puts the record at the
-   foot of it instead, level with the last thing he has open. */
-.music {
-  grid-column: 8 / -1;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-}
-
-/* A display of its own beats the one the hidden attribute carries, and
-   this is the region that takes itself away when the socket never opens.
-   Without this it stayed — a heading and a sleeve reading "checking…"
-   for as long as the tab was left open, beside a readout that had
-   already taken the whole row for itself. */
-.music[hidden] {
-  display: none;
-}
-
-/* centred in whatever height the column beside it is taller by, rather
-   than at the top of it with the whole difference hanging underneath.
-   A flex column would do this with two auto margins and shrink its own
-   items when the row is short — a grid row cannot. */
-.playing { align-self: center; }
-
-/* The music region takes itself away when there is nothing to say and
-   nothing remembered — a socket that will not open and no track this page
-   has ever caught. The readout was left holding seven of twelve columns
-   with five columns of black beside it, which reads as something failing
-   to load rather than as a region that is not there.
-
-   Set by the code that takes the other one away, rather than read off the
-   dom with :has(). A browser without :has() does not warn, it just leaves
-   the layout as it was — and this is the one layout nobody looking at the
-   page in normal conditions would ever see. */
-.now.is-alone {
+.now,
+.work {
   grid-column: 1 / -1;
+  align-content: start;
 }
 
 .likes { grid-column: 1 / -1; }
@@ -746,14 +582,13 @@ a {
   background: var(--ruled) 0 0 / 44rem 3.5px repeat-x;
 }
 
-/* ══ the hero panel ═════════════════════════════════════════ */
-/* On a laptop the whole of the first screen was the header: name, line,
-   sentence, tags, staff, and then a cloud — and the first region started
-   a few pixels below the fold, which is the one place it cannot start.
-   A page whose first screen has nothing on it but its own title is a
-   splash screen. The reserved height goes when there is no room for it,
-   and the room the drawings take comes down with it. */
+/* Hero */
+
 .hero {
+  --wheel-top: 44%;
+  --wheel-right: calc(-15% - (100vw - 100%) / 2);
+  --wheel-size: min(36rem, 50%);
+  --wheel-hit-size: min(11rem, var(--wheel-size));
   align-content: center;
   min-height: min(42vh, 20rem);
   display: grid;
@@ -761,26 +596,19 @@ a {
   padding-block: clamp(.6rem, 1.8vw, 1.4rem);
 }
 
-/* speed lines, converging off the right edge */
-/* slice makes the artwork overflow its own viewport on purpose, so the
-   element itself has to do the clipping or it widens the document */
+
+
 .speed {
   position: absolute;
   inset: 0;
-  /* They converge off the right edge of the screen, the same as the wheel
-     they converge behind — so on a monitor wider than the column they
-     have to reach past it too, or the lines stop in mid-air and the wheel
-     carries on without them. The width is stated rather than left to the
-     offsets: this is an svg, and an svg told to work its own width out
-     takes it from the viewBox and ignores where its edges were put. */
+
   width: calc(100% + (100vw - 100%) / 2);
   height: 100%;
   overflow: hidden;
   pointer-events: none;
 }
 
-/* the layers behind never sit still, and they move at different rates,
-   so the header has depth without anything obviously animating */
+
 .sp {
   animation: rush 19s ease-in-out infinite alternate;
   transform-origin: 100% 40%;
@@ -796,42 +624,23 @@ a {
   fill: var(--paper);
 }
 
-/* The wheel is cropped by the panel edge. That is what a panel is for —
-   it is not a sticker placed inside the frame. */
-/* The drawing. Not a control — its box is enormous and reaches down over
-   the cloud, so anything aiming at the wheel's middle hit the cloud
-   instead. It bleeds off the page and takes no clicks. */
+
+
 .wheel {
   position: absolute;
-  top: 44%;
-  /* Off the right edge of the screen, not of the column.
+  top: var(--wheel-top);
 
-     The spread stops at 78rem and is then centred, so on a wide monitor
-     there is a gutter either side of it — and a wheel pushed fifteen
-     percent past the column landed in that gutter and sat there, whole,
-     with room to spare. Which is a drawing placed inside a frame, which
-     is the one thing it is not meant to be. The gutter is the difference
-     between the viewport and this box, halved; adding it back puts the
-     crop on the edge of the screen at any width. */
-  right: calc(-15% - (100vw - 100%) / 2);
-  width: min(36rem, 50%);
+  right: var(--wheel-right);
+  width: var(--wheel-size);
   aspect-ratio: 1;
-  /* translate and rotate are their own properties, so the offset that
-     centres it and the roll that comes from scrolling do not have to
-     share one transform and fight over it */
+  /* Separate transform properties prevent animation conflicts. */
   translate: 0 -50%;
   rotate: var(--roll, 0deg);
   pointer-events: none;
   opacity: .55;
 }
 
-/* ══ 第一話 ═══════════════════════════════════════════════════
-   The regions are chapters, numbered in the corner of their own
-   heading the way a volume numbers them — which is also what the log
-   pose is counting off as it goes down the page. Drawn as outlines
-   rather than set in the font: six characters would otherwise pull
-   both japanese subsets of Shippori back onto the wire, and they were
-   taken off it for exactly this reason. */
+/* 第一話 */
 .chapter {
   display: grid;
   justify-items: end;
@@ -858,14 +667,7 @@ a {
   opacity: .8;
 }
 
-/* ══ ログポース ═══════════════════════════════════════════════
-   A log pose records the magnetic wave of the island it is on and
-   points at the next one. The regions of this page are the islands, so
-   the needle points at whichever one has not been reached yet, swings
-   past it as it goes by, and at the end of the page it points home.
-
-   It sits in the corner the tally does not use, and it is the only
-   thing on the page that is fixed to the screen and can be pressed. */
+/* ログポース */
 .pose {
   position: fixed;
   left: clamp(.7rem, 2vw, 1.4rem);
@@ -874,10 +676,7 @@ a {
   --ndl: 90deg;
 }
 
-/* The dial is the whole of the control. The words are beside it rather
-   than part of it, so what is fixed to the corner of the screen is one
-   small object and not a label lying across whatever is under it —
-   which at the top of the page is the first row of the readout. */
+
 .pose-hit {
   position: relative;
   display: block;
@@ -888,24 +687,13 @@ a {
   text-align: left;
 }
 
-/* It is an object lying on the page rather than a panel, so it gets no
-   box — but it is fixed to the screen and whatever it happens to be
-   over has to give way rather than fight it. The same backing the
-   domain's reading is given. */
+
 .pose-hit::before {
   content: "";
   position: absolute;
   inset: -.7rem;
   z-index: -1;
-  /* Opaque out to most of its width and only then fading. A gradient
-     that starts giving way at the halfway mark leaves whatever is
-     underneath legible round the edges — and what is underneath is a
-     paragraph, because this thing is fixed to the corner of the screen
-     and the page flows past behind it.
 
-     var(--ink) rather than the value: the sheet cools after dark and
-     turns over inside a domain, and a plate that stayed one colour
-     through either would be a grey card lying on the page. */
   background: radial-gradient(closest-side,
     var(--ink) 62%, color-mix(in srgb, var(--ink), transparent 35%) 84%, transparent 100%);
 }
@@ -929,8 +717,7 @@ a {
   height: 100%;
 }
 
-/* the needle hangs off the wire by its middle, so its own box is
-   centred on the point it turns about and the rotation needs no offset */
+
 .pose-needle {
   left: 50%;
   top: 52.7%;
@@ -938,8 +725,7 @@ a {
   height: 66%;
   translate: -50% -50%;
   rotate: var(--ndl, 90deg);
-  /* it settles like something floating in liquid: quick, and it goes
-     past the mark once before it stops */
+
   transition: rotate .7s cubic-bezier(.2, 1.5, .4, 1);
 }
 
@@ -951,15 +737,7 @@ a {
 .lp-tick { fill: none; stroke: var(--paper); stroke-width: 2; stroke-opacity: .5; stroke-linecap: round; }
 .lp-tick-big { stroke-width: 3.4; stroke-opacity: .8; }
 
-/* A log pose records the island it has been on. The four cardinal
-   marks are the four regions of this page, and each one lights when
-   that region has been reached — so the bezel is a record of where you
-   have been rather than twelve marks that mean nothing.
 
-   Written as one count rather than four flags: a class selector is the
-   only kind that reaches inside a cloned symbol and a custom property
-   is the only value that crosses into one, so each mark asks whether
-   the count has got as far as it. */
 .lp-seen {
   fill: none;
   stroke: var(--blood-lit);
@@ -969,10 +747,7 @@ a {
   transition: opacity .5s ease;
 }
 
-/* Eight, one per principal direction of the bezel, filling clockwise
-   from north as each region is passed. It was four — the cardinals —
-   which was exactly the number of regions the page had at the time,
-   and a fifth chapter had nowhere to land. */
+
 .lp-seen-0 { opacity: clamp(0, calc(var(--seen, 0) - 0), 1); }
 .lp-seen-1 { opacity: clamp(0, calc(var(--seen, 0) - 1), 1); }
 .lp-seen-2 { opacity: clamp(0, calc(var(--seen, 0) - 2), 1); }
@@ -991,10 +766,7 @@ a {
 .lp-needle-lit { fill: none; stroke: #ffd3d8; stroke-width: 2; stroke-opacity: .6; stroke-linecap: round; }
 .lp-pin { fill: #c9a227; stroke: var(--paper); stroke-width: 2; }
 
-/* Said when it changes, and while it is being pointed at. It is never
-   taken out of the tree — the words are the button's own name, and a
-   button that only says where it goes to somebody with a pointer is a
-   button nobody else can use. */
+
 .pose-text {
   position: absolute;
   left: calc(100% + .5rem);
@@ -1009,17 +781,16 @@ a {
 }
 
 .pose:hover .pose-text,
-.pose-hit:focus-visible .pose-text,
-.pose.is-saying .pose-text {
+.pose-hit:focus-visible .pose-text {
   opacity: 1;
   translate: 0 -50%;
 }
 
-/* closest-side on a box far wider than it is tall puts the opaque core
-   at 58% of the *height*, so the ends of the label had almost nothing
-   behind them and whatever paragraph the dial happened to be over read
-   straight through the words. Elliptical, sized to the box, and opaque
-   across the whole of it. */
+@media (max-width: 89.99rem) {
+  .pose { display: none; }
+}
+
+
 .pose-text::before {
   content: "";
   position: absolute;
@@ -1048,11 +819,7 @@ a {
 .pose-hit:hover .pose-name,
 .pose-hit:focus-visible .pose-name { color: var(--blood-lit); }
 
-/* ══ 覚醒 ═════════════════════════════════════════════════════
-   Eight sparks in and the wheel is awake — the window is at its widest
-   and the field can be opened more than once in a run. It is the only
-   thing on this page that can be finished, and a counter quietly
-   reaching its top is not an ending, so it gets said once. */
+/* 覚醒 */
 .woke {
   position: fixed;
   left: 50%;
@@ -1129,10 +896,7 @@ a {
   from { opacity: 0; letter-spacing: .8em; }
 }
 
-/* Once it is awake the wheel runs at better than twice its resting
-   ratchet for the rest of the visit — the one permanent difference on
-   the page. Its own animation, sped up: a second one on top would fight
-   the first for the same transform and win in the wrong direction. */
+
 body.is-awake .wheel-turn {
   animation-duration: 38s;
 }
@@ -1142,27 +906,14 @@ body.is-awake .tally-label .says::after {
   color: var(--blood-lit);
 }
 
-/* ══ 여의봉 ═══════════════════════════════════════════════════
-   Yeoui, the staff, which grows to whatever length is asked of it. So
-   it cannot be one drawing: an end, a middle that stretches, an end.
-   The middle is the only part that is scaled, and everything in it runs
-   lengthwise, so pulling it along its own axis distorts nothing.
+/* 여의봉 */
 
-   It hangs off the foot of the hero, where the column under the name
-   was empty, and it lies at a slight angle so it reads as leaning
-   rather than as a rule under the text. */
-/* A row of the hero rather than something laid over it: the pole is
-   free to run off the page, but the space it lies in at rest is space
-   nothing else is using. Laid over the text it covered the links. */
 .staff {
   position: relative;
-  /* behind the name and the links rather than over them: a pole drawn
-     across a line of text reads as a mistake, and drawn behind it reads
-     as a pole lying behind the page */
+
   z-index: 0;
   --rig-h: clamp(2.4rem, 5.4vw, 3.3rem);
-  /* how long it is, and which way it points. Both are written from the
-     script; everything else about it is css. */
+
   --len: 18rem;
   --turn: -4deg;
   --pull: 0;
@@ -1178,8 +929,7 @@ body.is-awake .tally-label .says::after {
   align-items: stretch;
   width: var(--len);
   height: var(--rig-h);
-  /* it turns about the middle of its own near end, which is where a
-     hand holding it would be */
+
   transform-origin: 1.6rem 50%;
   rotate: var(--turn);
   pointer-events: none;
@@ -1195,9 +945,7 @@ body.is-awake .tally-label .says::after {
 
 .staff-back { scale: -1 1; }
 
-/* The far end drops a couple of degrees once there is enough of it out
-   to have any weight. It is the one thing that stops a long pole from
-   reading as a rule drawn across the page. */
+
 .staff-tip {
   transform-origin: left center;
   rotate: calc(var(--pull, 0) * 2.4deg);
@@ -1208,25 +956,16 @@ body.is-awake .tally-label .says::after {
   min-width: 0;
   height: 100%;
   display: block;
-  /* The three parts are three boxes in a row, and a row laid out in
-     fractions of a pixel leaves a hairline of the page showing between
-     them — which on this background is a black line drawn across the
-     pole. They overlap by a pixel instead; the fill either side of a
-     join is the same fill, so there is nothing to see. */
+
   margin-inline: -1px;
 }
 
-/* Concrete. The staff in God of High School is one of the pillars of the
-   Dragon Palace and is drawn as exactly that — a grey column, matte, the
-   same colour end to end. It was near-black with gold bands, which is
-   the First Heavenly War version of it and not the one anybody carries. */
+
 .ye-fill { fill: #79776f; stroke: none; }
 
 
 
-/* No part of it is outlined as a box — the ink is the top edge and the
-   bottom edge, drawn open, running straight across the joins. Outline
-   each part and what you have is three tubes in a row. */
+/* Avoid outlines that expose segmented geometry. */
 .ye-edge {
   fill: none;
   stroke: var(--paper);
@@ -1236,10 +975,7 @@ body.is-awake .tally-label .says::after {
   vector-effect: non-scaling-stroke;
 }
 
-/* Three bands make it round: the underside going dark, the shade above
-   it, and a broad soft light along the upper third. No specular — a thin
-   bright line down a matte grey pole reads as polished metal, which is
-   the one thing this must not look like. */
+
 .ye-dark,
 .ye-shade,
 .ye-lit,
@@ -1257,39 +993,30 @@ body.is-awake .tally-label .says::after {
 .ye-grain { stroke: var(--paper); stroke-width: 1.4; stroke-opacity: .16; }
 .ye-crack { stroke: #2b2a26; stroke-width: 1.6; stroke-opacity: .5; }
 
-/* the thickness of the stone, in the shadow of its own cut end */
+
 .ye-cut { stroke: #000; stroke-width: 5; stroke-opacity: .3; }
 
-/* chipped, and the aggregate showing where it is */
+
 .ye-pit { fill: #5f5d56; stroke: none; }
 .ye-chip { fill: #97958b; stroke: none; }
 
-/* The grip. The pole itself takes no pointer — a staff lying across the
-   page would otherwise be a wall between the reader and everything
-   under it — so this is the only part of it that can be taken hold of,
-   and it sits over the near end where a hand would be. */
+
 .staff-grip {
   position: absolute;
   left: 0;
-  /* centred on the pole's own axis, and taller than the pole is, so
-     what has to be taken hold of on a phone is a real target */
+
   bottom: calc(1.5rem + var(--rig-h) / 2);
   translate: 0 50%;
   width: clamp(4.6rem, 11vw, 6.4rem);
   height: max(46px, var(--rig-h));
   cursor: grab;
-  /* the grip owns its touches. With pan-y, any pull with a vertical
-     component got claimed by the browser as a scroll and cancelled —
-     which on a phone is every pull, so the staff could not be used
-     at all. The grip is small; scrolling starts anywhere else. */
+  /* Keep vertical scrolling while handling horizontal gestures. */
   touch-action: none;
 }
 
 .staff-grip:active { cursor: grabbing; }
 
-/* On a touch screen the thing being taken hold of is a thumb's width
-   and there is no hover to find it with, so it is bigger than the pole
-   it belongs to rather than the same size. */
+
 @media (pointer: coarse) {
   .staff-grip {
     width: clamp(6rem, 22vw, 8rem);
@@ -1297,8 +1024,7 @@ body.is-awake .tally-label .says::after {
   }
 }
 
-/* what it is, under the grip, the way every other drawn thing here is
-   named — small, and it goes as soon as the staff is moving */
+
 .staff-says {
   position: absolute;
   left: .1rem;
@@ -1316,8 +1042,7 @@ body.is-awake .tally-label .says::after {
   font-family: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", Georgia, serif;
   font-size: .84rem;
   line-height: 1;
-  /* it was gold to go with the bands round the ends, and there are no
-     bands round the ends */
+
   color: var(--paper-2);
 }
 
@@ -1330,16 +1055,7 @@ body.is-awake .tally-label .says::after {
   color: var(--paper-3);
 }
 
-/* ── the aftermath ───────────────────────────────────────────────
-   The rule worth taking from how these fights are drawn: the moment of
-   contact is not the panel. What gets drawn is the wind-up and what is
-   left afterwards — sometimes only the second one, with the blow never
-   shown at all.
-
-   The wind-up is the pole going out, which is under your hand. This is
-   the other half, and none of it is on the pole: it lives in the strike
-   layer, which is fixed, takes no pointer, and was already there for
-   the flash. */
+/* Yeoui aftermath */
 .swing {
   position: absolute;
   translate: 0 -50%;
@@ -1350,10 +1066,7 @@ body.is-awake .tally-label .says::after {
   pointer-events: none;
 }
 
-/* Three of it along the way back. A pole snapping into a hand mostly
-   shortens rather than swings, so the ghosts are the length it was
-   passing through rather than a fan of angles — which is what the first
-   pass drew, and it read as a rake. */
+
 .swing-ghost {
   position: absolute;
   left: 0;
@@ -1373,7 +1086,7 @@ body.is-awake .tally-label .says::after {
   to { opacity: 0; scale: calc(.42 - var(--i, 0) * .1) .5; }
 }
 
-/* the air at the far end, torn along the line it was travelling */
+
 .swing-air {
   position: absolute;
   left: 100%;
@@ -1393,7 +1106,7 @@ body.is-awake .tally-label .says::after {
   to { opacity: 0; translate: 46% -50%; }
 }
 
-/* and the mark where the far end had been */
+
 .swing-hit {
   position: absolute;
   left: 100%;
@@ -1413,10 +1126,7 @@ body.is-awake .tally-label .says::after {
   to { opacity: 0; scale: 1.6; }
 }
 
-/* The air it moves. Park Yongje draws the wind-up and the aftermath of
-   a blow rather than the contact, so what this carries is the travel:
-   lines off the tip while it is going out, and nothing at all when it
-   is standing still. */
+
 .staff-air {
   position: absolute;
   right: 0;
@@ -1432,21 +1142,17 @@ body.is-awake .tally-label .says::after {
     linear-gradient(to left, rgb(239 236 228 / .28), transparent 56%) 0 80% / 100% 2px no-repeat;
 }
 
-/* The control: a defined circle over the hub, where the wheel actually
-   looks like something you would press. */
+
 .sigil {
   position: absolute;
-  top: 44%;
-  right: calc(-15% + min(36rem, 50%) * .5 - 5.5rem);
-  width: 11rem;
-  height: 11rem;
+  top: var(--wheel-top);
+  right: calc(var(--wheel-right) + (var(--wheel-size) - var(--wheel-hit-size)) / 2);
+  width: var(--wheel-hit-size);
+  aspect-ratio: 1;
   translate: 0 -50%;
   border-radius: 50%;
   cursor: grab;
-  /* same as the staff grip: with pan-y a spin with any vertical arc in
-     it — which is every real throw — got cancelled by the browser
-     mid-drag. The circle being a dead spot for scrolling costs less
-     than the wheel being unthrowable. */
+
   touch-action: none;
 }
 
@@ -1458,12 +1164,7 @@ body.is-awake .tally-label .says::after {
   --adapt: 0;
 }
 
-/* Adaptation lands, it does not ease. steps() makes it click round
-   instead of sweeping.
 
-   --drag is the free rotation while the wheel is being thrown. It has to
-   appear in the keyframes as well as the base transform, or the animation
-   simply overwrites it and the wheel refuses to be moved. */
 .wheel-turn {
   transform-origin: 200px 200px;
   transform: rotate(calc(var(--adapt) * 45deg + var(--drag, 0deg)));
@@ -1475,22 +1176,18 @@ body.is-awake .tally-label .says::after {
   to { transform: rotate(calc(var(--adapt) * 45deg + var(--drag, 0deg) + 360deg)); }
 }
 
-/* while it is in hand, it goes where it is put and nowhere else */
+
 .wheel.is-spinning .wheel-turn {
   animation-play-state: paused;
 }
 
-/* Reaching for it winds it up. Four times its resting speed, which is
-   still slow — the point is that it noticed, not that it spun. */
+
 .sigil:hover ~ .wheel .wheel-turn,
 .sigil:focus-visible ~ .wheel .wheel-turn {
   animation-duration: 24s;
 }
 
-/* ink fill, not none — the spokes have to be occluded by the rim.
-   stroke and stroke-width are inherited, and inheritance is the only
-   thing that crosses a <use> shadow boundary, so they are set on the svg
-   and the animation can reach the paths. */
+
 .wheel {
   stroke: var(--paper);
   stroke-width: 2.4;
@@ -1504,17 +1201,8 @@ body.is-awake .tally-label .says::after {
   stroke-linecap: round;
 }
 
-/* the gloss highlight is the thing that made this read as a game asset */
-/* What the wheel has adapted to, one orb at a time. Eight of them, and
-   the eighth is the window on its floor — so the drawing is the whole
-   difficulty curve and there is nothing to explain in words.
 
-   The comparison is arithmetic rather than a class per step: clamp of
-   (learned − n) is nought until learned passes n and one after, which is
-   a threshold without eight rules to keep in step. Custom properties are
-   one of the two things that cross a <use> shadow boundary; a descendant
-   selector is not, which is why the count is a number and not a class on
-   an ancestor. */
+
 .mg-woke {
   stroke: none;
   fill: var(--blood);
@@ -1535,12 +1223,11 @@ body.is-awake .tally-label .says::after {
   display: none;
 }
 
-/* each adaptation burns a little hotter */
+
 .hero.is-adapted .wheel { stroke: var(--blood); }
 
-/* Sized to its own content. Left as a full-width block it lies across the
-   wheel, and every click meant for the wheel lands on the text instead. */
-/* the pointer nudges the layers behind; the amounts come from js */
+
+
 .hero {
   --lean-x: 0;
   --lean-y: 0;
@@ -1550,20 +1237,9 @@ body.is-awake .tally-label .says::after {
   will-change: transform;
 }
 
-/* The wheel moves by turning, which leaves its hub — and therefore the
-   control sitting on it — exactly where it was. Drifting the drawing
-   sideways either drags the control with it, in which case it cannot be
-   aimed at, or leaves it behind, in which case the drawing lies about
-   where to press. */
 
-/* Speed lines are drawn for exactly one reason, and the page had them
-   sitting still while it was being scrolled past. They stretch and
-   brighten with how hard the page is being thrown about, which is the
-   only honest thing a speed line can do.
 
-   scale is its own property, so the stretch and the lean are not fighting
-   over one transform — but they do share the transition list, and setting
-   it twice would drop whichever came first. */
+
 .speed {
   transform: translate3d(calc(var(--lean-x) * 14px), calc(var(--lean-y) * 9px), 0);
   scale: calc(1 + var(--vel, 0) * .12) 1;
@@ -1580,24 +1256,19 @@ body.is-awake .tally-label .says::after {
   width: fit-content;
   max-width: 100%;
   min-width: 0;
-  /* the wheel's button lies underneath this block, and on a phone the
-     block covers most of it — so the text sheet lets touches fall
-     through, and only the things that can actually be pressed or copied
-     catch them. Without this the wheel is dead on any narrow screen. */
+
   pointer-events: none;
 }
 
 .hero-text a,
 .hero-text button,
-.hero-text .sub,
 .hero-text .lost-line,
 .hero-text .lost-path,
 .hero-text .lost-guess {
   pointer-events: auto;
 }
 
-/* A brush stroke under the name — the one red mark in the header, and
-   mine rather than an object lifted from a panel. */
+
 .brush {
   display: block;
   width: min(100%, 38rem);
@@ -1609,20 +1280,10 @@ body.is-awake .tally-label .says::after {
   fill: var(--blood);
 }
 
-/* ── the header putting itself together ─────────────────────── */
+/* Hero reveal */
 
-/* The header used to be finished before it was ever visible. It is inked
-   in now, in the order it would be drawn: the name, the stroke under it,
-   the line, then the tags. One gesture — a wipe left to right — at four
-   sizes, rather than four different arrivals.
 
-   All of it is paused rather than delayed while the barrier is up. A
-   delay would have to know how long the barrier lasts; this does not, it
-   simply does not start until there is nothing over it. */
-/* Not the struck curve everything else on the page uses. That one is
-   nine tenths done in four tenths of its time, which is right for
-   something landing and wrong for a stroke being drawn — the word was
-   simply there. A wipe has to be watchable along its whole length. */
+
 [data-js] .name button > span {
   animation: ink .85s cubic-bezier(.45, .1, .25, 1) backwards;
 }
@@ -1647,16 +1308,13 @@ body.is-awake .tally-label .says::after {
 [data-js] .links a:nth-child(3) { --n: 2; }
 [data-js] .links a:nth-child(4) { --n: 3; }
 
-/* the box a wipe cuts against is the type's own, and a mincho T overhangs
-   it — so the wipe finishes a little past the end rather than on it */
+
 @keyframes ink {
   from { clip-path: inset(-12% 100% -24% -4%); }
   to { clip-path: inset(-12% -6% -24% -4%); }
 }
 
-/* No space between the two. data-js and is-cast are both set on the html
-   element, so a descendant combinator between them asks for one inside
-   the other and matches nothing at all. */
+
 [data-js].is-cast .name button > span,
 [data-js].is-cast .brush,
 [data-js].is-cast .who,
@@ -1680,14 +1338,8 @@ body.is-awake .tally-label .says::after {
   text-shadow: 0 0 26px var(--ink), 0 0 12px var(--ink);
 }
 
-/* Each letter breathes on its own clock. Set as one animation on the word
-   it is a logo sliding up and down; staggered by --n it is ink that has
-   not quite settled, which is the difference between a header that moves
-   and a header that is animated. */
-/* --near is how close the pointer is to this letter, one on it and nought
-   a letter and a half away. translate and scale are their own properties,
-   so answering the pointer and the idle drift are not fighting over the
-   single transform the letter has. */
+
+
 .name i {
   display: inline-block;
   font-style: normal;
@@ -1705,14 +1357,7 @@ body.is-awake .tally-label .says::after {
   to { transform: translateY(-.018em) rotate(.5deg); }
 }
 
-/* Reaching for it wakes the whole word up. Only the beat, though — the
-   colour travels with the pointer and reddening every letter as well just
-   washed the word out under a highlight that was supposed to be moving
-   across it.
 
-   Arriving by keyboard is the one case with nothing to travel: there is
-   no pointer, --pull stays at nought, and the letters would answer a tab
-   with nothing at all. So that case gets the whole word. */
 .name button:hover i,
 .name button:focus-visible i {
   animation-duration: 1.5s;
@@ -1735,9 +1380,7 @@ body.is-awake .tally-label .says::after {
   color: var(--paper-2);
 }
 
-/* What the page is, under the name and over the links. Set at the size
-   of the body rather than the size of a caption: it is the only sentence
-   in the header and the first thing anybody reads after the word. */
+
 .sub {
   max-width: 42ch;
   margin: 0 0 1.1rem;
@@ -1761,16 +1404,13 @@ body.is-awake .tally-label .says::after {
   from { opacity: 0; translate: 0 -.5em; color: var(--blood-lit); }
 }
 
-/* narrow enough and the clock takes its own line rather than breaking
-   mid-sentence */
+
 @media (max-width: 30rem) {
   .who {
     gap: .3rem;
   }
 
-  /* the rule the clock leaves stranded at the end of the line — not the
-     one holding two halves of a sentence apart, which is every rule on a
-     line that only has one of them */
+
   .who > i:not(:only-of-type):last-of-type {
     display: none;
   }
@@ -1792,15 +1432,14 @@ body.is-awake .tally-label .says::after {
   color: var(--paper-2);
 }
 
-/* ── links, as inked tags ───────────────────────────────────── */
+/* Links */
 .links {
   display: flex;
   flex-wrap: wrap;
   gap: .5rem;
 }
 
-/* every target clears 44px — the tags were 35, which is a miss on a
-   phone and a fiddle everywhere else */
+
 .links a {
   display: inline-flex;
   align-items: center;
@@ -1824,9 +1463,7 @@ body.is-awake .tally-label .says::after {
   transition: rotate .35s cubic-bezier(.2, .9, .2, 1), scale .35s cubic-bezier(.2, .9, .2, 1);
 }
 
-/* A tag that only changes colour is a hyperlink with a border on it.
-   These lift off the page and the mark on them turns, so reaching for one
-   is the same kind of event as reaching for anything else here. */
+
 .links a {
   translate: 0 0;
   transition: background-color .15s, box-shadow .15s, color .15s,
@@ -1852,7 +1489,7 @@ body.is-awake .tally-label .says::after {
   transition-duration: .06s;
 }
 
-/* ── the cloud, the one thing that crosses a gutter ─────────── */
+/* Cloud */
 .band {
   grid-column: 1 / -1;
   justify-self: center;
@@ -1860,12 +1497,7 @@ body.is-awake .tally-label .says::after {
   margin-block: clamp(-1rem, -2vw, -.4rem);
 }
 
-/* the drawing drifts; the button holding it does not, or it cannot be
-   aimed at — same reason the wheel only turns.
 
-   31 seconds and two percent was a cycle you had to be told about. The
-   travel is now wide enough to read as a cloud crossing rather than a
-   drawing that has been nudged. */
 .band svg,
 svg.band {
   --drift: 0px;
@@ -1877,9 +1509,7 @@ svg.band {
   to { transform: translate3d(6%, calc(-.7rem + var(--drift)), 0) scale(1.015); }
 }
 
-/* The second one runs the other way at a different period, so the two are
-   never in step and the page never has a moment where everything is
-   holding still at once. */
+
 .band-2 {
   width: min(100%, 54rem);
   opacity: .8;
@@ -1894,9 +1524,7 @@ svg.band {
 .cb-body {
   fill: var(--ink);
   stroke: var(--paper);
-  /* Set from outside where the drawing is used small. A custom property
-     is the only thing that reaches into a cloned symbol — a descendant
-     selector never gets in there. */
+
   stroke-width: var(--cloud-line, 3);
   stroke-linejoin: round;
 }
@@ -1909,7 +1537,7 @@ svg.band {
   stroke-linecap: round;
 }
 
-/* ── panel heads ────────────────────────────────────────────── */
+/* Panel headings */
 .head {
   display: flex;
   align-items: flex-start;
@@ -1920,15 +1548,7 @@ svg.band {
   background: var(--ruled) 0 100% / 44rem 3.5px repeat-x;
 }
 
-/* The one heavy mark in the rule, so the eye knows where a region starts.
-   It is struck when the region arrives rather than being there already —
-   a rule that draws itself is the difference between a section appearing
-   and a section being scrolled past.
 
-   And it keeps answering after that: --near is how centred the region is
-   on the screen, so the mark runs out as its region comes up and pulls
-   back as it goes. Width for that and scale for the arrival, because the
-   two have to be able to happen at once. */
 .head::before {
   content: "";
   position: absolute;
@@ -1936,8 +1556,7 @@ svg.band {
   bottom: -4px;
   width: calc(2.2rem + var(--near, .4) * 3rem);
   height: 10px;
-  /* stretched to whatever width it is at, which keeps the taper in
-     proportion however far the mark has run out */
+
   background: var(--ruled-mark) 0 0 / 100% 100% no-repeat;
   transform-origin: 0 50%;
 }
@@ -1959,11 +1578,7 @@ svg.band {
   font-size: clamp(1.4rem, 3.4vw, 2rem);
 }
 
-/* The heading was sliding up with the rest of the region. It is inked in
-   instead — the same wipe the brush stroke under the name gets, so the
-   two openings on the page are the same gesture at two sizes. The right
-   inset goes past nought because a mincho 閃 has strokes that reach the
-   very edge of its box, and cutting at nought shaves them. */
+
 [data-js] .reveal .head h2 {
   clip-path: inset(0 100% -10% 0);
 }
@@ -1973,13 +1588,10 @@ svg.band {
   transition: clip-path .8s cubic-bezier(.2, .9, .2, 1) .1s;
 }
 
-/* ══ 現在 — the live readout ════════════════════════════════ */
+/* 現在 — the live readout */
 
-/* While the socket is still on its way the panel is showing placeholder
-   text. A slow pulse says "not yet" without a spinner sitting on a page
-   that has no other moving parts. */
-.slab[data-state="loading"] .presence-who,
-#track-song:not(:empty) {
+
+.slab[data-state="loading"] .presence-who {
   transition: opacity .3s ease;
 }
 
@@ -1991,7 +1603,7 @@ svg.band {
   color: var(--paper-3);
 }
 
-/* which machine he is at */
+
 .dc-where {
   margin: .2rem 0 0;
   font-size: .68rem;
@@ -2010,21 +1622,19 @@ svg.band {
   50% { opacity: .45; }
 }
 
-/* The mark belongs beside the name, not halfway down the block. Centred,
-   it drifted lower every time the readout grew a line — and it grew two
-   when the device and the game's own lines went in. */
+
 .presence {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
   gap: .8rem;
-  /* the panel he is in, above the panels of what he is doing */
+
   padding: .9rem 1rem 1rem;
   background: var(--ink-2);
 }
 
 .presence .dot {
-  /* sits on the cap height of the name rather than the top of its box */
+
   margin-top: .42rem;
 }
 
@@ -2048,8 +1658,7 @@ svg.band {
 .dot.is-dnd { background: var(--blood); opacity: .55; }
 .dot.is-offline { background: var(--paper-3); }
 
-/* only while he is actually there. a light that beats whatever the answer
-   is has stopped being an indicator */
+
 .dot.is-online {
   animation: beat 2.6s ease-in-out infinite;
 }
@@ -2088,9 +1697,7 @@ svg.band {
   box-shadow: 0 0 0 var(--rule) var(--paper);
 }
 
-/* Discord's avatar frames are their own image, meant to sit over the
-   picture and overhang it — so it takes no space in the grid and carries
-   no outline of its own. */
+
 .portrait-frame {
   position: absolute;
   inset: -14%;
@@ -2105,8 +1712,7 @@ svg.band {
   display: none;
 }
 
-/* set from js rather than with :has(), which is a 2023 selector and this
-   is the difference between a portrait and an empty box */
+
 .portrait.is-empty {
   display: none;
 }
@@ -2122,13 +1728,7 @@ svg.band {
   display: none;
 }
 
-/* Four stacked rows of small text, each one four lines deep and all of
-   them starting at the same margin, read as a status page. A page reads
-   as panels: the first thing he is doing gets the establishing shot
-   across the width, and whatever else is open sits beside it in smaller
-   ones. The gutters are the page's own black; the panels are a shade off
-   it. No outlines — a light rule on black is an interface, and the ground
-   does the same work the other way round. */
+
 .doing {
   list-style: none;
   margin: .5rem 0 0;
@@ -2138,8 +1738,7 @@ svg.band {
   gap: .5rem;
 }
 
-/* a panel left alone at the end of a row takes the whole row rather than
-   sitting in half of it with the other half black */
+
 .doing li:last-child:nth-child(even) {
   grid-column: 1 / -1;
 }
@@ -2154,7 +1753,7 @@ svg.band {
   background: var(--ruled) 0 0 / 44rem 3.5px repeat-x, var(--ink-2);
 }
 
-/* the establishing panel */
+
 .doing li:first-child {
   grid-column: 1 / -1;
   padding-block: .95rem 1.1rem;
@@ -2165,9 +1764,7 @@ svg.band {
   letter-spacing: -.01em;
 }
 
-/* The one number on the page that moves on its own. In the wide panel it
-   is the only thing in the right half, so it is set as the panel's own
-   figure rather than as a fourth line of small text under the name. */
+
 @media (min-width: 46rem) {
   .doing li:first-child .doing-time {
     position: absolute;
@@ -2184,7 +1781,7 @@ svg.band {
   height: 3.6rem;
 }
 
-/* the mark that runs along a row under the pointer */
+
 .doing li::before,
 .like-list li::before {
   content: "";
@@ -2212,17 +1809,14 @@ svg.band {
               box-shadow .3s ease;
 }
 
-/* the row already draws a red mark along its top edge under the pointer;
-   the icon comes up to meet it rather than sitting there while it does */
+
 .doing li:hover .no-art {
   translate: 0 -3px;
   rotate: -3deg;
   box-shadow: inset 0 0 0 var(--rule) var(--paper);
 }
 
-/* No icon from discord, or one that never arrived: the same mark the
-   empty sleeve carries, rather than an initial in a grey box — or worse,
-   the browser's own broken picture. */
+
 .no-art {
   display: grid;
   place-items: center;
@@ -2231,8 +1825,7 @@ svg.band {
   box-shadow: inset 0 0 0 1px var(--ink-3);
 }
 
-/* the artwork lies over the plate and is only shown once it is really
-   there, so a request that fails leaves the plate rather than a hole */
+
 .no-art img {
   position: absolute;
   inset: 0;
@@ -2257,8 +1850,7 @@ svg.band {
   clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
 }
 
-/* what kind of activity it is — discord distinguishes playing, streaming,
-   watching and competing, and the row used to flatten all four to a name */
+
 .doing-what {
   margin: 0 0 .1rem;
   font-size: .64rem;
@@ -2273,7 +1865,7 @@ svg.band {
   font-weight: 700;
 }
 
-/* the two lines the game itself is reporting */
+
 .doing-line {
   margin: .12rem 0 0;
   font-size: .84rem;
@@ -2290,8 +1882,7 @@ svg.band {
   color: var(--blood-lit);
 }
 
-/* Nothing open is a state, not an absence: it keeps the panel it would
-   have filled rather than leaving a caption under a heading. */
+
 .quiet {
   margin: .5rem 0 0;
   padding: .9rem 1rem 1rem;
@@ -2299,9 +1890,7 @@ svg.band {
   background: var(--ruled) 0 0 / 44rem 3.5px repeat-x, var(--ink-2);
 }
 
-/* ══ 音楽 ═══════════════════════════════════════════════════ */
-/* empty until the socket answers, and holding its line so the panel does
-   not jump when it fills */
+/* Work */
 .kicker {
   min-height: 1em;
   margin: 0 0 .9rem;
@@ -2310,285 +1899,228 @@ svg.band {
   letter-spacing: .24em;
   text-transform: uppercase;
   color: var(--blood-lit);
-  /* uppercase at a quarter-em of tracking runs out of room on a phone and
-     leaves one word alone on the second line; split evenly instead. Where
-     it is not understood the line simply wraps as it always did. */
   text-wrap: balance;
 }
 
-.track {
+.work-mark {
+  display: block;
+  color: var(--paper);
+  font-family: "Shippori Mincho B1", Georgia, serif;
+  font-size: clamp(2.7rem, 7vw, 5.8rem);
+  font-weight: 800;
+  letter-spacing: -.08em;
+  line-height: .72;
+}
+
+.work-lead {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: clamp(.8rem, 2vw, 1.2rem);
+  grid-template-columns: minmax(0, 7fr) minmax(16rem, 4fr);
+  gap: clamp(1.5rem, 5vw, 4.5rem);
   align-items: center;
 }
 
-/* ── the deck ───────────────────────────────────────────────── */
-
-/* The record is behind the sleeve and mostly inside it. When something is
-   playing it rides out to the right and turns; when it stops it goes back
-   in and stands still. Nothing else on the panel says playing or not
-   playing without words. */
-.deck {
+.work-shot {
   position: relative;
-  padding-right: clamp(3rem, 8vw, 5.4rem);
-  /* so the record's negative z-index is measured against the deck rather
-     than against the whole sheet, where it would fall behind the panel */
-  isolation: isolate;
+  display: block;
+  min-width: 0;
+  padding: clamp(.3rem, .7vw, .55rem);
+  overflow: hidden;
+  color: var(--paper);
+  background: var(--ink-2);
+  clip-path: polygon(0 1rem, 1rem 0, 100% 0, 100% calc(100% - 1rem), calc(100% - 1rem) 100%, 0 100%);
 }
 
-.disc {
+.work-shot::after {
+  content: "";
   position: absolute;
-  top: 50%;
-  right: clamp(3rem, 8vw, 5.4rem);
-  width: clamp(4.4rem, 14vw, 9.4rem);
-  z-index: -1;
-  /* far enough out of the sleeve to be a record even when nothing is
-     playing — at four percent the drawing was a line down one edge */
-  translate: 17% -50%;
-  transition: translate .7s cubic-bezier(.3, .8, .3, 1);
+  inset: .45rem;
+  border: 2px solid rgb(239 236 228 / .2);
+  pointer-events: none;
 }
 
-.disc svg {
+.work-shot picture,
+.work-shot img {
   display: block;
   width: 100%;
+}
+
+.work-shot img {
   height: auto;
-  animation: spin 3.4s linear infinite;
-  animation-play-state: paused;
+  filter: saturate(.96) contrast(1.03);
+  transition: filter .25s ease, scale .45s cubic-bezier(.2, .8, .2, 1);
 }
 
-.track.is-playing .disc {
-  translate: 62% -50%;
+.work-shot:hover img,
+.work-shot:focus-visible img {
+  filter: saturate(1) contrast(1.02);
+  scale: 1.015;
 }
 
-.track.is-playing .disc svg {
-  animation-play-state: running;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.vn-body {
-  fill: var(--ink-2);
-  stroke: var(--paper);
-  stroke-width: 2;
-}
-
-.vn-groove {
-  fill: none;
-  stroke: var(--paper);
-  stroke-width: 1;
-}
-
-.vn-label {
-  fill: var(--blood);
-  stroke: var(--paper);
-  stroke-width: 1.6;
-}
-
-.vn-hole {
-  fill: var(--ink);
-  stroke: none;
-}
-
-.vn-shine {
-  fill: var(--paper);
-  stroke: none;
-  opacity: .1;
-}
-
-.sleeve {
+.work-copy {
   position: relative;
-  width: clamp(4.4rem, 14vw, 9.4rem);
-  aspect-ratio: 1;
-  display: grid;
-  place-items: center;
+  padding: 1.2rem clamp(1.2rem, 3vw, 2rem) .25rem;
+  border-left: var(--rule) solid var(--blood);
 }
 
-.sleeve img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  box-shadow: 0 0 0 var(--rule) var(--paper);
-}
-
-.sleeve img[hidden] {
-  display: none;
-}
-
-/* an empty sleeve reads as a missing image; a mark reads as deliberate */
-/* No artwork. A plate with the same red mark the status dot uses, so an
-   empty sleeve reads as part of the page rather than a failed image. */
-.sleeve-void {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: var(--ink-2);
-  box-shadow: inset 0 0 0 1px var(--ink-3);
-}
-
-.sleeve-void::after {
+.work-copy::before {
   content: "";
-  width: .7rem;
-  height: .7rem;
+  position: absolute;
+  top: .25rem;
+  left: -.34rem;
+  width: .6rem;
+  height: .6rem;
+  rotate: 45deg;
   background: var(--blood);
-  opacity: .5;
-  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
 }
 
-.track-artist[hidden] {
-  display: none;
-}
-
-.sleeve img:not([hidden]) + .sleeve-void {
-  display: none;
-}
-
-.track-text {
-  min-width: 0;
-}
-
-.track-song {
-  margin: 0;
+.work-status,
+.work-desk article > p {
+  margin: 0 0 .8rem;
+  color: var(--blood-lit);
+  font-size: .68rem;
   font-weight: 700;
-  font-size: 1.05rem;
-  overflow-wrap: anywhere;
-}
-
-.track-artist {
-  margin: .1rem 0 .45rem;
-  font-size: .88rem;
-  color: var(--paper-2);
-  overflow-wrap: anywhere;
-}
-
-/* only on the last one it caught, never on what is playing now */
-.track-seen {
-  margin: 0 0 .5rem;
-  font-size: .7rem;
-  letter-spacing: .12em;
+  letter-spacing: .2em;
   text-transform: uppercase;
+}
+
+.work-status span {
+  padding-inline: .25rem;
   color: var(--paper-3);
 }
 
-.track-seen[hidden],
-.track-link[hidden] {
-  display: none;
+.work-copy h3,
+.work-desk h3 {
+  margin: 0;
+  color: var(--paper);
+  font-family: "Shippori Mincho B1", Georgia, serif;
 }
 
-.track-link {
+.work-copy h3 {
+  font-size: clamp(2.5rem, 6vw, 5.4rem);
+  letter-spacing: -.055em;
+  line-height: .78;
+}
+
+.work-copy h3 em {
+  color: var(--blood);
+  font-style: normal;
+}
+
+.work-copy > p:not(.work-status) {
+  max-width: 31rem;
+  margin: 1.3rem 0 1rem;
+  color: var(--paper-2);
+}
+
+.work-more,
+.work-desk > a {
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  font-size: .78rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--paper-2);
+  gap: .75rem;
+  color: var(--paper);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .15em;
   text-decoration: underline;
   text-decoration-color: var(--blood);
   text-decoration-thickness: var(--rule);
-  text-underline-offset: .35em;
+  text-underline-offset: .4em;
+  text-transform: uppercase;
 }
 
-.track-link:hover,
-.track-link:focus-visible {
-  color: var(--paper);
+.work-more:hover,
+.work-more:focus-visible,
+.work-desk > a:hover,
+.work-desk > a:focus-visible {
+  color: var(--blood-lit);
 }
 
-/* how far through the song it is */
-.track-bar {
+.work-desk {
+  margin-top: clamp(2rem, 5vw, 4rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  border-top: var(--rule) solid var(--ink-3);
+  border-bottom: var(--rule) solid var(--ink-3);
+}
+
+.work-desk article {
   position: relative;
-  grid-column: 1 / -1;
-  height: 6px;
-  margin-top: .3rem;
-  background: var(--ink-3);
-  box-shadow: inset 0 0 0 1px var(--paper-3);
+  min-width: 0;
+  padding: 1.25rem 1.6rem 1.35rem 1.8rem;
+  border-right: var(--rule) solid var(--ink-3);
 }
 
-.track-bar[hidden] {
-  display: none;
-}
-
-.track-bar span {
-  position: relative;
-  display: block;
-  height: 100%;
-  width: 0;
-  background: var(--blood);
-  transition: width 1s linear;
-}
-
-/* the head of the bar, so the thing that is moving has a point on it and
-   not just an edge. the same diamond the empty sleeve and the status dot
-   use, because it is the page's one small mark */
-.track-bar span::after {
+.work-desk article::before {
   content: "";
   position: absolute;
-  top: 50%;
-  right: 0;
-  width: .58rem;
-  height: .58rem;
-  translate: 50% -50%;
-  background: var(--blood-lit);
-  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
-  opacity: 0;
+  top: 1.55rem;
+  left: .25rem;
+  width: .55rem;
+  height: .55rem;
+  rotate: 45deg;
+  background: var(--blood);
 }
 
-.track.is-playing .track-bar span::after {
-  opacity: 1;
-  animation: head 2.2s ease-in-out infinite;
+.work-desk article > p {
+  margin-bottom: .45rem;
 }
 
-@keyframes head {
-  50% { scale: 1.35; }
+.work-desk h3 {
+  font-size: clamp(1.35rem, 3vw, 2rem);
 }
 
-/* the bar says roughly, these say exactly */
-.track-time {
-  grid-column: 1 / -1;
-  margin: .3rem 0 0;
-  font-size: .7rem;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: .1em;
+.work-desk article > span {
+  display: block;
+  margin-top: .25rem;
   color: var(--paper-3);
+  font-size: .84rem;
 }
 
-.track-album {
-  margin: 0 0 .45rem;
-  font-size: .78rem;
-  letter-spacing: .04em;
-  color: var(--paper-3);
-  overflow-wrap: anywhere;
+.work-desk > a {
+  align-self: stretch;
+  padding-inline: 1.4rem;
+  text-decoration: none;
 }
 
-.track-album[hidden],
-.track-time[hidden] {
-  display: none;
+@media (max-width: 48rem) {
+  .work-lead {
+    grid-template-columns: 1fr;
+  }
+
+  .work-copy {
+    margin-left: 0;
+  }
+
+  .work-desk {
+    grid-template-columns: 1fr;
+  }
+
+  .work-desk article {
+    border-right: 0;
+    border-bottom: var(--rule) solid var(--ink-3);
+  }
+
+  .work-desk > a {
+    padding-inline: 1.8rem;
+    padding-block: .7rem;
+  }
 }
 
-/* ══ favourites ═════════════════════════════════════════════
-   The three the page is drawn out of, with anilist's own cover art. The
-   plate around each one is the same treatment the album sleeve and the
-   discord portrait already get — a paper rule and an ink field — so
-   somebody else's artwork sits inside this page's frame rather than next
-   to it. */
+/* Favourites */
 .like-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  /* the floor has to be able to give — see the note on the traced list */
+
   grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
   gap: 1.6rem clamp(1.6rem, 4vw, 3rem);
-  /* the depth the cards turn in. shallow — at 400 the far corner of a
-     card this wide swings far enough to read as a page curling */
+
   perspective: 1100px;
 }
 
-/* position, because the mark that runs along the top edge under the
-   pointer is absolutely placed against it */
+
 .like-list li {
   position: relative;
   display: grid;
@@ -2596,13 +2128,12 @@ svg.band {
   gap: 1rem;
   align-items: start;
   min-width: 0;
-  /* the same panel the readout's rows are drawn as, so the two regions
-     that carry rows carry them the same way */
+
   padding: .8rem .9rem 1rem;
   background: var(--ruled) 0 0 / 44rem 3.5px repeat-x, var(--ink-2);
 }
 
-/* the only real pictures on the page, so they are allowed to be a size */
+
 .cover {
   position: relative;
   width: clamp(5rem, 13vw, 7.5rem);
@@ -2612,23 +2143,39 @@ svg.band {
   flex: none;
 }
 
-/* The card turns toward wherever the pointer is on it, and the cover
-   stands off the card while it does — which is what makes it a card being
-   picked up rather than a rectangle being scaled. The two angles come
-   from js as −1…1 across the card. */
+.like-fallback-art {
+  overflow: hidden;
+  background: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--ink-3);
+}
+
+.like-fallback-art svg {
+  display: block;
+  width: 82%;
+  height: 82%;
+  overflow: visible;
+  stroke: var(--paper);
+  stroke-width: 2.4;
+}
+
+.like-fallback .like-drew-marks svg {
+  stroke: var(--paper);
+  stroke-width: 2.4;
+}
+
+
 .like-list li {
   transform-style: preserve-3d;
   transform: rotateY(calc(var(--tilt-x, 0) * 5deg)) rotateX(calc(var(--tilt-y, 0) * -4deg));
   transition: transform .5s cubic-bezier(.2, .9, .2, 1);
 }
 
-/* under the pointer it has to keep up; leaving it, it can take its time */
+
 .like-list li:hover {
   transition-duration: .12s;
 }
 
-/* the only pictures on the page, so they are the only thing that gets to
-   lean when you reach for it */
+
 .like-list li:hover .cover,
 .like-list li:focus-within .cover {
   transform: translateZ(30px) rotate(-1.4deg) scale(1.04);
@@ -2639,8 +2186,7 @@ svg.band {
   transition: transform .35s cubic-bezier(.2, .9, .2, 1);
 }
 
-/* the text lifts too, less far, or the cover reads as pasted on top of a
-   flat card rather than as the near edge of a card that is turning */
+
 .like-text {
   transform: translateZ(0);
   transition: transform .35s cubic-bezier(.2, .9, .2, 1);
@@ -2651,9 +2197,7 @@ svg.band {
   transform: translateZ(14px);
 }
 
-/* visibility, not display — see the note in script.js. It keeps a box, so
-   it is still lazily loaded, and it still cannot be seen until it is
-   actually there. */
+
 .cover img {
   grid-area: 1 / 1;
   width: 100%;
@@ -2667,8 +2211,7 @@ svg.band {
   visibility: visible;
 }
 
-/* no artwork: the same red mark the empty sleeve carries, so a blocked
-   cdn reads as part of the page rather than a failed image */
+
 .cover-void {
   position: absolute;
   inset: 0;
@@ -2702,17 +2245,19 @@ svg.band {
   line-height: 1.25;
 }
 
-/* a card's title is its target, so it has to be one — a line of text at
-   the font's own height is twenty-five pixels and a miss on a phone */
-.like-name a {
+
+.like-name > :is(a, span) {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
+  overflow-wrap: anywhere;
+}
+
+.like-name a {
   text-decoration: underline;
   text-decoration-color: var(--blood);
   text-decoration-thickness: var(--rule);
   text-underline-offset: .3em;
-  overflow-wrap: anywhere;
 }
 
 .like-name a:hover,
@@ -2736,9 +2281,7 @@ svg.band {
   overflow-wrap: anywhere;
 }
 
-/* A break belongs between two facts, not inside one. Nothing upstream
-   sends a fact wider than the column — they are formats, states, and
-   counts — but nothing here is going to widen a card if one ever does. */
+
 .like-meta .fact {
   display: inline-block;
   max-width: 100%;
@@ -2748,7 +2291,7 @@ svg.band {
   vertical-align: bottom;
 }
 
-/* what it is about, in anilist's words rather than anybody's sentence */
+
 .like-tags {
   margin: .55rem 0 0;
   font-size: .8rem;
@@ -2756,17 +2299,9 @@ svg.band {
   overflow-wrap: anywhere;
 }
 
-/* ══ 黒閃, kept ═════════════════════════════════════════════
-   The counter used to live only in the corner tally, which appears after
-   a landed hit and goes away again — so the one thing on the page you can
-   get better at left no trace. This is the trace. */
-/* With the pushes folded into the repo list, the score has its row to
-   itself. Stacked down one column across the full width it would be three
-   numbers and a lot of black, so the counts and the readings sit beside
-   each other. */
-/* Across the full width the counts are three numbers and a lot of black,
-   and the row of marks is a short line with nothing beside it. The counts
-   take one column and the marks and the readings share the other. */
+/* 黒閃, kept */
+
+
 @media (min-width: 60rem) {
   .score {
     display: grid;
@@ -2780,19 +2315,13 @@ svg.band {
     grid-column: 1 / -1;
   }
 
-  /* the rank is the one line that says where somebody is rather than
-     what they have done, so it sits above everything that counts */
+
   .score > .grade {
     grid-column: 1 / -1;
     grid-row: 3;
   }
 
-  /* Both rows of figures under one another on the left, the row of marks
-     alone on the right. The counts used to sit beside the marks with the
-     readings under them, which left the whole bottom left of the panel
-     empty once the paragraph that had been filling it went. What is
-     empty now is the right, and the strike drawn behind the panel bleeds
-     into exactly that corner. */
+
   .score > .score-marks {
     grid-column: 2;
     grid-row: 4;
@@ -2815,13 +2344,7 @@ svg.band {
   }
 }
 
-/* The right of this panel was a reading and a lot of black. The mark that
-   goes there is the hit itself, drawn once for the strike and used again
-   here at almost no opacity, so it costs nothing and it is the one drawing
-   on the page that belongs to whoever is reading it rather than to him.
 
-   It bleeds off the right edge the way the wheel does in the header — a
-   drawing sitting neatly inside its box is a sticker. */
 .score {
   isolation: isolate;
 }
@@ -2833,9 +2356,7 @@ svg.band {
   width: min(17rem, 34%);
   aspect-ratio: 1;
   pointer-events: none;
-  /* nought is a mark you have to look for; eight in a row and it is
-     properly alight. Red on black carries a very long way, so this range
-     is far lower than it reads on paper. */
+
   opacity: calc(.035 + min(var(--streak, 0), 8) * .015);
   rotate: -8deg;
   transition: opacity .6s ease-out;
@@ -2859,18 +2380,12 @@ svg.band {
   padding: 0;
 }
 
-/* Three counts above, three readings below — they line up, and the row
-   of marks sits beside both. Two readings under three counts was a
-   half-empty line. */
+
 .score-read {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-/* ── the ground it is done on ────────────────────────────────────
-   Held down anywhere on the page, the game was under everything else on
-   it. This is the only thing that takes the hold now, and it is drawn as
-   what it is: an empty piece of floor with the word for what to do on
-   it, going quiet the moment somebody is doing it. */
+/* Timing field */
 .arena {
   position: relative;
   overflow: hidden;
@@ -2890,17 +2405,11 @@ svg.band {
   text-indent: .34em;
   text-transform: uppercase;
   cursor: pointer;
-  /* pan-y, with script deciding per gesture: the field is nearly the
-     full width of a phone, so taking every touch made it a wall the
-     page could not be scrolled past. A touchmove listener protects a
-     hold against the few pixels a thumb wobbles and hands anything
-     bigger back to the browser as the scroll it was meant to be. */
+
   touch-action: pan-y;
   -webkit-user-select: none;
   user-select: none;
-  /* an edge, the way every other tag on the page draws one, and the run
-     showing in the floor inside it — nothing at nought, and lit from all
-     four sides by the time it is worth losing */
+
   box-shadow:
     inset 0 0 0 1px rgb(138 135 127 / .22),
     inset 0 0 4rem rgb(224 27 46 / calc(min(var(--streak, 0), 6) * .035));
@@ -2909,9 +2418,7 @@ svg.band {
 
 .arena:hover { color: var(--paper-2); }
 
-/* While it is being held the ring is the thing to look at, so the word
-   goes — and the floor holds its breath: the same shadow that shows the
-   run, pulled a shade darker for exactly as long as the hold lasts. */
+
 body.is-charging .arena-says {
   opacity: 0;
 }
@@ -2924,7 +2431,7 @@ body.is-charging .arena {
 }
 
 .arena-says {
-  position: relative;   /* over the mark in the floor, not under it */
+  position: relative;   /* Keep the reading above the floor mark. */
   transition: opacity .18s ease;
 }
 
@@ -2943,11 +2450,7 @@ body.is-charging .arena {
   font-variant-numeric: tabular-nums;
 }
 
-/* Readings, not counts, so they do not get the display face at two and a
-   half rem alongside the numbers — and all three of them, not two of the
-   three: one dash drawn at two and a half rem beside two drawn at one is
-   a fat white bar next to two hairlines, and a range like 101–137 ms set
-   that size breaks over three lines and drags its label down with it. */
+
 .score-read b {
   font-size: clamp(1rem, 2.4vw, 1.3rem);
   line-height: 1.25;
@@ -2963,9 +2466,7 @@ body.is-charging .arena {
   color: var(--paper-3);
 }
 
-/* The last dozen attempts, newest on the right. Numbers say how it has
-   gone overall; the marks say how the last two minutes went, which is the
-   thing you are actually trying to change while you are playing. */
+
 .score-marks {
   display: flex;
   align-items: flex-end;
@@ -2979,7 +2480,7 @@ body.is-charging .arena {
   width: .75rem;
 }
 
-/* the ones already in the row were not struck, they were laid out */
+
 .mark:not(.is-ghost) {
   animation: struck .45s cubic-bezier(.2, .9, .2, 1) backwards;
 }
@@ -3004,7 +2505,7 @@ body.is-charging .arena {
   from { opacity: 0; transform: translateY(-.5rem) rotate(-9deg); }
 }
 
-/* a number that has just moved says so, once */
+
 .score-list b.is-up {
   animation: count .5s ease-out;
 }
@@ -3014,34 +2515,16 @@ body.is-charging .arena {
   100% { color: inherit; transform: none; }
 }
 
-/* the two characters stacked, the way the tally carries them —
-   every chapter title on the page is drawn this way now */
-.now .head h2,
-.music .head h2,
-.likes .head h2,
-.score .head h2,
-.traced .head h2,
-.bounty .head h2,
+
+.panel .head h2,
 .tally-label {
   display: grid;
   justify-items: start;
   gap: .3rem;
 }
 
-/* 黒 lives in one eighteen-kilobyte subset of Shippori and 閃 lives in
-   another, and nothing else on this page needs either of them. Two
-   characters were pulling down more than a third of the font the site
-   loads. Drawn as outlines they are a kilobyte and a half, and the
-   barrier's kanji were already done exactly this way.
 
-   The words underneath are real text and carry the name, so the drawing
-   is hidden from the tree rather than labelled twice. */
-.now .head h2 .glyphs,
-.music .head h2 .glyphs,
-.likes .head h2 .glyphs,
-.score .head h2 .glyphs,
-.traced .head h2 .glyphs,
-.bounty .head h2 .glyphs,
+.panel .head h2 .glyphs,
 .tally-label .glyphs {
   display: flex;
   gap: .08em;
@@ -3055,12 +2538,7 @@ body.is-charging .arena {
   fill: currentColor;
 }
 
-.now .head h2 .says,
-.music .head h2 .says,
-.likes .head h2 .says,
-.score .head h2 .says,
-.traced .head h2 .says,
-.bounty .head h2 .says {
+.panel .head h2 .says {
   margin-top: 0;
   letter-spacing: .3em;
   text-indent: .3em;
@@ -3068,29 +2546,20 @@ body.is-charging .arena {
   color: var(--paper-3);
 }
 
-/* ══ 海賊旗 ═════════════════════════════════════════════════ */
+/* 海賊旗 */
 .foot {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: clamp(1rem, 3vw, 2.4rem);
-  /* The compass is fixed to the bottom left of the window, so at the very
-     foot of the page it lands on whatever is in that corner. On anything
-     narrower than a laptop that was the flag, and the dial was taking a
-     share of the taps meant for it. The bottom of the footer is kept
-     clear for it instead. */
+
   padding-block: clamp(1.2rem, 3vw, 2.4rem) clamp(5rem, 12vh, 6.5rem);
   isolation: isolate;
 }
 
-/* ── the sea ────────────────────────────────────────────────── */
+/* Footer sea */
 
-/* The footer was a flag and a link at either end of an empty band. Under
-   a jolly roger there should be water, and water is the one thing on a
-   page that has an excuse to never stop moving.
 
-   Full bleed rather than the width of the spread: the sheet clips, so a
-   hundred viewport widths in here cannot widen the document. */
 .sea {
   --band: clamp(8rem, 22vw, 15rem);
   position: absolute;
@@ -3103,12 +2572,7 @@ body.is-charging .arena {
   pointer-events: none;
 }
 
-/* The ends have to go to nothing or the sea is a strip with two cut
-   edges. A mask would do it, and did — but a mask on a box this size
-   costs its own compositing pass every frame the water moves, and here
-   that was a sixth of the frame rate. The page behind is one flat ink, so
-   two gradients painted over the ends are the same picture for nothing.
-   ::after rather than ::before, so it lands on top of the water. */
+
 .sea::after {
   content: "";
   position: absolute;
@@ -3118,9 +2582,7 @@ body.is-charging .arena {
     linear-gradient(to left, var(--ink), transparent 13%);
 }
 
-/* The lane is what clips; the drawing inside it is three tiles wide and
-   slides. Both are needed — the svg cannot both overrun and hide its own
-   overrun. */
+
 .sea .lane {
   position: absolute;
   inset: 0;
@@ -3142,16 +2604,7 @@ body.is-charging .arena {
   will-change: transform;
 }
 
-/* Two layers at unrelated speeds and depths. One sea rolling on its own
-   is a texture; two at different rates is distance.
 
-   Written as .sea .sea-far rather than .sea-far: the shorthand above sets
-   a duration on .sea svg, which is a class and a type and outweighs a
-   class on its own — so the far layer had been quietly rolling at the
-   same speed as the near one, and the distance between them was never
-   there at all.
-
-   And both of them take their time after dark. See --sun below. */
 .sea .sea-far {
   opacity: .2;
   scale: 1 .72;
@@ -3165,16 +2618,7 @@ body.is-charging .arena {
   animation-duration: calc(46s + (1 - var(--sun, 0)) * 22s);
 }
 
-/* One tile exactly, then back to nothing — the drawing is built to tile,
-   so the jump at the end lands on the same pixels it left.
 
-   A third of the band is only one tile while `slice` is scaling to the
-   width. Below about four and a half times the band's height it scales to
-   the height instead, the drawing comes out wider than a third of the
-   box, and a third of the box is then short of a tile — so the loop jumps
-   by the difference every time round. That is the whole reason for the
-   max(): 1200 units of tile against 260 of band is 4.6154 of one for one
-   of the other, and whichever of the two is larger is the real tile. */
 @keyframes roll {
   to { transform: translateX(calc(-1 * max(100% / 3, var(--band) * 4.6154))); }
 }
@@ -3199,19 +2643,14 @@ body.is-charging .arena {
   opacity: .7;
 }
 
-/* The straw hat is the handle. It had been sitting at five rem in the
-   corner of the footer, smaller than the heading above it, which is a
-   strange thing to do with the one mark on the page that is the name.
-   The footer is where a page ends — it can carry it at size. */
+
 .flag {
   width: clamp(7rem, 16vw, 13rem);
   flex: none;
   margin-block: clamp(.4rem, 2vw, 1.4rem);
 }
 
-/* Reaching the bottom of a page is usually the one thing on it that gets
-   no answer at all. Here it runs the colours up: the flag comes out of
-   the water it is now standing over, once, when the footer arrives. */
+
 [data-js] .foot.is-in .flag {
   animation: hoist 1.1s cubic-bezier(.16, .84, .3, 1) backwards;
 }
@@ -3228,8 +2667,7 @@ svg.flag {
   animation: hang 7.5s ease-in-out infinite alternate;
 }
 
-/* A flag on a pole is never still. Hung from the top edge so it swings
-   from where it would actually be tied. */
+
 @keyframes hang {
   from { transform: rotate(-2.6deg); }
   to { transform: rotate(2.6deg); }
@@ -3241,7 +2679,7 @@ svg.flag {
   stroke-linejoin: round;
 }
 
-/* the flag is the one solid — a jolly roger is a silhouette */
+
 .jr-bone { fill: var(--paper); }
 .jr-hole { fill: var(--ink); stroke: none; }
 .jr-straw { fill: var(--paper); }
@@ -3254,8 +2692,7 @@ svg.flag {
   stroke-linecap: butt;
 }
 
-/* the flag at one end and the one link at the other, so the width is used
-   rather than left sitting there */
+
 .foot-text {
   flex: 1 1 14rem;
   text-align: right;
@@ -3291,7 +2728,7 @@ svg.flag {
   color: var(--paper);
 }
 
-/* ══ the 404 ════════════════════════════════════════════════ */
+/* 404 */
 .code {
   margin: 0 0 .2rem;
   font-size: .78rem;
@@ -3300,10 +2737,7 @@ svg.flag {
   color: var(--blood-lit);
 }
 
-/* The one page of the book that is not a numbered chapter carries the
-   mark a volume gives one: a side story. Same corner as every chapter
-   number on the front, and the same drawn characters — the number and
-   the mark share a row so neither pushes the name down. */
+
 .lost-head {
   display: flex;
   align-items: flex-start;
@@ -3326,10 +2760,7 @@ svg.flag {
   color: var(--paper-2);
 }
 
-/* The address that was asked for, in the face the rest of the page uses
-   for a reading rather than a sentence. It is somebody else's text, so
-   it is given no room to push anything about: it breaks anywhere and it
-   never widens the line it is on. */
+
 .lost-path {
   margin: -1rem 0 1.4rem;
   max-width: 40ch;
@@ -3339,10 +2770,7 @@ svg.flag {
   color: var(--paper-3);
 }
 
-/* The guess under it is a sentence again, not a reading — it is the
-   page's own words, with one link in them. Underlined in the stroke's
-   red like the link at the foot, because it is the one thing here
-   somebody is being invited to press. */
+
 .lost-guess {
   margin: -1rem 0 1.4rem;
   max-width: 40ch;
@@ -3367,9 +2795,7 @@ svg.flag {
   justify-content: space-between;
 }
 
-/* ══ things you can hit ═════════════════════════════════════
-   Buttons, so they are reachable by keyboard and announced, but with
-   every scrap of button styling taken off — the drawing is the control. */
+/* Interactive elements */
 .sigil,
 .band,
 .flag,
@@ -3393,7 +2819,7 @@ svg.flag {
   letter-spacing: inherit;
 }
 
-/* hover and focus have to say "this is a control" without a chrome box */
+
 .sigil,
 .band,
 .flag,
@@ -3401,9 +2827,8 @@ svg.flag {
   transition: opacity .2s ease, filter .2s ease;
 }
 
-/* A target that keeps drifting under the pointer is hard to hit. Reaching
-   for one settles it. */
-/* reaching for a target settles the drawing inside it */
+
+
 .band:hover svg,
 .band:focus-visible svg {
   animation-play-state: paused;
@@ -3421,7 +2846,7 @@ svg.flag {
 .name button:hover,
 .name button:focus-visible { color: var(--blood); }
 
-/* the wheel takes the hit and turns a spoke on */
+
 .sigil {
   pointer-events: auto;
 }
@@ -3435,23 +2860,12 @@ svg.flag {
   100% { stroke: var(--paper); stroke-width: 2.4; }
 }
 
-/* The cloud gets shoved along and settles.
 
-   On the button, not on the drawing inside it. The drawing's idle drift
-   is an infinite animation on its transform, and an animation beats a
-   declaration for as long as it runs — so the shove was set on a property
-   that was never going to be rendered, and clicking a cloud changed a
-   number and moved nothing. Here there is nothing competing.
-
-   scale, translate and transform are three separate properties, which is
-   the only reason the shove, the stretch and the skew can sit on one
-   element without any of them having to know about the others. */
 .band {
   --shove: 0;
   translate: calc(var(--shove) * 1.7%) 0;
   transform: skewX(calc(var(--shove) * -.7deg));
-  /* and it stretches with how hard the page is being thrown about, the
-     same reading the speed lines use */
+
   scale: calc(1 + var(--vel, 0) * .05) 1;
   transition: translate .7s cubic-bezier(.2, .9, .2, 1),
               transform .7s cubic-bezier(.2, .9, .2, 1),
@@ -3475,7 +2889,7 @@ svg.flag {
   100% { scale: 1 1; }
 }
 
-/* the flag swings on its pole */
+
 .flag svg {
   display: block;
   width: 100%;
@@ -3495,7 +2909,7 @@ svg.flag {
   100% { rotate: 0deg; }
 }
 
-/* the stroke is pulled again */
+
 .brush.is-struck {
   animation: pull .45s cubic-bezier(.2, .9, .2, 1);
 }
@@ -3505,10 +2919,7 @@ svg.flag {
   to { clip-path: inset(0 0 0 0); }
 }
 
-/* ══ 黒閃 ═══════════════════════════════════════════════════
-   Hit the page and you might land one. In the manga it is a hair's
-   breadth of timing and the odds climb once you are in the zone, so
-   they climb here too — and the wheel adapts to each one. */
+/* 黒閃 */
 .strikes {
   position: fixed;
   inset: 0;
@@ -3517,30 +2928,15 @@ svg.flag {
   overflow: hidden;
 }
 
-/* The ring that shows the window. It closes over --wind; the red arc is
-   a second animation that is simply delayed until the window opens and
-   lasts exactly as long as it. Keyframe selectors cannot take var(), so
-   the timing has to live in delay and duration, not in percentages. */
-/* Big, and it does not close far.
 
-   It used to be a hundred and twenty pixels closing to twenty, so by the
-   time the window opened the whole ring was forty across — entirely
-   underneath the thumb holding it down. On a phone the one thing you had
-   to watch was the one thing you could not see, and the game was
-   guesswork.
 
-   Fourteen rem closing to six tenths keeps the edge better than seventy
-   pixels out from the middle at the moment it matters, which clears a
-   thumb. It still travels ninety pixels, so it still reads as closing. */
 .charge {
   position: absolute;
   translate: -50% -50%;
   width: 14rem;
   height: 14rem;
   pointer-events: none;
-  /* The gate: the band of radii the ring will be red inside, drawn from
-     the first frame of the hold. Faint on purpose — it is a place to aim
-     at, and the bright thing is still the ring arriving in it. */
+
   background: radial-gradient(closest-side,
     transparent calc(var(--gate-in, 34%) - 1.5%),
     rgb(224 27 46 / .14) var(--gate-in, 34%),
@@ -3562,9 +2958,7 @@ svg.flag {
   animation: close var(--wind, 620ms) linear forwards;
 }
 
-/* The moment the ring is inside the gate, the whole instrument lifts a
-   step — same clock as the red coming on, so the band, the ring and the
-   colour read as one event rather than three. */
+
 .charge {
   animation: gate-lit var(--span, 80ms) var(--open-at, 496ms) linear;
 }
@@ -3573,10 +2967,7 @@ svg.flag {
   from, to { filter: brightness(1.7); }
 }
 
-/* The red one is a shade wider than the grey it rides on, and it carries
-   a glow, so the moment it comes on there is a bright line moving
-   outwards away from whatever is covering the middle. Colour alone was
-   only readable if you could see the middle. */
+
 .charge::after {
   border: 4px solid var(--blood);
   inset: -7px;
@@ -3592,14 +2983,12 @@ svg.flag {
   to { scale: .6; }
 }
 
-/* on for exactly the length of the window, off either side of it */
+
 @keyframes window {
   from, to { opacity: 1; }
 }
 
-/* the gate goes with the attempt — the ring outlives the release by most
-   of a second while it bursts or fizzles, and a red donut hanging in the
-   air through that reads as a second attempt starting */
+
 .charge.is-landed,
 .charge.is-spent {
   background: none;
@@ -3630,7 +3019,7 @@ svg.flag {
   pointer-events: none;
 }
 
-/* the ordinary hit: gone in a blink */
+
 .strike-hit {
   width: 3rem;
   height: 3rem;
@@ -3644,12 +3033,7 @@ svg.flag {
   to { opacity: 0; scale: 1.8; }
 }
 
-/* ══ 黒閃 ═══════════════════════════════════════════════════
-   A black flash is a distortion of space — that is what the word
-   describes, not a bolt laid over the picture. So the moment is four
-   drawings arriving together and leaving at four speeds: the space
-   splitting, the black shape, the rings leaving the point, and the
-   shards that get thrown. Nothing here is a screen filter. */
+/* 黒閃 */
 .strike-flash {
   width: clamp(15rem, 40vw, 27rem);
   aspect-ratio: 1;
@@ -3663,11 +3047,8 @@ svg.flag {
   animation: flash .66s cubic-bezier(.15, .85, .3, 1) forwards;
 }
 
-/* ── the space, splitting ──────────────────────────────────── */
-/* Drawn on from the point of impact outwards in sixty milliseconds,
-   held while the bolt is at its brightest, and gone. pathLength makes
-   every crack one unit long however far it actually runs, so one dash
-   animation draws all of them at the same speed. */
+/* Impact cracks */
+
 .rift {
   position: absolute;
   inset: 0;
@@ -3679,7 +3060,7 @@ svg.flag {
   animation: split .74s cubic-bezier(.05, .9, .25, 1) forwards;
 }
 
-/* out of the point it was struck at, not onto the page from nowhere */
+
 @keyframes split {
   0% { scale: .1; opacity: 1; }
   10% { scale: 1; opacity: 1; }
@@ -3687,18 +3068,13 @@ svg.flag {
   100% { scale: 1.03; opacity: 0; }
 }
 
-/* The width of the gap, tapering to nothing at the end of each crack —
-   a filled shape, because an even-width stroke stops dead in the middle
-   of the page with a round cap on it. Black, so wherever it runs over
-   something that was drawn it takes a bite out of it, which is the half
-   of this that reads as space coming apart rather than as a line. */
+
 .rf-dark {
   fill: #000;
   stroke: none;
 }
 
-/* what is coming through it. Thin — a wide even core reads as a tube of
-   light laid over the page rather than as a gap with something behind. */
+
 .rf-glow,
 .rf-lit {
   fill: none;
@@ -3727,7 +3103,7 @@ svg.flag {
   to { stroke-dashoffset: 0; }
 }
 
-/* ── the rings leaving the point ───────────────────────────── */
+/* Impact rings */
 .strike-flash .wave {
   position: absolute;
   top: 50%;
@@ -3752,7 +3128,7 @@ svg.flag {
   to { scale: 3.2; opacity: 0; }
 }
 
-/* ── the sparks, which are the part that blesses you ───────── */
+/* Impact sparks */
 .strike-flash .shard {
   position: absolute;
   top: 50%;
@@ -3779,9 +3155,7 @@ svg.flag {
   }
 }
 
-/* It is named for the black, so the hole carries the shape and the red
-   is only the edge. The bolts are filled tapers, not strokes — an even
-   width reads as a diagram. */
+
 .bf-bolt {
   fill: var(--ink);
   stroke: var(--blood);
@@ -3818,16 +3192,12 @@ svg.flag {
   0% { opacity: 0; scale: .35; rotate: -8deg; }
   14% { opacity: 1; scale: 1.08; }
   40% { scale: 1; }
-  /* held while the cracks are still open. It used to fall away from the
-     moment it arrived, which left the middle of the frame empty with the
-     split still standing round it. */
+
   62% { opacity: 1; }
   100% { opacity: 0; scale: 1.14; rotate: 4deg; }
 }
 
-/* The room reacts. Not a red wash fading out — the light goes first and
-   comes back through red, which is the order it happens in: the space
-   gives out, and then what is left of the energy bleeds off it. */
+
 body.is-flashing::after {
   content: "";
   position: fixed;
@@ -3838,10 +3208,7 @@ body.is-flashing::after {
   animation: room .62s cubic-bezier(.2, .8, .3, 1) forwards;
 }
 
-/* The black frame is two frames and no more. It has to be short because
-   the shape it is there to set up is itself black — hold the black and
-   the flash is a black drawing on a black page, which is nothing at all.
-   Red comes up underneath almost at once and the black reads against it. */
+
 @keyframes room {
   0% { background: #000; opacity: .9; }
   7% { background: #000; opacity: .62; }
@@ -3850,24 +3217,9 @@ body.is-flashing::after {
   100% { background: var(--blood); opacity: 0; }
 }
 
-/* The page itself used to take the hit as well — three frames, four
-   pixels of shake on the sheet. It is gone, and for a better reason than
-   taste: the sheet is what every link and every button on the page is
-   in, so shaking it moves what somebody is aiming at out from under
-   them for a third of a second. An impact is not worth a misclick, and
-   the split and the room already say it landed. */
 
-/* 領域展開 — five in a row and the field belongs to whoever is hitting.
 
-   This used to be a hatch of red gradient lines, which is a screen effect
-   and not a drawing; the page already has its screentone and it is a dot
-   grid. What opens instead is the same information pouring in that
-   無量空処 opens the page with, in red rather than paper.
 
-   The colour is set by moving --paper. Custom properties are the only
-   thing besides inheritance that crosses a <use> shadow boundary, so a
-   descendant selector could never reach these strokes — but the value
-   they are already asking for can be answered differently here. */
 .domain {
   --paper: var(--blood-lit);
   position: fixed;
@@ -3878,7 +3230,7 @@ body.is-flashing::after {
   overflow: hidden;
 }
 
-/* the field itself, which is the part that settles back */
+
 .domain-field {
   position: absolute;
   inset: 0;
@@ -3891,26 +3243,17 @@ body.is-flashing::after {
   height: 100%;
 }
 
-/* It stands for as long as the domain does. The length comes from the
-   script that opens it — two numbers that have to agree and only one
-   place either of them is written down. */
+
 body.is-domain .domain {
   display: block;
 }
 
-/* The animation is on the field and not on the whole layer, so what the
-   layer says keeps its own opacity. It ran on the parent, and for six of
-   the seven seconds the seconds left were drawn at a quarter — the one
-   reading on the screen that has to stay legible was the one thing
-   fading with the drawing. The name of the animation is what tells the
-   script the field has come down, so exactly one element carries it. */
+
 body.is-domain .domain-field {
   animation: domain var(--domain-for, 7s) ease-out forwards;
 }
 
-/* Open hard, then settle to something you can read the page through, then
-   go. The middle is most of it: a domain that only flares is an effect,
-   and this one has to be a place you are in for a while. */
+
 @keyframes domain {
   0% { opacity: 0; scale: 1.3; }
   4% { opacity: 1; scale: 1; }
@@ -3919,7 +3262,7 @@ body.is-domain .domain-field {
   100% { opacity: 0; scale: 1.03; }
 }
 
-/* what it is, what it does, and how long it has left */
+
 .domain-say {
   position: absolute;
   left: 50%;
@@ -3937,26 +3280,18 @@ body.is-domain .domain-say {
   animation: domain-said var(--domain-for, 7s) ease-out forwards;
 }
 
-/* On a phone the corner tally is as wide as a third of the screen and
-   sits in the same corner of it, and the two ran into each other. The
-   reading goes up above it rather than beside it. */
+
 @media (max-width: 34rem) {
   .domain-say {
     bottom: 10rem;
   }
 }
 
-/* It lands wherever the page happens to be, and where the page happens
-   to be is often a cloud drawn in white line. The same backing the
-   barrier's own words are given, so the reading holds against whatever
-   is behind it without a box being drawn round it. */
+
 .domain-say::before {
   content: "";
   position: absolute;
-  /* A soft radial was enough on a wide screen and nowhere near it on a
-     phone, where the reading lands squarely on top of the run and the
-     two were legible through each other. It is a band across the page
-     now: solid where the words are, fading out at all four edges. */
+
   inset: -1.7rem -50vw;
   z-index: -1;
   background:
@@ -3964,7 +3299,7 @@ body.is-domain .domain-say {
     linear-gradient(rgb(8 8 11 / 0), rgb(8 8 11 / .72) 26%, rgb(8 8 11 / .72) 74%, rgb(8 8 11 / 0));
 }
 
-/* up with the field, then held while it settles, and away with it */
+
 @keyframes domain-said {
   0% { opacity: 0; translate: -50% .7rem; }
   7% { opacity: 1; translate: -50% 0; }
@@ -3972,8 +3307,7 @@ body.is-domain .domain-say {
   100% { opacity: 0; }
 }
 
-/* the technique, drawn — the same four characters the barrier casts on
-   the way in, so the page names it the same way both times */
+
 .domain-kanji {
   display: flex;
   gap: .1em;
@@ -4008,22 +3342,11 @@ body.is-domain .domain-say {
   font-size: clamp(1.9rem, 5.6vw, 3rem);
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  /* the layer sets the paper to red so the drawing comes out red; the
-     one number that has to be read at a glance takes it back */
+
   color: #f3efe6;
 }
 
-/* ── and the page it is opened on ────────────────────────────────
-   A domain is a place, not a light over one. For the seven seconds it
-   stands, everything on the page is inside it: the paper it is all
-   drawn on goes over to the colour of the field, the ink under it goes
-   with it, and every stroke on the page follows without a single rule
-   having to name them — the drawings ask for var(--paper) and the
-   answer is different for as long as this is up.
-
-   Not a filter over the top. A filter costs a full-page composite on
-   every frame of the seven seconds and turns the text to mush; moving
-   two custom properties costs one repaint at each end. */
+/* Domain page state */
 body.is-domain {
   --paper: #f6dcdf;
   --paper-2: #d3a7ad;
@@ -4033,21 +3356,19 @@ body.is-domain {
   --ink-3: #1d0e12;
 }
 
-/* the field of motes turns over and runs — it is the information
-   pouring in, and inside the field there is a great deal more of it */
+
 body.is-domain .mote {
   animation-duration: calc(var(--dur, 30s) * .32);
   animation-direction: reverse;
 }
 
-/* nothing drifts inside it. The clouds hold still, which is the one
-   thing on this page that never otherwise happens. */
+
 body.is-domain .band svg,
 body.is-domain svg.band {
   animation-play-state: paused;
 }
 
-/* and the sea comes up */
+
 body.is-domain .sea {
   --band: clamp(11rem, 26vw, 20rem);
 }
@@ -4056,10 +3377,8 @@ body.is-domain .wheel {
   animation: adapt .9s ease-out;
 }
 
-/* ── the tally ──────────────────────────────────────────────── */
-/* Read out loud and never drawn. Not display:none and not hidden — either
-   of those takes it out of the page entirely, and a live region that is
-   not in the page announces nothing. */
+/* Screen-reader tally */
+
 .said {
   position: absolute;
   width: 1px;
@@ -4072,24 +3391,12 @@ body.is-domain .wheel {
   border: 0;
 }
 
-/* ── a phone turned on its side ──────────────────────────────────
-   Four hundred pixels of height, and the compass is fixed to the bottom
-   left of it: it lands on the staff's name in the header and on the
-   jolly roger at the foot, and it takes a sixth of the screen to do it.
-   A fixed thing that covers what is under it is worse than no fixed
-   thing, and everything it points at is a scroll away regardless. */
-@media (max-height: 30rem) {
+/* Landscape phones */
+@media (max-width: 34rem), (max-height: 30rem) {
   .pose { display: none; }
 }
 
-/* A laptop window: wide, and not tall enough for a full header with the
-   top of the page still under it. Nothing is taken away — the sentence,
-   the staff and the cloud all stay — they are given the room they need
-   rather than the room they would like.
 
-   Short and narrow is a phone held upright, where the page is a column
-   and there is nothing to win: the width has to be in here or the cloud
-   comes up over the line under the record. */
 @media (max-height: 54rem) and (min-width: 48rem) {
   .hero {
     min-height: 0;
@@ -4105,16 +3412,7 @@ body.is-domain .wheel {
   }
 }
 
-/* ── with no javascript at all ───────────────────────────────────
-   Everything on this page that is fed by something is already hidden
-   without it. What was left was worse: a field saying HOLD that cannot
-   take a hold, a run of noughts that can never move, a compass whose
-   needle has nothing to point at and a clock reading an em dash. A
-   control that does nothing when it is pressed is the one thing worse
-   than not being there.
-
-   The heading and the sentence stay. They describe a thing this page
-   does when it is allowed to run, which is worth reading either way. */
+/* No-JavaScript fallback */
 html:not([data-js]) .arena,
 html:not([data-js]) .score-marks,
 html:not([data-js]) .score-list,
@@ -4126,10 +3424,7 @@ html:not([data-js]) .who > i:last-of-type {
   display: none;
 }
 
-/* A readout, not a control — and it floats over the bottom right corner,
-   which at the end of the page is where the one link in the footer is.
-   Taking no clicks means it can sit on top of that link without being in
-   front of it. */
+
 .tally {
   position: fixed;
   right: clamp(.7rem, 2vw, 1.4rem);
@@ -4185,8 +3480,7 @@ html:not([data-js]) .who > i:last-of-type {
   color: var(--paper-3);
 }
 
-/* which side of the window you were on. a miss you cannot read is a miss
-   you cannot learn from. */
+
 .tally-hint {
   margin-top: .25rem;
   font-size: .66rem;
@@ -4203,11 +3497,9 @@ html:not([data-js]) .who > i:last-of-type {
   color: var(--blood-lit);
 }
 
-/* ── panels arriving ────────────────────────────────────────── */
+/* Panel reveal */
 
-/* The panel used to arrive in one piece, which is a slide. Its parts come
-   in one after another instead — heading, then rule, then contents — so a
-   region assembles itself rather than sliding into place. */
+
 [data-js] .reveal {
   opacity: 0;
 }
@@ -4217,9 +3509,7 @@ html:not([data-js]) .who > i:last-of-type {
   transition: opacity .5s ease;
 }
 
-/* Drawing behind a region is not one of its parts, and it has its own
-   reasons for the opacity it is at — left in, this rule wins on
-   specificity and pins it to one whatever those reasons were. */
+
 [data-js] .reveal > :not(svg) {
   opacity: 0;
   transform: translateY(18px);
@@ -4236,8 +3526,7 @@ html:not([data-js]) .who > i:last-of-type {
 [data-js] .reveal.is-in > :nth-child(3) { --in: .18s; }
 [data-js] .reveal.is-in > :nth-child(4) { --in: .27s; }
 
-/* rows that arrive with the data they came for, rather than with the
-   panel that will hold them */
+
 .like-list li,
 .doing li {
   animation: arrive .55s cubic-bezier(.22, .8, .3, 1) calc(var(--i, 0) * 70ms) backwards;
@@ -4247,9 +3536,7 @@ html:not([data-js]) .who > i:last-of-type {
   from { opacity: 0; transform: translateY(14px); }
 }
 
-/* the card's own resting transform is a rotation, so the arrival cannot
-   also be one — it would win, and every card would sit flat until it was
-   pointed at */
+
 .like-list li {
   animation-name: arrive-flat;
 }
@@ -4263,14 +3550,11 @@ html:not([data-js]) .who > i:last-of-type {
   outline-offset: 3px;
 }
 
-/* ── narrower ───────────────────────────────────────────────── */
+/* Responsive layout */
 @media (max-width: 60rem) {
-  /* Every region that shares a row with another one goes full width. A
-     half-width column left in place here does not scroll — the sheet
-     clips it — so what is missed here is not visibly broken, it is
-     silently cut off. */
+
   .now,
-  .music,
+  .work,
   .likes,
   .score,
   .hero,
@@ -4283,21 +3567,18 @@ html:not([data-js]) .who > i:last-of-type {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* on a narrow screen the wheel sits right behind the running text, so
-     it gets pushed further out and dropped back */
-  .sigil {
-    top: 22%;
-    right: -34%;
-    width: min(26rem, 74%);
-    translate: 0 0;
-    opacity: .3;
-  }
 }
 
 @media (max-width: 34rem) {
-  /* the flag and what is written beside it were sharing a line three
-     hundred and fifty pixels wide, which put four words of it under
-     the skull's jaw */
+  .hero .sub {
+    max-width: calc(65vw - 1.5rem);
+  }
+
+  .hero .wheel {
+    opacity: .42;
+  }
+
+
   .foot {
     flex-direction: column;
     align-items: flex-start;
@@ -4334,8 +3615,7 @@ html:not([data-js]) .who > i:last-of-type {
 
   .strikes { display: none; }
 
-  /* the field is nothing but motion — frozen it is a row of grey smudges
-     sitting behind the text, which is worse than not being there */
+
   .field { display: none; }
 
   .wheel.is-struck,
@@ -4346,22 +3626,7 @@ html:not([data-js]) .who > i:last-of-type {
   }
 }
 
-/* ══ high contrast ═════════════════════════════════════════════
-   Windows' high contrast mode throws away every colour on the page and
-   substitutes its own pair, which for text is exactly right — black on
-   white, links in the system's link colour, all of it legible. For the
-   drawings it is not: they are line art built out of a light stroke and
-   a dark fill, and the substitution flattens every one of them into a
-   solid black lump sitting in the middle of the text.
-
-   So in that mode they are drawn the way they are drawn everywhere else,
-   with the values swapped: no fill, and the system's own text colour for
-   the line. Line art on paper, which is what it always was.
-
-   Every selector in here is a plain class rather than a descendant of
-   anything. These shapes live inside symbols, and a symbol reached
-   through <use> is a shadow tree that a descendant selector never gets
-   into — .wheel * matches nothing at all, silently. */
+/* High contrast */
 @media (forced-colors: active) {
   .mg-body,
   .mg-lit,
@@ -4395,9 +3660,6 @@ html:not([data-js]) .who > i:last-of-type {
   .lp-wire,
   .lp-tick,
   .lp-shine,
-  .vn-body,
-  .vn-groove,
-  .vn-shine,
   .brush {
     forced-color-adjust: none;
     fill: none;
@@ -4406,17 +3668,14 @@ html:not([data-js]) .who > i:last-of-type {
     opacity: 1;
   }
 
-  /* the few marks that are meant to be solid, and the ones that mark a
-     place rather than draw a thing */
+
   .jr-ink,
   .jr-bone,
   .jr-straw,
   .jr-teeth,
   .lp-point,
   .lp-pin,
-  .lp-needle-lit,
-  .vn-label,
-  .vn-hole {
+  .lp-needle-lit {
     forced-color-adjust: none;
     fill: CanvasText;
     stroke: none;
@@ -4430,25 +3689,18 @@ html:not([data-js]) .who > i:last-of-type {
     stroke: CanvasText;
   }
 
-  /* A box-shadow is not drawn at all in this mode, and the field's edge
-     was one — so the one thing on the page you are meant to press had
-     nothing round it but the word in the middle. */
+  /* Provide a forced-colors outline fallback. */
   .arena {
     border: 1px solid CanvasText;
   }
 
-  /* The worded control by the rank is a button undressed down to an
-     underline, and the underline's red is gone here — without an edge it
-     reads as a stray caption. It gets the border back, in the colour the
-     system gives buttons. */
+
   .grade-take {
     border: 1px solid ButtonText;
     padding-inline: .5rem;
   }
 
-  /* Texture that carries nothing and cannot survive being reduced to one
-     colour: the field of motes, the speed lines, the screentone behind
-     the panels, the mark burning in the floor of the arena. */
+
   .field,
   .speed,
   .score-sigil,
@@ -4459,17 +3711,7 @@ html:not([data-js]) .who > i:last-of-type {
   }
 }
 
-/* ══ on paper ══════════════════════════════════════════════════
-   Printed, every word of this page came out white on white. Browsers
-   drop background colours by default, and the ink here is the light
-   half of the pair — so the sheet stayed white, the text stayed paper,
-   and what came out of the printer was blank.
-
-   The whole page is drawn out of two colours and a red, and it is only
-   ever "which of the two is the background". So they swap. Everything
-   built on them — the ruled lines, the panels, the drawings, the type —
-   follows without a single rule of its own, and what prints is the same
-   page in ink on paper, which is where it came from. */
+/* Print */
 @media print {
   :root {
     color-scheme: light;
@@ -4482,7 +3724,7 @@ html:not([data-js]) .who > i:last-of-type {
     --paper-2: #3a3a42;
     --paper-3: #5c5c64;
 
-    /* red survives the trip; it is only ever a mark, never a background */
+
     --blood: #c8102e;
     --blood-lit: #c8102e;
   }
@@ -4491,9 +3733,7 @@ html:not([data-js]) .who > i:last-of-type {
     background: #fff;
   }
 
-  /* Things that are motion, a control, or a corner of the screen. None of
-     them mean anything on a sheet of paper, and the last two would print
-     over whatever they were floating above. */
+
   .field,
   .speed,
   .curtain,
@@ -4508,8 +3748,7 @@ html:not([data-js]) .who > i:last-of-type {
     display: none !important;
   }
 
-  /* a printed page has no hover and no focus, so a link is only useful if
-     it says where it goes */
+
   .links a::after,
   .foot-text a::after,
   .like-name a::after {
@@ -4519,7 +3758,7 @@ html:not([data-js]) .who > i:last-of-type {
     color: var(--paper-3);
   }
 
-  /* and nothing should be cut in half by a page break */
+
   .panel,
   .doing li,
   .like-list li {
@@ -4527,28 +3766,13 @@ html:not([data-js]) .who > i:last-of-type {
   }
 }
 
-/* ══ 出典 ═══════════════════════════════════════════════════════
-   Six things are drawn on this page and until this chapter not one of
-   them said what it was. Somebody who has read all three works
-   recognises every one of them; somebody who has read none sees a
-   wheel, a stick and a cloud and has no way in.
-
-   The drawings in here are the same symbols the page itself uses, at a
-   size somebody can actually look at — not pictures of them. A page
-   that shows its own parts twice, once working and once explained, has
-   to show the same parts both times or the second one is a lie. */
-.traced-line {
-  max-width: 52ch;
-}
-
+/* 出典 */
 .traced-list {
   list-style: none;
   margin: 1.4rem 0 0;
   padding: 0;
   display: grid;
-  /* min() on the floor, or the track cannot shrink below it: at 320px a
-     twenty-rem minimum is wider than the column it is in, and the whole
-     row hangs off the right edge. */
+  /* Let the track shrink on narrow screens. */
   grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
   gap: 1.8rem clamp(1.6rem, 4vw, 3rem);
 }
@@ -4563,10 +3787,7 @@ html:not([data-js]) .who > i:last-of-type {
   background: var(--ruled) 0 0 / 44rem 3.5px repeat-x;
 }
 
-/* Each drawing gets the same square to sit in whatever shape it is, so
-   the column of them reads as a column rather than as six things that
-   happen to be near each other. A wheel is round, a cloud is a band and
-   a staff is a line — meet, never slice, and never stretched. */
+
 .traced-art {
   display: grid;
   place-items: center;
@@ -4575,19 +3796,14 @@ html:not([data-js]) .who > i:last-of-type {
   opacity: .82;
 }
 
-/* Not the staff: that one is three boxes in a row and each of them has
-   its own width to keep. */
+
 .traced-art:not(.traced-rig) > svg {
   display: block;
   width: 100%;
   height: 100%;
 }
 
-/* The staff is three drawings and only the middle of it stretches, the
-   same as the one in the header. The height sets everything: each end
-   keeps its own proportions and takes what it needs, and the middle gets
-   what is left — so at two and a half rem tall the two ends alone came
-   to more than the box is wide and the middle was squeezed to nothing. */
+
 .traced-rig {
   display: flex;
   align-items: center;
@@ -4606,8 +3822,7 @@ html:not([data-js]) .who > i:last-of-type {
   flex: 1 1 auto;
   min-width: 0;
   height: 100%;
-  /* the same hairline overlap the header rig uses: three boxes in a row
-     laid out in fractions of a pixel leave the page showing between them */
+
   margin-inline: -1px;
 }
 
@@ -4638,8 +3853,7 @@ html:not([data-js]) .who > i:last-of-type {
   color: var(--paper-3);
 }
 
-/* which panel it was traced off, in the face the rest of the page uses
-   for a citation rather than a sentence */
+
 .traced-work {
   margin: .35rem 0 0;
   font-size: .72rem;
@@ -4656,17 +3870,14 @@ html:not([data-js]) .who > i:last-of-type {
   color: var(--paper-2);
 }
 
-/* Narrow enough and a five-and-a-half rem column beside forty characters
-   of text is two thin columns. The drawing goes above the words. */
+
 @media (max-width: 30rem) {
   .traced-list li {
     grid-template-columns: minmax(0, 1fr);
     gap: .7rem;
   }
 
-  /* The two lengthwise drawings stretch across the column the way they
-     stretch across the page; a band starved into a five-rem square is a
-     full stop with lumps. The square ones get a step more room. */
+
   .traced-rig,
   .traced-wide {
     width: 100%;
@@ -4678,11 +3889,7 @@ html:not([data-js]) .who > i:last-of-type {
   }
 }
 
-/* Drawn small, these are the same paths at an eighth of the size, and a
-   stroke measured in user units goes down with them until it is a
-   hairline nobody can see. The wheel takes its line from the element it
-   sits in — it always has — and the cloud is told through a variable,
-   which is the only thing that reaches inside a cloned symbol. */
+
 .traced-art > svg {
   stroke: var(--paper-2);
   stroke-width: 9;
@@ -4693,22 +3900,16 @@ html:not([data-js]) .who > i:last-of-type {
   --cloud-curl: 6;
 }
 
-/* a band nine hundred wide and a hundred and twenty tall is not a square,
-   and squeezing it into one leaves it the size of a full stop */
+
 .traced-cloud {
   width: 100%;
   height: auto;
 }
 
-/* ══ 等級 ═══════════════════════════════════════════════════════
-   The rank, under the instruction and over the numbers, because it is
-   the one line in the panel that says where somebody is rather than what
-   they have done. Kanji drawn at a size that can carry three characters,
-   the words beside them for everybody else. */
+/* 等級 */
 .grade {
   display: flex;
-  /* the row may break in front of the control on a narrow screen —
-     the control itself never breaks inside its own words */
+
   flex-wrap: wrap;
   align-items: baseline;
   gap: .7rem;
@@ -4749,10 +3950,7 @@ html:not([data-js]) .who > i:last-of-type {
   color: var(--paper-3);
 }
 
-/* The one control in the panel that is words rather than a drawing, so
-   it is dressed like the page's other worded control — the link at the
-   foot: quiet type, the stroke's red underneath. Padded to a real
-   target; a pressable thing under twenty-four pixels is a dare. */
+
 .grade-take {
   margin-left: auto;
   align-self: center;
@@ -4775,13 +3973,12 @@ html:not([data-js]) .who > i:last-of-type {
   color: var(--paper);
 }
 
-/* Special grade is the only one that asks for accuracy as well as nerve,
-   and it is the only one that is red. */
+
 .grade[data-grade="special-grade"] .grade-mark {
   color: var(--blood-lit);
 }
 
-/* going up is worth a moment; arriving already there is not */
+
 .grade.is-up .grade-mark {
   animation: rankup .7s cubic-bezier(.2, .9, .2, 1);
 }
@@ -4796,13 +3993,9 @@ html:not([data-js]) .who > i:last-of-type {
   .grade.is-up .grade-mark { animation: none; }
 }
 
-/* ── what each of these left on the page ─────────────────────────
-   The favourites and the drawings were two lists that never met. This
-   is the one line between them, and it goes to the chapter that says
-   what each mark is. */
+/* Source notes */
 .like-drew {
-  /* pulled up by what the link's own height adds below it, so a target
-     big enough for a thumb does not open a hole in the card */
+
   margin: .2rem 0 -.5rem;
   font-size: .72rem;
 }
@@ -4810,7 +4003,7 @@ html:not([data-js]) .who > i:last-of-type {
 .like-drew a {
   display: inline-flex;
   align-items: center;
-  /* every target on this page clears 44px, and a link is a target */
+
   min-height: 44px;
   gap: .45rem;
   color: var(--paper-3);
@@ -4833,11 +4026,7 @@ html:not([data-js]) .who > i:last-of-type {
   display: block;
   width: 1.5em;
   height: 1.5em;
-  /* The line, not the fill. Each of these symbols carries its own fill —
-     the flag is a silhouette, the wheel is an ink disc with a light line
-     round it — and painting them all one colour turns half of them into
-     blobs. Only the weight of the line is set, because at the size of a
-     word a stroke measured in user units is a hairline. */
+
   stroke: currentColor;
   stroke-width: 10;
   --cloud-line: 22;
@@ -4845,44 +4034,22 @@ html:not([data-js]) .who > i:last-of-type {
   opacity: .85;
 }
 
-/* ══ his hour ══════════════════════════════════════════════════
-   --sun runs from nought in the small hours to one at midday, written by
-   the same tick that draws the clock, and it is his hour rather than the
-   reader's: the page is about where he is, so somebody reading it over
-   breakfast in Seoul is looking at his night.
-
-   Everything hanging off it is a matter of degree. Nothing appears and
-   nothing goes away — a page that rearranges itself at six in the
-   evening is a page nobody trusts — but the field is thick with sparks
-   after dark and nearly clear at noon, the sea takes its time at night,
-   and the sheet cools a shade. Half of it is only ever noticed by
-   somebody who comes back at a different hour, which is the point.
-
-   The fallback in every var() is the value the page had before any of
-   this, so a page whose clock never ran looks exactly as it did. */
+/* Local time */
 .field {
   opacity: calc(1 - var(--sun, 0) * .72);
   transition: opacity 4s linear;
 }
 
-/* the sea is heavier and slower at night; the rules that do it live with
-   the two layers, where they can outweigh the shorthand */
 
-/* And the paper cools after dark. A hundredth of a turn either way —
-   enough to feel different on a second visit, not enough to look like a
-   different site.
 
-   On a screen only. Print swaps the two colours to put ink on paper, and
-   a rule further down the file that sets a background on the body wins
-   against it however that rule was arrived at — which turned every
-   printed page black again. */
+
 @media screen {
   body {
     background: color-mix(in srgb, var(--ink), #0a1020 calc((1 - var(--sun, 0)) * 22%));
     transition: background-color 6s linear;
   }
 
-  /* not while the domain has the page: that is its own weather */
+
   body.is-domain {
     background: var(--ink);
   }
@@ -4895,16 +4062,7 @@ html:not([data-js]) .who > i:last-of-type {
   }
 }
 
-/* ══ 懸賞金 ═══════════════════════════════════════════════════
-   The wanted poster. Drawn loose — a poster is paper somebody nailed
-   up, not a component — and hung a degree off straight for the same
-   reason. The type on it is the page's own serif doing its best
-   impression of a navy print shop. The ledger beside it is the
-   arithmetic, one earned line at a time. */
-.bounty-line {
-  max-width: 52ch;
-}
-
+/* 懸賞金 */
 .wanted {
   margin-top: 1.8rem;
   display: flex;
@@ -4921,9 +4079,7 @@ html:not([data-js]) .who > i:last-of-type {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* not a percentage: percentage padding resolves against the parent's
-     width, and the parent here is the whole row — the paper's margins
-     have to belong to the paper */
+  /* Use absolute padding so it belongs to the poster. */
   padding: 2.4rem 1.6rem 1.9rem;
   rotate: -1.2deg;
   color: var(--paper-2);
@@ -4984,8 +4140,7 @@ html:not([data-js]) .who > i:last-of-type {
   stroke-linejoin: round;
 }
 
-/* the band is the one thing on the poster that is not a line, and it is
-   the same band the flag at the foot wears */
+
 .rd-band { fill: var(--blood); }
 
 .poster-terms {
@@ -5044,7 +4199,7 @@ html:not([data-js]) .who > i:last-of-type {
   color: var(--paper-3);
 }
 
-/* raised: the paper takes the news with a small start */
+
 @keyframes wanted-up {
   0% { rotate: -2.6deg; }
   55% { rotate: -.4deg; }
@@ -5055,7 +4210,7 @@ html:not([data-js]) .who > i:last-of-type {
   animation: wanted-up .6s ease-out;
 }
 
-/* ── the ledger ── */
+/* Bounty ledger */
 .bounty-led {
   list-style: none;
   margin: .4rem 0 0;
@@ -5098,9 +4253,7 @@ html:not([data-js]) .who > i:last-of-type {
   .poster.is-raised { animation: none; }
 }
 
-/* 航海日誌 — what the visit came to, at the foot of the page. Quieter
-   than the line under it, because it is a note rather than a statement:
-   nobody came here to be told what they just did. */
+
 .log {
   margin: 0 0 .5rem;
   font-size: .7rem;
@@ -5109,17 +4262,7 @@ html:not([data-js]) .who > i:last-of-type {
   opacity: .85;
 }
 
-/* ── the log is full ─────────────────────────────────────────────
-   A log pose locks on once it has taken a full reading, which is the
-   whole of what the instrument does. Every region on the page gone past
-   is that reading. The dial does not change shape for it — it settles:
-   the glass warms, the needle's core lights, and the marks round the
-   bezel stop being a tally and start being a ring.
-
-   Through variables, not selectors. These shapes live inside a cloned
-   symbol, and a descendant selector never enters a <use> shadow tree —
-   written the obvious way, all three of these rules match nothing and
-   say so nowhere. A custom property inherits straight through. */
+/* Completed log */
 .pose.is-full {
   --lock-glass: var(--blood-lit);
   --lock-glass-on: .5;
@@ -5141,10 +4284,7 @@ html:not([data-js]) .who > i:last-of-type {
   .pose.is-full .pose-art { animation: none; }
 }
 
-/* ── the pole's contact marks ────────────────────────────────────
-   One per thing the swing went through, at the point it crossed. White,
-   small, gone in under half a second — the drawing that was hit is
-   already shaking, this only says where. */
+/* Yeoui contact marks */
 .poke {
   position: absolute;
   translate: -50% -50%;
@@ -5191,11 +4331,7 @@ html:not([data-js]) .who > i:last-of-type {
   .poke { display: none; }
 }
 
-/* ── the door closing ────────────────────────────────────────────
-   The last half-second of a domain: the veil pulses once more and the
-   palette turns back underneath it at the peak, where the change cannot
-   be seen happening. The container has to be kept on screen for it —
-   its display is otherwise tied to the class that is being taken away. */
+/* Domain exit */
 body.is-sealing .domain {
   display: block;
 }

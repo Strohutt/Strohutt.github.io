@@ -1,5 +1,5 @@
 const BASE = `http://localhost:${process.env.PORT || 8899}`;
-const { chromium } = require('playwright');
+const { launchBrowser, blockLanyardSocket } = require('./browser');
 
 const fails = [];
 const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? '  — ' + d : '')); if (!ok) fails.push(n); };
@@ -10,60 +10,57 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
 }));
 
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  const b = await launchBrowser();
 
-  /* The barrier goes up on the first page of a session and covers
-     everything for a second and three quarters. These checks are about
-     what is underneath it, so they arrive having already seen it — the
-     same as mocking an upstream. The intro has its own checks. */
+  /* Skip the separately tested arrival barrier. */
   const seen = () => { try { sessionStorage.setItem('strohut-seen', '1'); } catch { /* nothing to do */ } };
 
   const open = async (routes = {}, opts = {}) => {
     const p = await b.newPage({ viewport: { width: 1340, height: 900 }, ...opts });
     await p.addInitScript(seen);
+    await blockLanyardSocket(p);
     p.on('pageerror', e => fails.push('pageerror: ' + e.message));
+    await p.route('**/api.lanyard.rest/**', r => r.abort());
     for (const [pat, handler] of Object.entries(routes)) await p.route(pat, handler);
     await p.goto(BASE + '/index.html');
     return p;
   };
   const overflows = p => p.evaluate(() =>
     document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  const favouriteState = p => p.evaluate(() => {
+    const box = document.getElementById('likes');
+    return {
+      hidden: box.hidden,
+      source: box.dataset.source,
+      count: document.querySelectorAll('#like-list li').length,
+      fallback: document.querySelectorAll('#like-list [data-fallback]').length
+    };
+  });
 
   // ── every upstream refuses
   let p = await open({
     '**/api.lanyard.rest/**': r => r.abort(),
-    '**/graphql.anilist.co/**': r => r.abort(),
-    '**/oembed**': r => r.abort()
+    '**/graphql.anilist.co/**': r => r.abort()
   });
   await p.waitForTimeout(2500);
   check('all upstreams dead: page still stands', !(await overflows(p)));
-  check('all upstreams dead: the favourites stay hidden', await p.evaluate(() => document.getElementById('likes').hidden));
+  check('all upstreams dead: the authored favourites remain',
+    await (async () => { const state = await favouriteState(p); return !state.hidden && state.source === 'authored' && state.count === 3 && state.fallback === 3; })());
   check('all upstreams dead: readout says so',
     /reach|can't|offline/i.test(await p.evaluate(() => document.getElementById('dc-state').textContent)),
     await p.evaluate(() => document.getElementById('dc-state').textContent));
 
-  /* The music region takes itself away when the socket will not open and
-     this page has never caught a track. What it leaves behind is the
-     readout holding seven of twelve columns with five columns of black
-     beside it — which reads as something that failed to load rather than
-     as a region that is not there. */
+  /* Static work does not depend on either upstream. The presence readout
+     keeps its row even when Discord cannot answer, and Chapter Two still
+     carries its authored evidence. */
   const alone = await p.evaluate(() => {
     const now = document.querySelector('.now').getBoundingClientRect();
-    return { now: Math.round(now.width), spread: Math.round(document.querySelector('.spread').getBoundingClientRect().width) };
+    const spread = document.querySelector('.spread').getBoundingClientRect();
+    return { now: Math.round(now.width), spread: Math.round(spread.width), work: !!document.getElementById('work') };
   });
-  check('all upstreams dead: the readout takes the row it is left alone in',
+  check('all upstreams dead: the readout still takes its row',
     alone.now > alone.spread * .9, JSON.stringify(alone));
-
-  /* Left alone is only half of it: the region it was left alone by has to
-     actually be gone. The attribute that takes it away is a display of
-     the weakest kind there is, and the day the region was given a display
-     of its own it stayed on the page — a heading and a sleeve saying
-     "checking…" for as long as the tab was open. Measured, not asked. */
-  const gone = await p.evaluate(() => {
-    const m = document.querySelector('.music');
-    return !m || (m.getBoundingClientRect().height === 0 && m.offsetParent === null);
-  });
-  check('all upstreams dead: and the music region is off the page', gone);
+  check('all upstreams dead: the authored work chapter still stands', alone.work);
   await p.close();
 
   // ── twenty activities, all with very long names
@@ -118,16 +115,47 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   check('an icon that arrives is shown', art.img === '1', JSON.stringify(art));
   await p.close();
 
-  // ── a song with a novel for a title
+  // ── what Discord shares, and what this page chooses to show
   p = await open();
   await p.waitForTimeout(1200);
-  await p.evaluate(t => render({
+  await p.evaluate(() => render({
     discord_user: { id: '1', username: 'u', display_name: 'Strohut', avatar: null },
-    discord_status: 'online', activities: [], listening_to_spotify: true,
-    spotify: { track_id: 'x', song: t, artist: t, album_art_url: null, timestamps: { start: Date.now() - 1e4, end: Date.now() + 1e5 } }
-  }), LONG);
+    discord_status: 'online', listening_to_spotify: true,
+    spotify: { track_id: 'x', song: 'Kaikai Kitan', artist: 'Eve' },
+    activities: [
+      { type: 4, state: 'building quietly' },
+      { type: 2, name: 'Spotify', details: 'Kaikai Kitan', state: 'Eve' },
+      { type: 0, name: 'Roblox', details: 'Playing an experience' },
+      { type: 0, name: 'Visual Studio Code', details: 'Editing script.js' }
+    ]
+  }));
   await p.waitForTimeout(400);
-  check('200-char track does not overflow', !(await overflows(p)));
+  const shared = await p.evaluate(() => ({
+    rows: [...document.querySelectorAll('#dc-doing li')].map(li => li.textContent),
+    state: document.getElementById('dc-state').textContent,
+    quiet: document.getElementById('dc-quiet').hidden
+  }));
+  check('a shared Roblox activity renders', shared.rows.some(row => /Roblox/.test(row)), shared.rows.join(' | '));
+  check('other non-custom activities still render', shared.rows.some(row => /Visual Studio Code/.test(row)), shared.rows.join(' | '));
+  check('custom status stays in the presence line', shared.state === 'building quietly', shared.state);
+  check('Spotify is not folded into right now', shared.rows.length === 2 && shared.rows.every(row => !/Spotify|Kaikai Kitan/.test(row)), shared.rows.join(' | '));
+  check('real activities keep the quiet line hidden', shared.quiet);
+
+  await p.evaluate(() => render({
+    discord_user: { id: '1', username: 'u', display_name: 'Strohut', avatar: null },
+    discord_status: 'online', listening_to_spotify: true,
+    spotify: { track_id: 'x', song: 'Kaikai Kitan', artist: 'Eve' },
+    activities: [{ type: 2, name: 'Spotify', details: 'Kaikai Kitan', state: 'Eve' }]
+  }));
+  await p.waitForTimeout(200);
+  const onlySpotify = await p.evaluate(() => ({
+    rows: document.querySelectorAll('#dc-doing li').length,
+    quiet: document.getElementById('dc-quiet').hidden,
+    quietText: document.getElementById('dc-quiet').textContent,
+    music: !!document.querySelector('#music, .music, [id^="track-"]')
+  }));
+  check('Spotify alone is reported as no shared game or app activity', onlySpotify.rows === 0 && !onlySpotify.quiet && /no (?:game or app )?activity shared/.test(onlySpotify.quietText), JSON.stringify(onlySpotify));
+  check('Spotify creates no separate UI', !onlySpotify.music);
   await p.close();
 
   // ── the presence payload is malformed
@@ -155,8 +183,8 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   await p.close();
 
   /* Session storage refusing is the one that matters, because it is the
-     one everything here uses: the barrier, the run, the islands, the last
-     track. A browser in a locked-down mode throws on the property itself,
+     one everything here uses: the barrier, the run and the islands. A
+     browser in a locked-down mode throws on the property itself,
      not on the write — and every one of those reads happens before
      anything is drawn. */
   p = await b.newPage({ viewport: { width: 1340, height: 900 } });
@@ -182,9 +210,8 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   }));
   await p.close();
 
-  /* the last track it caught goes with the tab, the same as the run and
-     the islands — coming back a fortnight later to a song and "17 days
-     ago" is a true statement nobody wanted */
+  /* The barrier, the run and the island log belong to this visit. None of
+     them has any reason to outlive the tab. */
   p = await open();
   await p.waitForTimeout(1600);
   const shelves = await p.evaluate(() => ({
@@ -203,12 +230,33 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
      tab forward tries at once rather than waiting out the delay. */
   p = await b.newPage({ viewport: { width: 1340, height: 900 } });
   await p.addInitScript(seen);
-  const tries = [];
-  p.on('websocket', () => tries.push(Date.now()));
+  await p.addInitScript(() => {
+    window.__socketTries = [];
+    class ClosingSocket extends EventTarget {
+      static CONNECTING = 0;
+      static OPEN = 1;
+      static CLOSED = 3;
+
+      constructor() {
+        super();
+        this.readyState = ClosingSocket.CONNECTING;
+        window.__socketTries.push(performance.now());
+        setTimeout(() => {
+          this.readyState = ClosingSocket.CLOSED;
+          this.dispatchEvent(new Event('close'));
+        }, 20);
+      }
+
+      send() {}
+      close() { this.readyState = ClosingSocket.CLOSED; }
+    }
+    Object.defineProperty(window, 'WebSocket', { configurable: true, value: ClosingSocket });
+  });
   await p.route('**/api.lanyard.rest/v1/**', r => r.abort());
   await p.goto(BASE + '/index.html');
   await p.waitForTimeout(15000);
 
+  const tries = await p.evaluate(() => window.__socketTries);
   const gaps = tries.slice(1).map((t, i) => t - tries[i]);
   check('a socket that will not open is tried again', tries.length >= 2, JSON.stringify(gaps));
   check('and each wait is longer than the last',
@@ -221,8 +269,9 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
     document.dispatchEvent(new Event('visibilitychange'));
   });
   await p.waitForTimeout(1200);
-  check('coming back to the tab tries at once', tries.length > before,
-    `${before} → ${tries.length}`);
+  const after = await p.evaluate(() => window.__socketTries.length);
+  check('coming back to the tab tries at once', after > before,
+    `${before} → ${after}`);
   await p.close();
 
   // ── the socket drops and comes back
@@ -244,97 +293,6 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   check('quiet line appears when nothing is on', !(await p.evaluate(() => document.getElementById('dc-quiet').hidden)));
   await p.close();
 
-  /* The socket dying does not stop the ticker that was counting the song
-     it was carrying. Every render clears those; failing does not go
-     through one. */
-  p = await open();
-  await p.waitForTimeout(1200);
-  await p.evaluate(() => render({
-    discord_user: { id: '1', username: 'u', display_name: 'Strohut', avatar: null },
-    discord_status: 'online', activities: [], listening_to_spotify: true,
-    spotify: { track_id: 'x', song: 'a', artist: 'b', album_art_url: null,
-      timestamps: { start: Date.now() - 1e4, end: Date.now() + 3e5 } }
-  }));
-  await p.waitForTimeout(300);
-  const ticking = await p.evaluate(() => document.getElementById('track-time').textContent);
-  await p.evaluate(() => fail());
-  await p.waitForTimeout(2500);
-  check('the socket dying stops the track counting',
-    await p.evaluate(() => document.getElementById('track-time').textContent) === ticking,
-    `${ticking} → ${await p.evaluate(() => document.getElementById('track-time').textContent)}`);
-  await p.close();
-
-  /* What the page remembers for the length of a visit. Nothing playing is
-     not the same as nothing ever playing, and the panel should not have to
-     choose between claiming silence and saying nothing.
-
-     For the visit and no further: a tab of its own is somebody arriving,
-     and a reload is not, which is the whole difference between the two
-     shelves — and the only one worth keeping this on. */
-  const SONG = playing => ({
-    status: 200, contentType: 'application/json',
-    body: JSON.stringify({ success: true, data: {
-      discord_user: { id: '1', username: 'u', display_name: 'Strohut', avatar: null },
-      discord_status: 'online', activities: [], listening_to_spotify: playing,
-      spotify: playing ? { track_id: 'abc123', song: 'Kaikai Kitan', artist: 'Eve', album: 'Smile',
-        album_art_url: '', timestamps: { start: Date.now() - 3e4, end: Date.now() + 1e5 } } : null } })
-  });
-
-  const jar = await b.newContext({ viewport: { width: 1340, height: 900 } });
-
-  p = await jar.newPage();
-  await p.addInitScript(seen);
-  p.on('pageerror', e => fails.push('pageerror(cache 1): ' + e.message));
-  let stopped = false;
-  await p.route('**/api.lanyard.rest/**', r => r.fulfill(SONG(!stopped)));
-  await p.goto(BASE + '/index.html');
-  await p.waitForTimeout(1600);
-  check('a track that is playing says so',
-    await p.evaluate(() => document.getElementById('music-kicker').textContent) === 'now playing');
-
-  // same visit, a little later, and the music has stopped
-  stopped = true;
-  await p.reload();
-  await p.waitForTimeout(1600);
-  check('nothing playing falls back to the last one caught',
-    await p.evaluate(() => document.getElementById('music-kicker').textContent) === 'last played' &&
-    await p.evaluate(() => document.getElementById('track-song').textContent) === 'Kaikai Kitan');
-  check('the last one caught says when it was',
-    /ago$/.test(await p.evaluate(() => document.getElementById('track-seen').textContent)),
-    await p.evaluate(() => document.getElementById('track-seen').textContent));
-  check('the fallback links at the track it actually names',
-    /abc123/.test(await p.evaluate(() => document.getElementById('music-link').href)));
-  await p.close();
-
-  /* And a tab of its own starts at nothing, which is the whole point of
-     the shelf it is on: the song is not carried into next month. */
-  p = await jar.newPage();
-  await p.addInitScript(seen);
-  p.on('pageerror', e => fails.push('pageerror(cache 3): ' + e.message));
-  await p.route('**/api.lanyard.rest/**', r => r.fulfill(SONG(false)));
-  await p.goto(BASE + '/index.html');
-  await p.waitForTimeout(1600);
-  check('a new tab is somebody arriving, and knows of no last track',
-    await p.evaluate(() => document.getElementById('track-song').textContent) === 'nothing caught yet',
-    await p.evaluate(() => document.getElementById('track-song').textContent));
-  await p.close();
-  await jar.close();
-
-  // a first-ever visit with nothing stored: the panel must not invent a
-  // song, and must not link at one nobody picked
-  p = await open({ '**/api.lanyard.rest/**': r => r.fulfill(SONG(false)) });
-  await p.waitForTimeout(1600);
-  check('cold and quiet: the panel says nothing is playing',
-    await p.evaluate(() => document.getElementById('music-kicker').textContent) === 'nothing playing');
-  /* and does not say it twice — the kicker and the line under it both
-     read "nothing playing", one above the other, in the state a first
-     visitor with nothing stored is most likely to arrive in */
-  check('cold and quiet: and does not say it twice',
-    await p.evaluate(() => document.getElementById('track-song').textContent) === 'nothing caught yet');
-  check('cold and quiet: no link to a track nobody picked',
-    await p.evaluate(() => document.getElementById('music-link').hidden));
-  await p.close();
-
   /* Anilist. This is the one upstream nobody here can reach, so every
      shape it might answer with is forced rather than assumed. */
   const media = (over = {}) => ({
@@ -348,18 +306,56 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
 
   p = await open({ '**/graphql.anilist.co/**': r => r.abort(), '**/api.github.com/**': r => r.abort() });
   await p.waitForTimeout(2000);
-  check('anilist dead: the panel stays hidden', await p.evaluate(() => document.getElementById('likes').hidden));
+  check('anilist dead: the authored shelf remains',
+    await (async () => { const state = await favouriteState(p); return !state.hidden && state.source === 'authored' && state.count === 3; })());
+  await p.close();
+
+  p = await b.newPage({ viewport: { width: 1340, height: 900 } });
+  await p.addInitScript(seen);
+  await blockLanyardSocket(p);
+  p.on('pageerror', e => fails.push('pageerror(authored favourites): ' + e.message));
+  await p.route('**/api.lanyard.rest/**', r => r.abort());
+  await p.route('**/graphql.anilist.co/**', r => r.abort());
+  await p.route('**/index.html', async r => {
+    const response = await r.fetch();
+    const html = (await response.text()).replace(
+      /(<ul class="like-list" id="like-list">)[\s\S]*?(<\/ul>)/,
+      '$1$2'
+    );
+    await r.fulfill({ response, body: html });
+  });
+  await p.goto(BASE + '/index.html');
+  await p.waitForTimeout(2000);
+  const authored = await p.evaluate(() => ({
+    source: document.getElementById('likes').dataset.source,
+    rows: [...document.querySelectorAll('#like-list li')].map(row => ({
+      fallback: row.dataset.fallback,
+      title: row.querySelector('.like-name')?.textContent.trim(),
+      meta: row.querySelector('.like-meta')?.textContent.replace(/\s+/g, ' ').trim(),
+      linked: !!row.querySelector('.like-name a'),
+      cover: !!row.querySelector('.cover img[src]')
+    }))
+  }));
+  check('script restores the three authored favourites when markup is empty',
+    authored.source === 'authored' &&
+      JSON.stringify(authored.rows.map(row => row.title)) ===
+        '["Jujutsu Kaisen","The God of High School","One Piece"]' &&
+      authored.rows.every(row => row.fallback === 'true'), JSON.stringify(authored));
+  check('the authored fallback only states title and format',
+    JSON.stringify(authored.rows.map(row => row.meta)) === '["manga","manhwa","manga"]' &&
+      authored.rows.every(row => !row.linked && !row.cover), JSON.stringify(authored));
   await p.close();
 
   p = await open({ '**/graphql.anilist.co/**': anilist({ errors: [{ message: 'nope' }] }) });
   await p.waitForTimeout(1800);
-  check('anilist errors: the panel stays hidden', await p.evaluate(() => document.getElementById('likes').hidden));
+  check('anilist errors: the authored shelf remains',
+    await (async () => { const state = await favouriteState(p); return !state.hidden && state.source === 'authored' && state.count === 3; })());
   await p.close();
 
   p = await open({ '**/graphql.anilist.co/**': anilist({ data: { jjk_book: page(), gohs_book: page(), op_book: page() } }) });
   await p.waitForTimeout(1800);
-  check('anilist finds none of them: the panel stays hidden',
-    await p.evaluate(() => document.getElementById('likes').hidden));
+  check('anilist finds none of them: the authored shelf remains',
+    await (async () => { const state = await favouriteState(p); return !state.hidden && state.source === 'authored' && state.count === 3; })());
   await p.close();
 
   // one of the three missing is still worth showing
@@ -465,15 +461,15 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   check('an adaptation that matches says how much of it there is',
     /1140 episodes/i.test(await p.evaluate(() => document.querySelector('.like-text').textContent)),
     await p.evaluate(() => document.querySelector('.like-text').textContent.replace(/\s+/g, ' ')));
-  check('a card without the book is not a card',
+  check('a screen-only answer does not replace the authored shelf',
     await (async () => {
       const q = await open({ '**/graphql.anilist.co/**': anilist({ data: {
         op_screen: page(media({ title: { romaji: 'One Piece' }, episodes: 1140 }))
       } }) });
       await q.waitForTimeout(1600);
-      const hidden = await q.evaluate(() => document.getElementById('likes').hidden);
+      const state = await favouriteState(q);
       await q.close();
-      return hidden;
+      return !state.hidden && state.source === 'authored' && state.count === 3;
     })());
   await p.close();
 
@@ -538,6 +534,9 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   await p.waitForTimeout(1800);
   check('the books arrive', await p.evaluate(() => document.querySelectorAll('#like-list li').length) === 3,
     String(await p.evaluate(() => document.querySelectorAll('#like-list li').length)));
+  check('the live answer replaces the authored shelf',
+    await p.evaluate(() => document.getElementById('likes').dataset.source === 'anilist' &&
+      document.querySelectorAll('#like-list [data-fallback]').length === 0));
 
   // and now anilist takes its time about answering
   await p.unroute('**/graphql.anilist.co/**');
@@ -549,7 +548,8 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   await p.waitForTimeout(800);
   check('a reload has them before anilist has answered',
     await p.evaluate(() => document.querySelectorAll('#like-list li').length) === 3 &&
-    !(await p.evaluate(() => document.getElementById('likes').hidden)),
+    !(await p.evaluate(() => document.getElementById('likes').hidden)) &&
+    await p.evaluate(() => document.getElementById('likes').dataset.source === 'cache'),
     String(await p.evaluate(() => document.querySelectorAll('#like-list li').length)));
 
   /* Junk on the shelf is a card built out of something that is not a
@@ -564,8 +564,8 @@ const MANY = Array.from({ length: 20 }, (_, i) => ({
   // and it goes with the tab, like everything else here
   p = await open({ '**/graphql.anilist.co/**': r => r.abort() });
   await p.waitForTimeout(1800);
-  check('a new tab with anilist dead knows of no books',
-    await p.evaluate(() => document.getElementById('likes').hidden));
+  check('a new tab with anilist dead keeps the authored shelf',
+    await (async () => { const state = await favouriteState(p); return !state.hidden && state.source === 'authored' && state.count === 3; })());
   await p.close();
 
   // a title long enough to be a paragraph
