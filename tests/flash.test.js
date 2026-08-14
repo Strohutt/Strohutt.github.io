@@ -1,10 +1,8 @@
 const BASE = `http://localhost:${process.env.PORT || 8899}`;
-const { chromium, devices } = require('playwright');
+const { devices } = require('playwright');
+const { launchBrowser } = require('./browser');
 
-/* A hardcoded point is a point that quietly starts landing on a control
-   the moment anything reflows — and then every timing check fails at once
-   for a reason that has nothing to do with timing. It is looked up on the
-   page in front of us instead. */
+/* Resolve targets after layout settles. */
 let AT = [710, 610];
 
 /* A point with nothing on it that takes a click.
@@ -147,7 +145,7 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
 });
 
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  const b = await launchBrowser();
 
   /* The barrier goes up on the first page of a session and covers
      everything for a second and three quarters. These checks are about
@@ -384,9 +382,7 @@ const landKey = p => p.evaluate(() => new Promise((done, fail) => {
   check('a fresh page still shows twelve slots', nowScore.slots === 12, String(nowScore.slots));
   await p.close();
 
-  // ── the wheel, taken hold of and thrown. Wide enough that the whole
-  // control is on screen — below 60rem it is pushed most of the way off
-  // the right edge on purpose, and there is nothing there to grab.
+  // ── the wheel, taken hold of and thrown from its fixed hub.
   p = await fresh({ viewport: { width: 1340, height: 900 } });
   // opening the page leaves it down at the field; the wheel is in the header
   await p.evaluate(() => scrollTo(0, 0));

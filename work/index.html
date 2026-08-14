@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08080b">
+  <meta name="description" content="EntdeckerWerkStadt by Strohut: a bilingual public website, a protected editor and the reviewed Steinwanderer map.">
+  <link rel="canonical" href="https://strohutt.github.io/work/">
+  <meta property="og:title" content="Work — Strohut">
+  <meta property="og:description" content="A bilingual public website, protected publishing tools and a reviewed map for travelling stones.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://strohutt.github.io/work/">
+  <meta property="og:image" content="https://strohutt.github.io/assets/work/entdeckerwerkstadt-desktop-dark.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="833">
+  <meta property="og:image:alt" content="The EntdeckerWerkStadt homepage in dark mode.">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>Work — Strohut</title>
+
+  <link rel="icon" href="../favicon.svg?v=73" type="image/svg+xml">
+  <link rel="preload" href="../fonts/shippori-mincho-b1-800-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/zen-kaku-gothic-new-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../fonts.css?v=73">
+  <link rel="stylesheet" href="work.css?v=73">
+</head>
+<body>
+  <a class="skip" href="#main">skip to the work</a>
+
+  <header class="masthead">
+    <a class="back" href="../"><span aria-hidden="true">←</span> front page</a>
+    <p>STROHUT <i aria-hidden="true"></i> WORK</p>
+  </header>
+
+  <main id="main">
+    <section class="case-hero" id="entdeckerwerkstadt" aria-labelledby="case-title">
+      <img class="wheel-mark" src="../favicon.svg" width="512" height="512" alt="" aria-hidden="true">
+      <div class="case-title">
+        <p class="eyebrow">2026 <span>·</span> website &amp; editor</p>
+        <h1 id="case-title">Entdecker<br><em>WerkStadt</em></h1>
+      </div>
+      <div class="case-intro">
+        <p class="lede">The Förderverein needed a public site it could keep current without calling a developer for every change.</p>
+        <p>I built the bilingual pages, protected editor and Steinwanderer review flow that let the team publish and moderate its own content.</p>
+        <nav class="case-links" aria-label="EntdeckerWerkStadt links">
+          <a href="https://fv.entdeckerwerkstadt.de/" target="_blank" rel="noopener noreferrer">visit the live site</a>
+          <a href="#evidence">view the build</a>
+          <a href="#steinwanderer">trace the Steinwanderer flow</a>
+        </nav>
+      </div>
+    </section>
+
+    <section class="evidence" id="evidence" aria-labelledby="evidence-title">
+      <header class="section-head">
+        <p>public website <span>13 Aug 2026</span></p>
+        <h2 id="evidence-title">Built for visitors.<br>Run by the team.</h2>
+      </header>
+
+      <figure class="capture">
+        <picture>
+          <source media="(max-width: 38rem)" srcset="../assets/work/entdeckerwerkstadt-mobile-dark.jpg" width="390" height="844">
+          <img src="../assets/work/entdeckerwerkstadt-desktop-dark.jpg" width="1200" height="833" loading="eager" decoding="async" alt="The EntdeckerWerkStadt homepage in dark mode, with a large serif headline and colourful hand mark.">
+        </picture>
+        <figcaption>Public homepage in dark mode, 13 August 2026.</figcaption>
+      </figure>
+
+      <div class="case-ledger">
+        <article>
+          <p class="ledger-no">01 / public</p>
+          <h3>Website</h3>
+          <p>German and English pages for news, events, projects, contact and Steinwanderer.</p>
+        </article>
+        <article>
+          <p class="ledger-no">02 / private</p>
+          <h3>Editor</h3>
+          <p>The team writes pages and reviews map submissions behind sign-in.</p>
+        </article>
+        <article>
+          <p class="ledger-no">03 / system</p>
+          <h3>Shared renderer</h3>
+          <p>Next.js and TypeScript, with the same safe rich-text renderer in the editor and on public pages.</p>
+        </article>
+      </div>
+
+      <div class="capture-pair" role="group" aria-label="Additional EntdeckerWerkStadt views">
+        <figure class="proof-shot">
+          <img src="../assets/work/foerderverein-news-desktop.png" width="1440" height="900" loading="lazy" decoding="async" alt="The EntdeckerWerkStadt news index in dark mode, with the latest article and further posts.">
+          <figcaption>News index — published through the protected editor.</figcaption>
+        </figure>
+        <figure class="proof-shot proof-shot-tall">
+          <img src="../assets/work/foerderverein-steinwanderer-entry-mobile.png" width="390" height="844" loading="lazy" decoding="async" alt="The mobile Steinwanderer entry form with fields for a title, story and photos.">
+          <figcaption>Steinwanderer entry — the public side of the reviewed submission flow.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="story-flow" id="steinwanderer" aria-labelledby="flow-title">
+      <header class="flow-head">
+        <div>
+          <p class="flow-kicker">Steinwanderer / moderation</p>
+        </div>
+        <div>
+          <h2 id="flow-title">A stone story,<br><em>private until review.</em></h2>
+          <p class="flow-lede">Visitors add a travelling stone to the Saxony map with its story, location and up to three photos. The submission stays private until the team approves it.</p>
+        </div>
+      </header>
+
+      <ol class="flow-track" aria-label="Steinwanderer publishing flow">
+        <li>
+          <p class="flow-stage">01</p>
+          <h3>Tell the story</h3>
+          <p>Title, story, location and one to three photos arrive with consent and image rights confirmed.</p>
+        </li>
+        <li>
+          <p class="flow-stage">02</p>
+          <h3>Keep it private</h3>
+          <p>Every submission starts pending. Its images stay unavailable to anonymous visitors and private in the editor.</p>
+        </li>
+        <li>
+          <p class="flow-stage">03</p>
+          <h3>Check the place</h3>
+          <p>The protected dashboard brings the gallery, submitted location and a visual map check together for approval or rejection.</p>
+        </li>
+        <li>
+          <p class="flow-stage">04</p>
+          <h3>Open the map</h3>
+          <p>Only approved stones and images reach the public map and stories. Approval and rejection are recorded in the moderation history.</p>
+        </li>
+      </ol>
+
+      <p class="flow-boundary"><span>nothing public before approval</span> Once approved, the story and its photos appear on the map.</p>
+    </section>
+
+    <section class="on-desk" aria-labelledby="desk-title">
+      <header class="section-head compact">
+        <p>in progress</p>
+        <h2 id="desk-title">On the<br>workbench.</h2>
+      </header>
+
+      <div class="desk-list">
+        <article>
+          <p class="status"><span aria-hidden="true"></span> active WIP</p>
+          <h3>Sonitor</h3>
+          <p>A mobile-first fishing PWA. I have built the Harbor shell, catch flow and loadout; the full fishing loop and final visual pass are still unfinished.</p>
+        </article>
+        <article>
+          <p class="status"><span aria-hidden="true"></span> under revision</p>
+          <h3>Centauri</h3>
+          <p>My local control plane, with Proxima as its second brain. Project views, monitoring and a knowledge map exist; Proxima's retrieval and the surrounding interface are still being rebuilt.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="work-foot">
+    <p>Enough work. The rest of the page is still personal.</p>
+    <a href="../">back to the front</a>
+  </footer>
+</body>
+</html>

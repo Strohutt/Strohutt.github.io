@@ -1,5 +1,5 @@
 const BASE = `http://localhost:${process.env.PORT || 8899}`;
-const { chromium } = require('playwright');
+const { launchBrowser } = require('./browser');
 const path = require('node:path');
 const fs = require('node:fs');
 
@@ -10,12 +10,9 @@ const fails = [];
 const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? '  — ' + d : '')); if (!ok) fails.push(n); };
 
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  const b = await launchBrowser();
 
-  /* The barrier goes up on the first page of a session and covers
-     everything for a second and three quarters. These checks are about
-     what is underneath it, so they arrive having already seen it — the
-     same as mocking an upstream. The intro has its own checks. */
+  /* Skip the separately tested arrival barrier. */
   const seen = () => { try { sessionStorage.setItem('strohut-seen', '1'); } catch { /* nothing to do */ } };
   const over = p => p.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
 
@@ -34,7 +31,44 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   p.on('pageerror', e => fails.push('280 pageerror: ' + e.message));
   await p.goto(BASE + '/index.html'); await p.waitForTimeout(1200);
   check('280px does not scroll sideways', !(await over(p)));
+  check('280px keeps the fixed compass off the copy', await p.evaluate(() => getComputedStyle(document.getElementById('pose')).display === 'none'));
   await p.screenshot({ path: path.join(OUT, 'w280.png'), fullPage: true });
+  await p.close();
+
+  for (const width of [320, 390]) {
+    p = await b.newPage({ viewport: { width, height: 844 }, isMobile: true, hasTouch: true });
+    await p.addInitScript(seen);
+    await p.goto(BASE + '/index.html');
+    await p.waitForTimeout(900);
+    const overlap = await p.evaluate(() => {
+      const a = document.querySelector('.hero .sub').getBoundingClientRect();
+      const b = document.querySelector('.hero .wheel').getBoundingClientRect();
+      return Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) *
+        Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+    });
+    check(`${width}px keeps the wheel clear of the intro copy`, overlap === 0, String(Math.round(overlap)));
+    await p.close();
+  }
+
+  p = await b.newPage({ viewport: { width: 1340, height: 900 } });
+  await p.addInitScript(seen);
+  await p.goto(BASE + '/index.html');
+  await p.waitForTimeout(700);
+  check('a laptop without an outer gutter hides the fixed compass',
+    await p.evaluate(() => getComputedStyle(document.getElementById('pose')).display === 'none'));
+  await p.close();
+
+  p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+  await p.addInitScript(seen);
+  await p.goto(BASE + '/index.html');
+  await p.waitForTimeout(700);
+  const poseGap = await p.evaluate(() => {
+    const pose = document.getElementById('pose').getBoundingClientRect();
+    const spread = document.querySelector('.spread').getBoundingClientRect();
+    return { shown: getComputedStyle(document.getElementById('pose')).display !== 'none', right: pose.right, content: spread.left };
+  });
+  check('the fixed compass returns only when a real gutter exists',
+    poseGap.shown && poseGap.right <= poseGap.content + 1, JSON.stringify(poseGap));
   await p.close();
 
   // ── someone has set their browser text to 200%

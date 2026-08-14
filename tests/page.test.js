@@ -1,13 +1,12 @@
-/* The page as a browser sees it: what is reachable, what reacts, what
-   overflows, and what a screen reader is handed. */
+/* Browser behavior. */
 const BASE = `http://localhost:${process.env.PORT || 8899}`;
-const { chromium } = require('playwright');
+const { launchBrowser, blockLanyardSocket } = require('./browser');
 
 const fails = [];
 const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? '  — ' + d : '')); if (!ok) fails.push(n); };
 
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  const b = await launchBrowser();
 
   /* The barrier goes up on the first page of a session and covers
      everything for a second and three quarters. These checks are about
@@ -45,7 +44,8 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   /* What does stay is the heading and the sentence under it: they
      describe a thing this page does when it is allowed to run, which is
      worth reading either way. */
-  const kept = await drawn('.score .head') && await drawn('.traced-list');
+  const kept = await drawn('.score .head') && await drawn('.traced-list') &&
+    await drawn('#work') && await drawn('.work-shot');
   await nojs.close();
 
   check('no js: nothing is stuck invisible', !hiddenNoJs.length, hiddenNoJs.join(' | '));
@@ -53,8 +53,9 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   check('no js: nothing dead is offered', !offered.length, offered.join(' | '));
   check('no js: the chapters that can be read still are', kept);
 
-  const p = await b.newPage({ viewport: { width: 1340, height: 900 } });
+  const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
   await p.addInitScript(seen);
+  await blockLanyardSocket(p);
   p.on('pageerror', e => errs.push('page: ' + e.message));
   p.on('console', m => m.type() === 'error' && /attribute|Uncaught/.test(m.text()) && errs.push('con: ' + m.text()));
 
@@ -78,9 +79,9 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
     op_screen: { media: [{ title: { romaji: 'One Piece' }, episodes: 1140, status: 'RELEASING', genres: ['Adventure'] }] }
   } })));
 
-  /* And the presence, for the same reason: the two live regions are half
-     the page's boxes and a layout checked without them is a layout with
-     two holes where its widest content goes. */
+  /* And the presence, for the same reason: a layout checked without its
+     widest live content is a layout nobody checked. The work chapter is
+     authored in the page and needs no upstream to stand. */
   const now = Date.now();
   await p.route('**/api.lanyard.rest/**', r => r.fulfill(json({ success: true, data: {
     discord_user: { id: '402858450926829568', username: 'strohut', display_name: 'Strohut' },
@@ -104,6 +105,21 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
     String(await p.evaluate(() => document.querySelectorAll('#dc-doing li').length)));
   check('the favourites fill',await p.evaluate(() => document.querySelectorAll('#like-list li').length) === 3,
     String(await p.evaluate(() => document.querySelectorAll('#like-list li').length)));
+  check('the live favourites replace the authored fallback',
+    await p.evaluate(() => document.getElementById('likes').dataset.source === 'anilist' &&
+      document.querySelectorAll('#like-list [data-fallback]').length === 0));
+  const chapters = await p.evaluate(() => {
+    const now = document.getElementById('now');
+    const work = document.getElementById('work');
+    const likes = document.getElementById('likes');
+    const follows = (a, b) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    return {
+      inOrder: Boolean(now && work && likes && follows(now, work) && follows(work, likes)),
+      music: Boolean(document.querySelector('#music, .music, [id^="track-"]'))
+    };
+  });
+  check('work is chapter two between right now and favourites', chapters.inOrder);
+  check('the old music chapter is gone', !chapters.music);
   check('each card says what was made of it too',
     await p.evaluate(() => document.querySelectorAll('#like-list li').length) ===
     await p.evaluate(() => [...document.querySelectorAll('#like-list li')].filter(l => /episodes/i.test(l.textContent)).length));
@@ -144,7 +160,7 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
     });
     if (over.length) cut.push(`${w}: ${over.join(' ')}`);
   }
-  await p.setViewportSize({ width: 1340, height: 900 });
+  await p.setViewportSize({ width: 1440, height: 900 });
   check('nothing is clipped off the right edge', !cut.length, cut.join(' | '));
 
   /* Every hit target has to actually do something. Measuring that the
@@ -165,6 +181,39 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
     const r = el.getBoundingClientRect();
     return `${Math.round(r.left)},${Math.round(r.top)},${getComputedStyle(el).transform}`;
   };
+
+  const wheelGeometry = [];
+  const wheelClicks = [];
+  for (const width of [320, 390, 960, 1340, 1440, 1920, 2560]) {
+    await p.setViewportSize({ width, height: 900 });
+    await p.waitForTimeout(100);
+    const geometry = await p.evaluate(() => {
+      const wheel = document.querySelector('.wheel').getBoundingClientRect();
+      const hit = document.querySelector('.sigil').getBoundingClientRect();
+      const centre = rect => ({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+      const a = centre(wheel);
+      const b = centre(hit);
+      return {
+        dx: Math.abs(a.x - b.x),
+        dy: Math.abs(a.y - b.y),
+        adapt: parseInt(getComputedStyle(document.querySelector('.wheel')).getPropertyValue('--adapt'), 10) || 0
+      };
+    });
+    wheelGeometry.push({ width, ...geometry });
+
+    if (width === 320 || width === 2560) {
+      await p.click('#wheel-hit');
+      await p.waitForTimeout(500);
+      const after = await p.evaluate(() =>
+        parseInt(getComputedStyle(document.querySelector('.wheel')).getPropertyValue('--adapt'), 10) || 0);
+      wheelClicks.push({ width, before: geometry.adapt, after });
+    }
+  }
+  check('the wheel target stays on its hub at every layout width',
+    wheelGeometry.every(reading => reading.dx <= 1 && reading.dy <= 1), JSON.stringify(wheelGeometry));
+  check('the wheel target works at both layout extremes',
+    wheelClicks.every(reading => reading.after > reading.before), JSON.stringify(wheelClicks));
+  await p.setViewportSize({ width: 1440, height: 900 });
 
   for (const [id, probe, arg] of [
     ['wheel-hit', () => getComputedStyle(document.querySelector('.wheel')).getPropertyValue('--adapt').trim()],
@@ -341,6 +390,8 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   await p.evaluate(() => scrollTo(0, 900));
   await p.waitForTimeout(600);
   const along = await poseOf();
+  check('and scrolling does not make its label cover the page',
+    await p.evaluate(() => getComputedStyle(document.querySelector('.pose-text')).opacity === '0'));
   check('and it locks onto the next one as the page goes by',
     along.name !== top.name || along.ndl !== top.ndl, `${top.name}@${top.ndl} → ${along.name}@${along.ndl}`);
 
@@ -514,7 +565,7 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
      anywhere, and a chapter added to the page is a mark added to the
      bezel without anybody touching this. */
   const regions = await p.evaluate(() =>
-    ['.now', '.music', '.likes', '.score', '.traced', '.bounty', '.foot']
+    ['.now', '.work', '.likes', '.score', '.traced', '.bounty', '.foot']
       .filter(s => { const el = document.querySelector(s); return el && !el.hidden && el.offsetParent !== null; }).length);
   check('the pose records the islands it has been past', warmSeen > coldSeen && warmSeen === regions,
     `${coldSeen} → ${warmSeen}`);
@@ -543,7 +594,7 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
        aimed at it must not be catching a tall phone as well */
     await f.setViewportSize({ width: 390, height: 844 });
     await f.waitForTimeout(500);
-    check('and standing up it is back', await drawn('.pose'));
+    check('and standing up it stays off the copy', !(await drawn('.pose')));
     await flat.close();
   }
 
@@ -575,23 +626,11 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
   });
   check('and never further than the gutter they lean in', wander <= 20, `${wander}px`);
 
-  /* And the line under the record is a line of text, not something to be
+  /* There is no line under the record left to be
      drawn over — the point where that came apart. On a phone, where the
      regions stack and the gutters are at their narrowest. */
-  await p.setViewportSize({ width: 390, height: 844 });
-  await p.waitForTimeout(300);
-  const covered = await p.evaluate(async () => {
-    const t = document.getElementById('track-time');
-    if (!t || t.hidden) return 'no readout';
-    t.scrollIntoView({ block: 'center' });
-    await new Promise(r => setTimeout(r, 200));
-    const b = t.getBoundingClientRect();
-    const hit = document.elementFromPoint(b.left + 8, b.bottom - 4);
-    return hit === t ? '' : (hit ? hit.tagName : 'nothing');
-  });
-  check('nothing is drawn over the time under the record', !covered, covered);
-  await p.setViewportSize({ width: 1340, height: 900 });
-  await p.evaluate(() => scrollTo(0, 0));
+  const recordGone = await p.evaluate(() => !document.querySelector('[id^="track-"], #music, .music'));
+  check('the record readout leaves with the music chapter', recordGone);
 
   // keyboard: can you tab to them
   const focusable = await p.evaluate(() =>
@@ -641,23 +680,21 @@ const check = (n, ok, d) => { console.log((ok ? 'ok   ' : 'FAIL ') + n + (d ? ' 
     kind: document.querySelector('.doing-what')?.textContent,
     lines: [...document.querySelectorAll('.doing-line')].map(e => e.textContent),
     where: document.getElementById('dc-where').textContent,
-    album: document.getElementById('track-album').textContent,
-    clock: document.getElementById('track-time').textContent
+    quiet: document.getElementById('dc-quiet').textContent
   }));
   check('an activity says what kind it is', rich.kind === 'playing', rich.kind);
   check("an activity shows the game's own two lines",
     rich.lines.includes('a detail line') && rich.lines.some(l => l.includes('a state line')), rich.lines.join(' | '));
   check('the party size is folded in', rich.lines.some(l => l.includes('2 of 5')), rich.lines.join(' | '));
   check('the readout says which machine he is at', rich.where === 'desktop and phone', rich.where);
-  check('the track names its album', rich.album === 'an album', rich.album);
-  check('the track counts in minutes and seconds', /^\d+:\d\d \/ \d+:\d\d$/.test(rich.clock), rich.clock);
+  check('the quiet state says what Discord actually supplied', /no (?:game or app )?activity shared/.test(rich.quiet), rich.quiet);
 
   // what a screen reader is told, and what it is spared
   const a11y = await p.evaluate(() => ({
     lang: document.documentElement.lang,
     skip: !!document.querySelector('.skip'),
     live: [...document.querySelectorAll('[aria-live="polite"]')].map(e => e.className),
-    tickingInLive: [...document.querySelectorAll('.doing-time, #track-fill')]
+    tickingInLive: [...document.querySelectorAll('.doing-time')]
       .filter(e => e.closest('[aria-live="polite"]')).length,
     // aria-hidden covers a whole subtree, so a drawing inside a hidden
     // wrapper does not need to say so again
