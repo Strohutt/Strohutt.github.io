@@ -1789,6 +1789,10 @@ svg.band {
   align-items: center;
 }
 
+.work > .head {
+  margin-bottom: clamp(2rem, 4vw, 3.5rem);
+}
+
 .work-shot {
   position: relative;
   display: block;
@@ -1828,7 +1832,7 @@ svg.band {
 
 .work-copy {
   position: relative;
-  padding: 1.2rem clamp(1.2rem, 3vw, 2rem) .25rem;
+  padding: clamp(1.6rem, 3vw, 2.35rem) clamp(1.2rem, 3vw, 2rem);
   border-left: var(--rule) solid var(--blood);
 }
 
@@ -1868,7 +1872,8 @@ svg.band {
 .work-copy h3 {
   font-size: clamp(2.5rem, 4.6vw, 4.2rem);
   letter-spacing: -.055em;
-  line-height: .78;
+  line-height: .88;
+  text-wrap: balance;
 }
 
 .work-copy h3 em {
@@ -1878,7 +1883,7 @@ svg.band {
 
 .work-copy > p:not(.work-status) {
   max-width: 31rem;
-  margin: 1.3rem 0 1rem;
+  margin: clamp(1.55rem, 2.5vw, 2rem) 0 1.15rem;
   color: var(--paper-2);
 }
 

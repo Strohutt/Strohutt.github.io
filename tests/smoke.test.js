@@ -58,6 +58,22 @@ async function inspectHome(browser, viewport, mobile = false) {
     return title.left >= column.left - 1 && title.right <= column.right + 1;
   });
   check(`${viewport.width}px work title stays inside its column`, workTitleFits);
+  const workRhythm = await page.locator('#work').evaluate(section => {
+    const head = section.querySelector(':scope > .head').getBoundingClientRect();
+    const lead = section.querySelector('.work-lead').getBoundingClientRect();
+    const title = section.querySelector('.work-copy h3');
+    const titleStyle = getComputedStyle(title);
+    const summary = section.querySelector('.work-copy > p:not(.work-status)').getBoundingClientRect();
+    const titleBox = title.getBoundingClientRect();
+    return {
+      headGap: lead.top - head.bottom,
+      lineRatio: Number.parseFloat(titleStyle.lineHeight) / Number.parseFloat(titleStyle.fontSize),
+      summaryGap: summary.top - titleBox.bottom
+    };
+  });
+  check(`${viewport.width}px work section keeps deliberate breathing room`,
+    workRhythm.headGap >= 28 && workRhythm.lineRatio >= .86 && workRhythm.summaryGap >= 20,
+    JSON.stringify(workRhythm));
   await page.locator('#work').screenshot({
     path: path.join(__dirname, 'out', `home-work-${viewport.width}.png`)
   });
