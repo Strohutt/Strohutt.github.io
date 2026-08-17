@@ -15,7 +15,7 @@ The site is plain HTML, CSS and JavaScript. There is no framework or frontend bu
 - `index.html` — homepage markup and inline SVG drawings
 - `styles.css` — shared composition, motion and accessibility modes
 - `script.js` — presence, AniList data, reveals and page interactions
-- `flash.js` — Black Flash, Domain Expansion, wheel and Yeoui
+- `flash.js` — Black Flash, Domain Expansion, wheel and 404 behaviour
 - `work/index.html`, `work/work.css` — dedicated work page
 - `assets/work/` — screenshots from running project builds
 - `fonts.css`, `fonts/` — self-hosted type
@@ -48,6 +48,6 @@ npm install
 npm test
 ```
 
-The runner starts a local server and executes source, page, work, motion, curtain, flash, upstream, limits and reach. They cover narrow screens, keyboard use, reduced motion, high contrast, offline failure and interactive drawings.
+The runner keeps three release gates: source integrity, desktop/mobile smoke journeys and the Lanyard/AniList fallbacks. It also writes local review captures to `tests/out/`.
 
 When a versioned CSS or JavaScript asset changes, bump its `?v=` value on every page that loads it.
